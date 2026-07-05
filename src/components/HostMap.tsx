@@ -111,6 +111,7 @@ export function HostMap({
   const mapNodeRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [mapInstanceKey, setMapInstanceKey] = useState(0);
   const [isGlobeDragging, setIsGlobeDragging] = useState(false);
   const countryMarkerRefs = useRef<Marker[]>([]);
   const extrusionLayersAddedRef = useRef(false);
@@ -456,6 +457,7 @@ export function HostMap({
       map.on("load", setupMapLayers);
 
       mapRef.current = map;
+      setMapInstanceKey((key) => key + 1);
       setIsMapReady(true);
 
     }
@@ -520,18 +522,13 @@ export function HostMap({
       });
     }
 
-    if (map.loaded() || map.isStyleLoaded()) {
-      syncCountryMarkers();
-    } else {
-      map.once("load", syncCountryMarkers);
-    }
+    syncCountryMarkers();
 
     return () => {
       isCancelled = true;
-      map.off("load", syncCountryMarkers);
       removeCountryMarkers();
     };
-  }, [countryMarkers, isMapReady, mode]);
+  }, [countryMarkers, isMapReady, mapInstanceKey, mode]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -569,7 +566,7 @@ export function HostMap({
       window.clearTimeout(timerId);
       window.cancelAnimationFrame(frameId);
     };
-  }, [enableWorldSpin, isMapReady, mode]);
+  }, [enableWorldSpin, isMapReady, mapInstanceKey, mode]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -580,7 +577,7 @@ export function HostMap({
     } else {
       map.dragPan.enable();
     }
-  }, [isMapReady, mode]);
+  }, [isMapReady, mapInstanceKey, mode]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -667,7 +664,7 @@ export function HostMap({
       canvas.removeEventListener("pointercancel", handlePointerEnd);
       canvas.removeEventListener("lostpointercapture", handlePointerEnd);
     };
-  }, [isMapReady]);
+  }, [isMapReady, mapInstanceKey]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -891,7 +888,7 @@ export function HostMap({
       duration: 1300,
       essential: true
     });
-  }, [focusVenueId, focusedCoordinates, focusedRouteProgress, mapView, mode, progress, routeCoordinates, showHostMarker, tournamentName, venues, worldFlightCoordinates]);
+  }, [focusVenueId, focusedCoordinates, focusedRouteProgress, mapInstanceKey, mapView, mode, progress, routeCoordinates, showHostMarker, tournamentName, venues, worldFlightCoordinates]);
 
   return (
     <section className="tour-map" aria-label="Host map">

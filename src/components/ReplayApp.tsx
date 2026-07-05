@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CalendarDays, Clapperboard, Globe2, MapPin, Pause, Play, RotateCcw, Settings, SkipForward, Trophy, Users, X } from "lucide-react";
+import { CalendarDays, Clapperboard, Globe2, Pause, Play, RotateCcw, Settings, SkipForward, Trophy, Users, X } from "lucide-react";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { teamColors, teamFlags, teamNames, tournaments } from "@/data/tournaments";
 import { HostMap } from "@/components/HostMap";
@@ -467,6 +467,7 @@ export function ReplayApp() {
     setFixtureStageFilter("all");
     setMapMode("world");
     setIsMatchOpen(false);
+    setShowCountryFlags(true);
     setShowLandingConfetti(false);
     setRouteTravelProgress(0);
     routeTravelProgressRef.current = 0;
@@ -654,42 +655,13 @@ export function ReplayApp() {
     setActiveTrayMenu("fixtures");
   }
 
-  const worldCupTournament = tournaments[0];
-  const tournamentShelves = [
-    {
-      title: "World Cup",
-      cards: [
-        {
-          title: worldCupTournament.name,
-          meta: "Open tournament, then choose a participating team",
-          badge: worldCupTournament.status === "partial" ? "Partial data" : `${worldCupTournament.matches.length} fixtures`,
-          disabled: false,
-          onSelect: () => selectTournament(0)
-        }
-      ]
-    },
-    {
-      title: "Euro",
-      cards: [{ title: "European classics", meta: "Archive loading", badge: "Soon", disabled: true, onSelect: undefined }]
-    },
-    {
-      title: "AFCON",
-      cards: [{ title: "African champions", meta: "Archive loading", badge: "Soon", disabled: true, onSelect: undefined }]
-    },
-    {
-      title: "Copa America",
-      cards: [{ title: "South American nights", meta: "Archive loading", badge: "Soon", disabled: true, onSelect: undefined }]
-    },
-    {
-      title: "Asian Cup",
-      cards: [{ title: "Asian Cup journeys", meta: "Archive loading", badge: "Soon", disabled: true, onSelect: undefined }]
-    }
-  ];
+  const worldCupTournamentOptions = tournaments
+    .map((worldCupTournament, index) => ({ tournament: worldCupTournament, index }))
+    .filter(({ tournament: worldCupTournament }) => worldCupTournament.competition === "WORLD_CUP");
 
   const isLibrary = railMode === "library";
   const isTournamentSetup = railMode === "tournamentSetup";
   const isRun = railMode === "run";
-  const isMapIntro = mapMode === "world" || mapMode === "flight" || !isRun;
   const fixtureStageFilters = [
     { label: "All", value: "all" },
     { label: "Group", value: "group" },
@@ -748,34 +720,29 @@ export function ReplayApp() {
               {/* <span className="app-mode-icon"><Trophy size={16} /></span> */}
               <strong>{tournament ? tournament.name : "Select tournament"}</strong>
               <span className="app-chevron" aria-hidden="true">
-                <svg width="16" height="16" fill="none" viewBox="0 0 16 16" className="text-fg-2 shrink-0 -ml-0.5" aria-label="Chevron Up Down" aria-hidden="true"><path d="M4 9.5L8 13.5L12 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 6.5L8 2.5L12 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+                  <path d="M4 9.5L8 13.5L12 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4 6.5L8 2.5L12 6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </span>
             </button>
             {isTournamentMenuOpen ? (
               <div className="nav-dropdown" role="menu">
                 <p className="nav-menu-kicker">Tournaments</p>
-                <button
-                  className={`nav-menu-row ${selectedTournamentIndex === 0 ? "active" : ""}`}
-                  onClick={() => selectTournamentFromNav(0)}
-                  role="menuitem"
-                  type="button"
-                >
-                  <span className="nav-row-icon"><Trophy size={17} /></span>
-                  <span className="nav-row-copy">
-                    <strong>{worldCupTournament.name}</strong>
-                    <small>{worldCupTournament.matches.length} fixtures · {worldCupTournament.teams.length} teams</small>
-                  </span>
-                  <span className="nav-row-pill">{worldCupTournament.status}</span>
-                </button>
-                <div className="nav-menu-divider" />
-                {tournamentShelves.slice(1).map((shelf) => (
-                  <button className="nav-menu-row" disabled key={shelf.title} role="menuitem" type="button">
-                    <span className="nav-row-icon"><Globe2 size={17} /></span>
+                {worldCupTournamentOptions.map(({ tournament: worldCupTournament, index }) => (
+                  <button
+                    className={`nav-menu-row ${selectedTournamentIndex === index ? "active" : ""}`}
+                    key={worldCupTournament.id}
+                    onClick={() => selectTournamentFromNav(index)}
+                    role="menuitem"
+                    type="button"
+                  >
+                    <span className="nav-row-icon"><Trophy size={17} /></span>
                     <span className="nav-row-copy">
-                      <strong>{shelf.title}</strong>
-                      <small>{shelf.cards[0]?.meta ?? "Archive loading"}</small>
+                      <strong>{worldCupTournament.name}</strong>
+                      <small>{worldCupTournament.matches.length} fixtures · {worldCupTournament.teams.length} teams</small>
                     </span>
-                    <span className="nav-row-pill">soon</span>
+                    <span className="nav-row-pill">{worldCupTournament.status}</span>
                   </button>
                 ))}
               </div>
@@ -800,31 +767,24 @@ export function ReplayApp() {
           <section className="tray-popover tray-tournament-popover" aria-label="Tournament selection">
             <div className="tray-header">
               <span>Tournaments</span>
-              <small>{tournamentShelves.length} collections</small>
+              <small>{worldCupTournamentOptions.length} World Cup{worldCupTournamentOptions.length === 1 ? "" : "s"}</small>
               <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
                 <X size={16} />
               </button>
             </div>
-            <button
-              className={`tray-tournament-row ${selectedTournamentIndex === 0 ? "active" : ""}`}
-              onClick={() => selectTournamentFromTray(0)}
-              type="button"
-            >
-              <span className="tray-row-icon"><Trophy size={18} /></span>
-              <span className="tray-row-copy">
-                <strong>{worldCupTournament.name}</strong>
-                <small>{worldCupTournament.matches.length} fixtures · {worldCupTournament.teams.length} countries · {worldCupTournament.year}</small>
-              </span>
-              <span className="tray-row-pill">{worldCupTournament.status}</span>
-            </button>
-            {tournamentShelves.slice(1).map((shelf) => (
-              <button className="tray-tournament-row" disabled key={shelf.title} type="button">
-                <span className="tray-row-icon"><Globe2 size={18} /></span>
+            {worldCupTournamentOptions.map(({ tournament: worldCupTournament, index }) => (
+              <button
+                className={`tray-tournament-row ${selectedTournamentIndex === index ? "active" : ""}`}
+                key={worldCupTournament.id}
+                onClick={() => selectTournamentFromTray(index)}
+                type="button"
+              >
+                <span className="tray-row-icon"><Trophy size={18} /></span>
                 <span className="tray-row-copy">
-                  <strong>{shelf.title}</strong>
-                  <small>{shelf.cards[0]?.meta ?? "Archive loading"}</small>
+                  <strong>{worldCupTournament.name}</strong>
+                  <small>{worldCupTournament.matches.length} fixtures · {worldCupTournament.teams.length} countries · {worldCupTournament.year}</small>
                 </span>
-                <span className="tray-row-pill">soon</span>
+                <span className="tray-row-pill">{worldCupTournament.status}</span>
               </button>
             ))}
           </section>
