@@ -1,0 +1,1100 @@
+"use client";
+
+import { ArrowLeft, CalendarDays, Clapperboard, Globe2, MapPin, Pause, Play, RotateCcw, Settings, SkipForward, Trophy, Users, X } from "lucide-react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { teamColors, teamFlags, teamNames, tournaments } from "@/data/tournaments";
+import { HostMap } from "@/components/HostMap";
+import { initialReplayState, replayReducer } from "@/lib/replay";
+import type { Coordinates, Match, ReplayEvent, TeamCode } from "@/lib/types";
+
+type MapMode = "world" | "flight" | "host" | "stadium";
+type RailMode = "library" | "tournamentSetup" | "run";
+type TrayMenu = "tournaments" | "teams" | "fixtures" | "replay" | "settings" | null;
+type FixtureStageFilter = "all" | Match["stage"];
+
+const teamStartCoordinates: Record<TeamCode, Coordinates> = {
+  ARG: [-58.3816, -34.6037],
+  BEL: [4.3517, 50.8503],
+  BRA: [-47.8825, -15.7942],
+  CMR: [11.5021, 3.848],
+  CHN: [116.4074, 39.9042],
+  CRO: [15.9819, 45.815],
+  CRC: [-84.0907, 9.9281],
+  DEN: [12.5683, 55.6761],
+  ECU: [-78.4678, -0.1807],
+  ENG: [-0.1276, 51.5072],
+  FRA: [2.3522, 48.8566],
+  GER: [13.405, 52.52],
+  IRL: [-6.2603, 53.3498],
+  ITA: [12.4964, 41.9028],
+  JPN: [139.6917, 35.6895],
+  KOR: [126.978, 37.5665],
+  KSA: [46.6753, 24.7136],
+  MEX: [-99.1332, 19.4326],
+  NGA: [7.3986, 9.0765],
+  PAR: [-57.5759, -25.2637],
+  POL: [21.0122, 52.2297],
+  POR: [-9.1393, 38.7223],
+  RSA: [28.2293, -25.7479],
+  RUS: [37.6173, 55.7558],
+  SEN: [-17.4677, 14.7167],
+  SVN: [14.5058, 46.0569],
+  ESP: [-3.7038, 40.4168],
+  SWE: [18.0686, 59.3293],
+  TUN: [10.1815, 36.8065],
+  TUR: [32.8597, 39.9334],
+  URU: [-56.1645, -34.9011],
+  USA: [-77.0369, 38.9072]
+};
+
+const groupAssignments: Record<TeamCode, string> = {
+  DEN: "A",
+  FRA: "A",
+  SEN: "A",
+  URU: "A",
+  PAR: "B",
+  RSA: "B",
+  SVN: "B",
+  ESP: "B",
+  BRA: "C",
+  CHN: "C",
+  CRC: "C",
+  TUR: "C",
+  KOR: "D",
+  POL: "D",
+  POR: "D",
+  USA: "D",
+  CMR: "E",
+  GER: "E",
+  IRL: "E",
+  KSA: "E",
+  ARG: "F",
+  ENG: "F",
+  NGA: "F",
+  SWE: "F",
+  BEL: "G",
+  JPN: "G",
+  RUS: "G",
+  TUN: "G",
+  CRO: "H",
+  ECU: "H",
+  ITA: "H",
+  MEX: "H"
+};
+
+const groupOrder = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const stageRank: Record<Match["stage"], number> = {
+  group: 0,
+  r16: 1,
+  qf: 2,
+  sf: 3,
+  third: 4,
+  final: 5
+};
+
+const DEFAULT_WORLD_MAP_VIEW = {
+  center: [31, 8],
+  zoom: 2.28,
+  bearing: 0,
+  pitch: 0
+} satisfies {
+  center: Coordinates;
+  zoom: number;
+  bearing: number;
+  pitch: number;
+};
+
+function TeamFlag({ code }: { code: Match["home"] }) {
+  return (
+    <span className="flag-icon-frame" style={{ backgroundColor: teamColors[code] }}>
+      <img alt={`${teamNames[code]} flag`} className="flag-icon" src={teamFlags[code]} />
+    </span>
+  );
+}
+
+function TeamBadge({ code }: { code: Match["home"] }) {
+  return (
+    <div className="team-badge">
+      <TeamFlag code={code} />
+      <span>{teamNames[code]}</span>
+    </div>
+  );
+}
+
+function formatClock(event: ReplayEvent | undefined, status: string) {
+  if (!event) return "Ready";
+  if (status === "break") return "Half-time";
+  if (status === "full_time") return "Full time";
+  return `${event.minute}'`;
+}
+
+function getStageLabel(stage: Match["stage"]) {
+  const labels: Record<Match["stage"], string> = {
+    group: "Group stage",
+    r16: "Round of 16",
+    qf: "Quarter-final",
+    sf: "Semi-final",
+    third: "Third place",
+    final: "Final"
+  };
+
+  return labels[stage];
+}
+
+function easeInOutCubic(progress: number) {
+  return progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+}
+
+function getPlayableEmbedUrl(embedUrl: string) {
+  const separator = embedUrl.includes("?") ? "&" : "?";
+  return `${embedUrl}${separator}enablejsapi=1&playsinline=1&rel=0`;
+}
+
+function formatFinalScore(match: Match) {
+  const baseScore = `${match.score.home}-${match.score.away}`;
+  return match.shootout ? `${baseScore} (${match.shootout.home}-${match.shootout.away} pens)` : baseScore;
+}
+
+function getTeamMatchResult(match: Match, teamCode: TeamCode) {
+  const isHome = match.home === teamCode;
+  const teamScore = isHome ? match.score.home : match.score.away;
+  const opponentScore = isHome ? match.score.away : match.score.home;
+
+  if (teamScore > opponentScore) return "W";
+  if (teamScore < opponentScore) return "L";
+  return "D";
+}
+
+function getTeamFinishLabel(teamCode: TeamCode, matches: Match[]) {
+  const lastMatch = matches.at(-1);
+  if (!lastMatch) return "No run";
+
+  if (lastMatch.stage === "final") {
+    return getTeamMatchResult(lastMatch, teamCode) === "W" ? "Champion" : "Runner-up";
+  }
+
+  if (lastMatch.stage === "third") {
+    return getTeamMatchResult(lastMatch, teamCode) === "W" ? "Third place" : "Fourth place";
+  }
+
+  const bestStage = matches.reduce((best, match) => (stageRank[match.stage] > stageRank[best] ? match.stage : best), matches[0].stage);
+  return getStageLabel(bestStage);
+}
+
+export function ReplayApp() {
+  const [selectedTournamentIndex, setSelectedTournamentIndex] = useState<number | null>(null);
+  const tournament = selectedTournamentIndex === null ? null : tournaments[selectedTournamentIndex] ?? null;
+  const mapView = tournament?.mapView ?? DEFAULT_WORLD_MAP_VIEW;
+  const [state, dispatch] = useReducer(replayReducer, initialReplayState);
+  const [railMode, setRailMode] = useState<RailMode>("library");
+  const [selectedTeam, setSelectedTeam] = useState<TeamCode | null>(null);
+  const [selectedMatchIndex, setSelectedMatchIndex] = useState<number | null>(null);
+  const match = tournament && selectedMatchIndex !== null ? tournament.matches[selectedMatchIndex] ?? null : null;
+  const [mapMode, setMapMode] = useState<MapMode>("world");
+  const [isMatchOpen, setIsMatchOpen] = useState(false);
+  const [isTournamentMenuOpen, setIsTournamentMenuOpen] = useState(false);
+  const [activeTrayMenu, setActiveTrayMenu] = useState<TrayMenu>(null);
+  const [fixtureStageFilter, setFixtureStageFilter] = useState<FixtureStageFilter>("all");
+  const [showLandingConfetti, setShowLandingConfetti] = useState(false);
+  const [showCountryFlags, setShowCountryFlags] = useState(true);
+  const [enableGlobeSpin, setEnableGlobeSpin] = useState(true);
+  const [selectedVenueId, setSelectedVenueId] = useState<string | undefined>(undefined);
+  const [routeTravelProgress, setRouteTravelProgress] = useState(0);
+  const [tournamentFlightProgress, setTournamentFlightProgress] = useState(0);
+  const routeTravelProgressRef = useRef(0);
+  const tournamentFlightProgressRef = useRef(0);
+  const landingTimerRef = useRef<number | null>(null);
+  const highlightFrameRef = useRef<HTMLIFrameElement | null>(null);
+
+  const currentEvent = match?.events[state.cursor];
+  const teamRunOptions = useMemo(
+    () => {
+      if (!tournament) return [];
+
+      return tournament.teams.map((teamCode) => {
+        const matches = tournament.matches
+          .map((runMatch, index) => ({ match: runMatch, index }))
+          .filter(({ match: runMatch }) => runMatch.home === teamCode || runMatch.away === teamCode);
+        const record = matches.reduce(
+          (totals, { match: runMatch }) => {
+            const result = getTeamMatchResult(runMatch, teamCode);
+            if (result === "W") totals.wins += 1;
+            if (result === "D") totals.draws += 1;
+            if (result === "L") totals.losses += 1;
+
+            return totals;
+          },
+          { wins: 0, draws: 0, losses: 0 }
+        );
+        const finishLabel = getTeamFinishLabel(teamCode, matches.map(({ match: runMatch }) => runMatch));
+
+        return {
+          teamCode,
+          matches,
+          group: groupAssignments[teamCode],
+          record,
+          finishLabel
+        };
+      });
+    },
+    [tournament]
+  );
+  const selectedRunEntries = useMemo(
+    () => {
+      if (!selectedTeam || !tournament) return [];
+
+      return tournament.matches
+        .map((runMatch, index) => ({ match: runMatch, index }))
+        .filter(({ match: runMatch }) => runMatch.home === selectedTeam || runMatch.away === selectedTeam);
+    },
+    [selectedTeam, tournament]
+  );
+  const fixtureBaseEntries = useMemo(
+    () =>
+      !tournament
+        ? []
+        : selectedTeam
+        ? selectedRunEntries
+        : tournament.matches.map((runMatch, index) => ({ match: runMatch, index })),
+    [selectedRunEntries, selectedTeam, tournament]
+  );
+  const visibleFixtureEntries = useMemo(
+    () =>
+      fixtureStageFilter === "all"
+        ? fixtureBaseEntries
+        : fixtureBaseEntries.filter(({ match: runMatch }) => runMatch.stage === fixtureStageFilter),
+    [fixtureBaseEntries, fixtureStageFilter]
+  );
+  const countryMarkers = useMemo(
+    () =>
+      !tournament
+        ? []
+        : tournament.teams.map((teamCode) => ({
+        code: teamCode,
+        color: teamColors[teamCode],
+        coordinates: teamStartCoordinates[teamCode],
+        flagSrc: teamFlags[teamCode],
+        name: teamNames[teamCode]
+      })),
+    [tournament]
+  );
+  const groupedTeamRunOptions = useMemo(
+    () =>
+      groupOrder.map((group) => ({
+        group,
+        teams: teamRunOptions.filter((option) => option.group === group)
+      })),
+    [teamRunOptions]
+  );
+  const routeVenueIds = useMemo(
+    () => selectedRunEntries.map(({ match: runMatch }) => runMatch.venueId),
+    [selectedRunEntries]
+  );
+  const matchVenue = useMemo(
+    () => (tournament && match ? tournament.venues.find((venue) => venue.id === match.venueId) : undefined),
+    [match, tournament]
+  );
+  const routeProgress = useMemo(() => {
+    if (!match) return 0;
+
+    const routeIndex = Math.max(routeVenueIds.indexOf(match.venueId), 0);
+    return routeIndex / Math.max(routeVenueIds.length - 1, 1);
+  }, [match, routeVenueIds]);
+  const revealedEvents = useMemo(
+    () => (match ? match.events.slice(0, Math.max(state.cursor + 1, 0)) : []),
+    [match, state.cursor]
+  );
+
+  const visibleScore = state.visibleScore;
+  const progress = match ? ((state.cursor + 1) / match.events.length) * 100 : 0;
+  const isFinished = state.status === "full_time";
+  const highlightEmbedUrl = match?.highlights.embedUrl ? getPlayableEmbedUrl(match.highlights.embedUrl) : null;
+
+  useEffect(() => {
+    if (!match) return;
+    if (!state.isAutoplaying || isFinished) return;
+
+    const timer = window.setTimeout(() => {
+      dispatch({ type: "NEXT", match });
+    }, 1800);
+
+    return () => window.clearTimeout(timer);
+  }, [isFinished, match, state.isAutoplaying, state.cursor]);
+
+  useEffect(() => {
+    const startProgress = routeTravelProgressRef.current;
+    const endProgress = routeProgress;
+    const distance = Math.abs(endProgress - startProgress);
+
+    if (distance < 0.001) {
+      setRouteTravelProgress(endProgress);
+      routeTravelProgressRef.current = endProgress;
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setRouteTravelProgress(endProgress);
+      routeTravelProgressRef.current = endProgress;
+      return;
+    }
+
+    let frameId = 0;
+    const duration = Math.min(2200, Math.max(850, distance * 2600));
+    const startTime = performance.now();
+
+    function animateRoute(now: number) {
+      const elapsed = now - startTime;
+      const eased = easeInOutCubic(Math.min(elapsed / duration, 1));
+      const nextProgress = startProgress + (endProgress - startProgress) * eased;
+      setRouteTravelProgress(nextProgress);
+      routeTravelProgressRef.current = nextProgress;
+
+      if (elapsed < duration) {
+        frameId = window.requestAnimationFrame(animateRoute);
+        return;
+      }
+
+      setRouteTravelProgress(endProgress);
+      routeTravelProgressRef.current = endProgress;
+    }
+
+    frameId = window.requestAnimationFrame(animateRoute);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [routeProgress]);
+
+  useEffect(() => {
+    if (mapMode !== "flight") return;
+
+    tournamentFlightProgressRef.current = 0;
+    setTournamentFlightProgress(0);
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      tournamentFlightProgressRef.current = 1;
+      setTournamentFlightProgress(1);
+      return;
+    }
+
+    let frameId = 0;
+    const duration = 3000;
+    const startTime = performance.now();
+
+    function animateTournamentFlight(now: number) {
+      const elapsed = now - startTime;
+      const eased = easeInOutCubic(Math.min(elapsed / duration, 1));
+      tournamentFlightProgressRef.current = eased;
+      setTournamentFlightProgress(eased);
+
+      if (elapsed < duration) {
+        frameId = window.requestAnimationFrame(animateTournamentFlight);
+      }
+    }
+
+    frameId = window.requestAnimationFrame(animateTournamentFlight);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [mapMode]);
+
+  useEffect(() => {
+    if (!showLandingConfetti) return;
+
+    const timer = window.setTimeout(() => {
+      setShowLandingConfetti(false);
+    }, 1600);
+
+    return () => window.clearTimeout(timer);
+  }, [showLandingConfetti]);
+
+  useEffect(() => {
+    return () => {
+      if (landingTimerRef.current) {
+        window.clearTimeout(landingTimerRef.current);
+      }
+    };
+  }, []);
+
+  function selectMatch(index: number, nextMode: MapMode = "host", openMatch = true) {
+    if (!tournament) return;
+
+    const nextMatch = tournament.matches[index];
+    if (!nextMatch) return;
+
+    setActiveTrayMenu(null);
+    setSelectedMatchIndex(index);
+    setSelectedVenueId(nextMatch.venueId);
+    setMapMode(nextMode);
+    setIsMatchOpen(openMatch);
+    dispatch({ type: "RESET" });
+  }
+
+  function selectTeamRun(teamCode: TeamCode) {
+    if (!tournament) return;
+
+    const nextRun = teamRunOptions.find((option) => option.teamCode === teamCode);
+    const firstEntry = nextRun?.matches[0];
+    if (!firstEntry) return;
+
+    resetHighlight();
+    setActiveTrayMenu(null);
+    setSelectedTeam(teamCode);
+    setSelectedMatchIndex(firstEntry.index);
+    setSelectedVenueId(firstEntry.match.venueId);
+    setRouteTravelProgress(0);
+    routeTravelProgressRef.current = 0;
+    setIsMatchOpen(false);
+    if (mapMode !== "world" && mapMode !== "flight") {
+      setMapMode("host");
+    }
+    dispatch({ type: "RESET" });
+  }
+
+  function resetSelectedTournamentExperience() {
+    resetHighlight();
+    dispatch({ type: "RESET" });
+    if (landingTimerRef.current) {
+      window.clearTimeout(landingTimerRef.current);
+    }
+    setRailMode("tournamentSetup");
+    setIsTournamentMenuOpen(false);
+    setActiveTrayMenu(null);
+    setSelectedTeam(null);
+    setSelectedMatchIndex(null);
+    setSelectedVenueId(undefined);
+    setFixtureStageFilter("all");
+    setMapMode("world");
+    setIsMatchOpen(false);
+    setShowLandingConfetti(false);
+    setRouteTravelProgress(0);
+    routeTravelProgressRef.current = 0;
+    setTournamentFlightProgress(0);
+    tournamentFlightProgressRef.current = 0;
+  }
+
+  function selectTournament(index: number) {
+    if (!tournaments[index]) return;
+
+    setSelectedTournamentIndex(index);
+    resetSelectedTournamentExperience();
+  }
+
+  function openTournamentSetup() {
+    if (!tournament) {
+      setActiveTrayMenu("tournaments");
+      return;
+    }
+
+    resetSelectedTournamentExperience();
+  }
+
+  function returnToWorld() {
+    resetHighlight();
+    dispatch({ type: "RESET" });
+    if (landingTimerRef.current) {
+      window.clearTimeout(landingTimerRef.current);
+    }
+    setMapMode("world");
+    setIsTournamentMenuOpen(false);
+    setActiveTrayMenu(null);
+    setRailMode("library");
+    setSelectedTeam(null);
+    setSelectedMatchIndex(null);
+    setSelectedVenueId(undefined);
+    setFixtureStageFilter("all");
+    setIsMatchOpen(false);
+    setShowLandingConfetti(false);
+    setTournamentFlightProgress(0);
+    tournamentFlightProgressRef.current = 0;
+  }
+
+  function openReplayFromDock() {
+    if (!tournament) {
+      setActiveTrayMenu("tournaments");
+      return;
+    }
+
+    if (selectedMatchIndex === null) {
+      setActiveTrayMenu("fixtures");
+      return;
+    }
+
+    const nextMatchIndex = selectedMatchIndex ?? 0;
+    const nextMatch = tournament.matches[nextMatchIndex];
+    if (!nextMatch) return;
+
+    if (landingTimerRef.current) {
+      window.clearTimeout(landingTimerRef.current);
+    }
+    setRailMode("run");
+    setIsTournamentMenuOpen(false);
+    setActiveTrayMenu((menu) => (menu === "replay" ? null : "replay"));
+    setSelectedMatchIndex(nextMatchIndex);
+    setSelectedVenueId(nextMatch.venueId);
+    setMapMode("stadium");
+    setIsMatchOpen(true);
+  }
+
+  function sendHighlightCommand(command: "playVideo" | "pauseVideo" | "seekTo", args: unknown[] = []) {
+    highlightFrameRef.current?.contentWindow?.postMessage(
+      JSON.stringify({
+        event: "command",
+        func: command,
+        args
+      }),
+      "*"
+    );
+  }
+
+  function playHighlight() {
+    if (!highlightEmbedUrl) return;
+    sendHighlightCommand("playVideo");
+  }
+
+  function pauseHighlight() {
+    if (!highlightEmbedUrl) return;
+    sendHighlightCommand("pauseVideo");
+  }
+
+  function resetHighlight() {
+    if (!highlightEmbedUrl) return;
+    sendHighlightCommand("pauseVideo");
+    sendHighlightCommand("seekTo", [0, true]);
+  }
+
+  function handlePrimaryReplayAction() {
+    if (!match) return;
+
+    if (state.cursor === -1) {
+      playHighlight();
+    }
+    dispatch({ type: "NEXT", match });
+  }
+
+  function handleAutoplayToggle() {
+    if (state.isAutoplaying) {
+      pauseHighlight();
+    } else {
+      playHighlight();
+    }
+    dispatch({ type: "TOGGLE_AUTOPLAY" });
+  }
+
+  function handleReplayReset() {
+    if (!match) return;
+
+    resetHighlight();
+    dispatch({ type: "RESET" });
+  }
+
+  function selectTournamentFromNav(index: number) {
+    selectTournament(index);
+    setIsTournamentMenuOpen(false);
+  }
+
+  function toggleTournamentTray() {
+    setIsTournamentMenuOpen(false);
+    setActiveTrayMenu((menu) => (menu === "tournaments" ? null : "tournaments"));
+  }
+
+  function toggleTeamTray() {
+    setIsTournamentMenuOpen(false);
+    if (!tournament) {
+      setActiveTrayMenu("tournaments");
+      return;
+    }
+    setActiveTrayMenu((menu) => (menu === "teams" ? null : "teams"));
+  }
+
+  function toggleFixtureTray() {
+    setIsTournamentMenuOpen(false);
+    if (!tournament) {
+      setActiveTrayMenu("tournaments");
+      return;
+    }
+    setActiveTrayMenu((menu) => (menu === "fixtures" ? null : "fixtures"));
+  }
+
+  function toggleSettingsTray() {
+    setIsTournamentMenuOpen(false);
+    setActiveTrayMenu((menu) => (menu === "settings" ? null : "settings"));
+  }
+
+  function closeBottomTray() {
+    setActiveTrayMenu(null);
+  }
+
+  function selectTournamentFromTray(index: number) {
+    selectTournament(index);
+    setActiveTrayMenu(null);
+  }
+
+  function selectCountryFromGlobe(teamCode: TeamCode) {
+    if (!tournament) return;
+
+    selectTeamRun(teamCode);
+    setActiveTrayMenu("fixtures");
+  }
+
+  function selectFixtureFromTray(index: number) {
+    if (!tournament) return;
+
+    setRailMode("run");
+    selectMatch(index, "stadium", true);
+    setActiveTrayMenu("replay");
+  }
+
+  function selectTeamFromTray(teamCode: TeamCode) {
+    if (!tournament) return;
+
+    setRailMode("tournamentSetup");
+    selectTeamRun(teamCode);
+    setActiveTrayMenu("fixtures");
+  }
+
+  const worldCupTournament = tournaments[0];
+  const tournamentShelves = [
+    {
+      title: "World Cup",
+      cards: [
+        {
+          title: worldCupTournament.name,
+          meta: "Open tournament, then choose a participating team",
+          badge: worldCupTournament.status === "partial" ? "Partial data" : `${worldCupTournament.matches.length} fixtures`,
+          disabled: false,
+          onSelect: () => selectTournament(0)
+        }
+      ]
+    },
+    {
+      title: "Euro",
+      cards: [{ title: "European classics", meta: "Archive loading", badge: "Soon", disabled: true, onSelect: undefined }]
+    },
+    {
+      title: "AFCON",
+      cards: [{ title: "African champions", meta: "Archive loading", badge: "Soon", disabled: true, onSelect: undefined }]
+    },
+    {
+      title: "Copa America",
+      cards: [{ title: "South American nights", meta: "Archive loading", badge: "Soon", disabled: true, onSelect: undefined }]
+    },
+    {
+      title: "Asian Cup",
+      cards: [{ title: "Asian Cup journeys", meta: "Archive loading", badge: "Soon", disabled: true, onSelect: undefined }]
+    }
+  ];
+
+  const isLibrary = railMode === "library";
+  const isTournamentSetup = railMode === "tournamentSetup";
+  const isRun = railMode === "run";
+  const isMapIntro = mapMode === "world" || mapMode === "flight" || !isRun;
+  const fixtureStageFilters = [
+    { label: "All", value: "all" },
+    { label: "Group", value: "group" },
+    { label: "R16", value: "r16" },
+    { label: "QF", value: "qf" },
+    { label: "SF", value: "sf" },
+    { label: "Finals", value: "final" }
+  ] satisfies { label: string; value: FixtureStageFilter }[];
+
+  return (
+    <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"}`}>
+      <section className="map-stage" aria-label="Map stage">
+        <HostMap
+          countryMarkers={!tournament || !showCountryFlags ? [] : countryMarkers}
+          enableWorldSpin={enableGlobeSpin}
+          focusVenueId={selectedVenueId}
+          mapView={mapView}
+          mode={mapMode}
+          onHostSelect={() => {
+            if (!tournament) return;
+            setMapMode("host");
+            setIsMatchOpen(false);
+          }}
+          onVenueSelect={(venueId) => {
+            if (!tournament) return;
+
+            const venueEntry = selectedRunEntries.find(({ match: routeMatch }) => routeMatch.venueId === venueId);
+            if (venueEntry) {
+              selectMatch(venueEntry.index, "stadium", true);
+              return;
+            }
+
+            setMapMode("stadium");
+            setSelectedVenueId(venueId);
+            setIsMatchOpen(true);
+          }}
+          progress={mapMode === "flight" ? tournamentFlightProgress : routeTravelProgress}
+          flightStartCoordinates={selectedTeam ? teamStartCoordinates[selectedTeam] : mapView.center}
+          onCountrySelect={selectCountryFromGlobe}
+          routeVenueIds={routeVenueIds}
+          showHostMarker={Boolean(tournament)}
+          tournamentName={tournament?.name ?? ""}
+          venues={tournament?.venues ?? []}
+        />
+
+        <header className="tour-topbar">
+          <div className="nav-project">
+            <button
+              aria-expanded={isTournamentMenuOpen}
+              className="app-identity"
+              onClick={() => setIsTournamentMenuOpen((isOpen) => !isOpen)}
+              type="button"
+            >
+              <span className="user-avatar" aria-hidden="true">{selectedTeam ? <img alt="" src={teamFlags[selectedTeam]} /> : "RW"}</span>
+              {/* <span className="app-logo" aria-hidden="true">rw</span> */}
+              {/* <span className="app-mode-icon"><Trophy size={16} /></span> */}
+              <strong>{tournament ? tournament.name : "Select tournament"}</strong>
+              <span className="app-chevron" aria-hidden="true">
+                <svg width="16" height="16" fill="none" viewBox="0 0 16 16" className="text-fg-2 shrink-0 -ml-0.5" aria-label="Chevron Up Down" aria-hidden="true"><path d="M4 9.5L8 13.5L12 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M4 6.5L8 2.5L12 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </span>
+            </button>
+            {isTournamentMenuOpen ? (
+              <div className="nav-dropdown" role="menu">
+                <p className="nav-menu-kicker">Tournaments</p>
+                <button
+                  className={`nav-menu-row ${selectedTournamentIndex === 0 ? "active" : ""}`}
+                  onClick={() => selectTournamentFromNav(0)}
+                  role="menuitem"
+                  type="button"
+                >
+                  <span className="nav-row-icon"><Trophy size={17} /></span>
+                  <span className="nav-row-copy">
+                    <strong>{worldCupTournament.name}</strong>
+                    <small>{worldCupTournament.matches.length} fixtures · {worldCupTournament.teams.length} teams</small>
+                  </span>
+                  <span className="nav-row-pill">{worldCupTournament.status}</span>
+                </button>
+                <div className="nav-menu-divider" />
+                {tournamentShelves.slice(1).map((shelf) => (
+                  <button className="nav-menu-row" disabled key={shelf.title} role="menuitem" type="button">
+                    <span className="nav-row-icon"><Globe2 size={17} /></span>
+                    <span className="nav-row-copy">
+                      <strong>{shelf.title}</strong>
+                      <small>{shelf.cards[0]?.meta ?? "Archive loading"}</small>
+                    </span>
+                    <span className="nav-row-pill">soon</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className="topbar-actions">
+            {/* <div className="map-chip">
+              <MapPin size={16} />
+              {isMapIntro ? "World view" : `${matchVenue?.city ?? "Host map"}`}
+            </div>
+            <span className="user-avatar" aria-hidden="true">{selectedTeam ? <img alt="" src={teamFlags[selectedTeam]} /> : "R"}</span> */}
+          </div>
+        </header>
+
+     
+
+        {showLandingConfetti ? <div className="confetti-burst" aria-hidden="true" /> : null}
+      </section>
+
+      <div className={`bottom-tray ${activeTrayMenu ? "is-open" : ""}`}>
+        {activeTrayMenu === "tournaments" ? (
+          <section className="tray-popover tray-tournament-popover" aria-label="Tournament selection">
+            <div className="tray-header">
+              <span>Tournaments</span>
+              <small>{tournamentShelves.length} collections</small>
+              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+                <X size={16} />
+              </button>
+            </div>
+            <button
+              className={`tray-tournament-row ${selectedTournamentIndex === 0 ? "active" : ""}`}
+              onClick={() => selectTournamentFromTray(0)}
+              type="button"
+            >
+              <span className="tray-row-icon"><Trophy size={18} /></span>
+              <span className="tray-row-copy">
+                <strong>{worldCupTournament.name}</strong>
+                <small>{worldCupTournament.matches.length} fixtures · {worldCupTournament.teams.length} countries · {worldCupTournament.year}</small>
+              </span>
+              <span className="tray-row-pill">{worldCupTournament.status}</span>
+            </button>
+            {tournamentShelves.slice(1).map((shelf) => (
+              <button className="tray-tournament-row" disabled key={shelf.title} type="button">
+                <span className="tray-row-icon"><Globe2 size={18} /></span>
+                <span className="tray-row-copy">
+                  <strong>{shelf.title}</strong>
+                  <small>{shelf.cards[0]?.meta ?? "Archive loading"}</small>
+                </span>
+                <span className="tray-row-pill">soon</span>
+              </button>
+            ))}
+          </section>
+        ) : null}
+
+        {activeTrayMenu === "fixtures" && tournament ? (
+          <section className="tray-popover tray-fixture-popover" aria-label="Fixture selection">
+            <div className="tray-header">
+              <span>{selectedTeam ? `${teamNames[selectedTeam]} fixtures` : `${tournament.name} fixtures`}</span>
+              <small>{visibleFixtureEntries.length} matches</small>
+              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="tray-filter-row" aria-label="Fixture stage filters">
+              {fixtureStageFilters.map((filter) => (
+                <button
+                  className={fixtureStageFilter === filter.value ? "active" : ""}
+                  key={filter.value}
+                  onClick={() => setFixtureStageFilter(filter.value)}
+                  type="button"
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+            <div className="tray-fixture-list">
+              {visibleFixtureEntries.map(({ match: routeMatch, index }, runIndex) => {
+                  const routeMatchVenue = tournament.venues.find((venue) => venue.id === routeMatch.venueId);
+
+                  return (
+                    <button
+                      className={`tray-fixture-row ${index === selectedMatchIndex ? "active" : ""}`}
+                      key={routeMatch.id}
+                      onClick={() => selectFixtureFromTray(index)}
+                      type="button"
+                    >
+                      <span className="fixture-index">{runIndex + 1}</span>
+                      <span className="tray-fixture-copy">
+                        <strong>
+                          <TeamFlag code={routeMatch.home} />
+                          {teamNames[routeMatch.home]}
+                          <b>{formatFinalScore(routeMatch)}</b>
+                          <TeamFlag code={routeMatch.away} />
+                          {teamNames[routeMatch.away]}
+                        </strong>
+                        <small>{getStageLabel(routeMatch.stage)} · {routeMatchVenue?.city ?? routeMatch.venue}</small>
+                      </span>
+                    </button>
+                  );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        {activeTrayMenu === "teams" && tournament ? (
+          <section className="tray-popover tray-team-popover" aria-label="Group stage countries">
+            <div className="tray-header">
+              <span>Group stages</span>
+              <small>{tournament.teams.length} countries</small>
+              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="tray-team-list">
+              {groupedTeamRunOptions.map(({ group, teams }) => (
+                <section className="tray-team-group" key={group}>
+                  <div className="tray-group-label">Group {group}</div>
+                  <div className="tray-team-grid">
+                    {teams.map(({ teamCode, matches, record, finishLabel }) => (
+                      <button
+                        className={`tray-team-row ${teamCode === selectedTeam ? "active" : ""}`}
+                        disabled={matches.length === 0}
+                        key={teamCode}
+                        onClick={() => selectTeamFromTray(teamCode)}
+                        type="button"
+                      >
+                        <TeamFlag code={teamCode} />
+                        <span className="tray-team-copy">
+                          <strong>{teamNames[teamCode]}</strong>
+                          <small>{record.wins}-{record.draws}-{record.losses} · {matches.length} fixtures · {finishLabel}</small>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {activeTrayMenu === "replay" && tournament && match ? (
+          <section className="tray-popover tray-replay-popover" aria-label="Match replay and highlights">
+            <div className="tray-header">
+              <span>{teamNames[match.home]} vs {teamNames[match.away]}</span>
+              <small>{getStageLabel(match.stage)} · {matchVenue?.city ?? match.venue}</small>
+              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="tray-scoreline">
+              <TeamBadge code={match.home} />
+              <div className="score">
+                {visibleScore ? (
+                  <>
+                    <span>{visibleScore.home}</span>
+                    <span className="score-divider">-</span>
+                    <span>{visibleScore.away}</span>
+                  </>
+                ) : (
+                  <span className="versus">vs</span>
+                )}
+              </div>
+              <TeamBadge code={match.away} />
+            </div>
+
+            <div className="tray-replay-grid">
+              <section className="tray-highlight-card" aria-label="Highlight reel">
+                <div className="tray-card-header">
+                  <span>Highlight reel</span>
+                  <small>{formatClock(currentEvent, state.status)}</small>
+                </div>
+                {match.highlights.embeddable && highlightEmbedUrl ? (
+                  <iframe
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="highlight-embed tray-highlight-embed"
+                    key={match.id}
+                    ref={highlightFrameRef}
+                    src={highlightEmbedUrl}
+                    title={`${match.home} vs ${match.away} highlights`}
+                  />
+                ) : (
+                  <div className="highlight-empty tray-highlight-empty">Highlights open externally for this fixture.</div>
+                )}
+              </section>
+
+              <section className="tray-moment-card" aria-label="Replay controls">
+                <div className="tray-card-header">
+                  <span>{formatClock(currentEvent, state.status)}</span>
+                  <small>{state.mode === "blackout" ? "Blackout" : "Live score"}</small>
+                </div>
+                <div className="controls media-control-row tray-control-row">
+                  <button
+                    className="icon-button primary"
+                    disabled={isFinished}
+                    onClick={handlePrimaryReplayAction}
+                    title={state.cursor === -1 ? "Start replay" : "Next moment"}
+                    type="button"
+                  >
+                    {state.cursor === -1 ? <Play size={20} /> : <SkipForward size={20} />}
+                  </button>
+                  <button
+                    className="icon-button"
+                    disabled={isFinished}
+                    onClick={handleAutoplayToggle}
+                    title={state.isAutoplaying ? "Pause autoplay" : "Start autoplay"}
+                    type="button"
+                  >
+                    {state.isAutoplaying ? <Pause size={20} /> : <Play size={20} />}
+                  </button>
+                  <button
+                    className="icon-button"
+                    onClick={handleReplayReset}
+                    title="Reset replay"
+                    type="button"
+                  >
+                    <RotateCcw size={20} />
+                  </button>
+                  <button className="toggle-button" onClick={() => dispatch({ type: "TOGGLE_MODE" })} type="button">
+                    {state.mode === "blackout" ? "Show live score" : "Blackout score"}
+                  </button>
+                </div>
+                <div className="timeline tray-timeline" aria-label="Replay progress">
+                  <div className="timeline-fill" style={{ width: `${progress}%` }} />
+                  {revealedEvents.map((event) => (
+                    <span
+                      className={`timeline-dot ${event.type === "goal" ? "goal" : ""}`}
+                      key={event.id}
+                      style={{ left: `${(match.events.indexOf(event) / Math.max(match.events.length - 1, 1)) * 100}%` }}
+                    />
+                  ))}
+                </div>
+                <article className="tray-latest-moment">
+                  <span>Latest moment</span>
+                  <strong>{currentEvent ? currentEvent.detail : `The replay is ready in ${matchVenue?.city ?? "the host city"}.`}</strong>
+                </article>
+              </section>
+            </div>
+
+            <div className="highlight-actions tray-highlight-actions">
+              {match.highlights.directUrl ? (
+                <a className="highlight-link" href={match.highlights.directUrl} rel="noreferrer" target="_blank">
+                  {match.highlights.sourceName ? `Open ${match.highlights.sourceName}` : "Open highlights"}
+                </a>
+              ) : null}
+              {match.highlights.officialUrl ? (
+                <a className="highlight-link secondary" href={match.highlights.officialUrl} rel="noreferrer" target="_blank">
+                  {match.highlights.officialSourceName ?? "Official match report"}
+                </a>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
+
+        {activeTrayMenu === "settings" ? (
+          <section className="tray-popover tray-settings-popover" aria-label="Experience settings">
+            <div className="tray-header">
+              <span>Experience</span>
+              <small>Controls</small>
+              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="tray-settings-list">
+              <button className={`tray-setting-row ${showCountryFlags ? "active" : ""}`} onClick={() => setShowCountryFlags((value) => !value)} type="button">
+                <span>
+                  <strong>Country flags</strong>
+                  <small>Show participating countries on the globe</small>
+                </span>
+                <b>{showCountryFlags ? "On" : "Off"}</b>
+              </button>
+              <button className={`tray-setting-row ${enableGlobeSpin ? "active" : ""}`} onClick={() => setEnableGlobeSpin((value) => !value)} type="button">
+                <span>
+                  <strong>Slow globe spin</strong>
+                  <small>Let the world view drift when idle</small>
+                </span>
+                <b>{enableGlobeSpin ? "On" : "Off"}</b>
+              </button>
+              <button className={`tray-setting-row ${state.isAutoplaying ? "active" : ""}`} disabled={!match} onClick={handleAutoplayToggle} type="button">
+                <span>
+                  <strong>Moment autoplay</strong>
+                  <small>{match ? "Advance replay moments automatically" : "Select a fixture first"}</small>
+                </span>
+                <b>{state.isAutoplaying ? "On" : "Off"}</b>
+              </button>
+              <button className="tray-setting-row tray-setting-action" disabled={!tournament} onClick={openTournamentSetup} type="button">
+                <span>
+                  <strong>Reset to globe</strong>
+                  <small>{tournament ? "Clear team, fixture, highlight, and filters" : "Select a tournament first"}</small>
+                </span>
+                <b>Reset</b>
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        <nav className="bottom-dock" aria-label="Primary views">
+          <button className={activeTrayMenu === "tournaments" || isLibrary ? "active" : ""} onClick={toggleTournamentTray} title="Tournament selection" type="button">
+            <Trophy size={21} />
+          </button>
+          <button className={activeTrayMenu === "teams" || isTournamentSetup ? "active" : ""} disabled={!tournament} onClick={toggleTeamTray} title="Group stages" type="button">
+            <Users size={21} />
+          </button>
+          <button className={activeTrayMenu === "fixtures" || (isRun && !isMatchOpen) ? "active" : ""} disabled={!tournament} onClick={toggleFixtureTray} title="Fixture selection" type="button">
+            <CalendarDays size={21} />
+          </button>
+          <button className={activeTrayMenu === "replay" || (isRun && isMatchOpen) ? "active" : ""} disabled={!tournament || !match} onClick={openReplayFromDock} title="Replay" type="button">
+            <Clapperboard size={21} />
+          </button>
+          <button className={activeTrayMenu === "settings" ? "active" : ""} onClick={toggleSettingsTray} title="Experience settings" type="button">
+            <Settings size={21} />
+          </button>
+          <button className="dock-count" disabled={!tournament} onClick={openTournamentSetup} title="Back to country globe" type="button">
+            <Globe2 size={21} />
+            {tournament ? selectedRunEntries.length || tournament.matches.length : 0}
+          </button>
+        </nav>
+      </div>
+    </main>
+  );
+}
