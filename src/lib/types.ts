@@ -51,8 +51,10 @@ export type MapView = {
 };
 
 export type HighlightProvider = "youtube" | "vimeo" | "external";
+export type HighlightStatus = "none" | "official-report" | "external-video" | "embeddable-video";
 
 export type MatchHighlights = {
+  status: HighlightStatus;
   officialUrl?: string;
   officialSourceName?: string;
   directUrl?: string;

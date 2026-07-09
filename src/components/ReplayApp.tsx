@@ -11,6 +11,7 @@ type MapMode = "world" | "flight" | "host" | "stadium";
 type RailMode = "library" | "tournamentSetup" | "run";
 type TrayMenu = "tournaments" | "teams" | "fixtures" | "replay" | "settings" | null;
 type FixtureStageFilter = "all" | Match["stage"];
+type FixtureMediaFilter = "all" | "playable" | "reports";
 
 const teamStartCoordinates: Record<TeamCode, Coordinates> = {
   ARG: [-58.3816, -34.6037],
@@ -155,6 +156,35 @@ function formatFinalScore(match: Match) {
   return match.shootout ? `${baseScore} (${match.shootout.home}-${match.shootout.away} pens)` : baseScore;
 }
 
+function getHighlightStatusLabel(status: Match["highlights"]["status"]) {
+  const labels: Record<Match["highlights"]["status"], string> = {
+    none: "No media",
+    "official-report": "Report",
+    "external-video": "Video link",
+    "embeddable-video": "Playable"
+  };
+
+  return labels[status];
+}
+
+function getHighlightEmptyCopy(match: Match) {
+  if (match.highlights.status === "official-report") {
+    return "No verified embeddable video yet. The official match report is available below.";
+  }
+
+  if (match.highlights.status === "external-video") {
+    return "A video link is available below, but it is not verified as embeddable yet.";
+  }
+
+  return "No highlight media has been verified for this fixture yet.";
+}
+
+function matchesFixtureMediaFilter(match: Match, filter: FixtureMediaFilter) {
+  if (filter === "playable") return match.highlights.status === "embeddable-video";
+  if (filter === "reports") return match.highlights.status === "official-report";
+  return true;
+}
+
 function getTeamMatchResult(match: Match, teamCode: TeamCode) {
   const isHome = match.home === teamCode;
   const teamScore = isHome ? match.score.home : match.score.away;
@@ -195,6 +225,7 @@ export function ReplayApp() {
   const [isTournamentMenuOpen, setIsTournamentMenuOpen] = useState(false);
   const [activeTrayMenu, setActiveTrayMenu] = useState<TrayMenu>(null);
   const [fixtureStageFilter, setFixtureStageFilter] = useState<FixtureStageFilter>("all");
+  const [fixtureMediaFilter, setFixtureMediaFilter] = useState<FixtureMediaFilter>("all");
   const [showLandingConfetti, setShowLandingConfetti] = useState(false);
   const [showCountryFlags, setShowCountryFlags] = useState(true);
   const [enableGlobeSpin, setEnableGlobeSpin] = useState(true);
@@ -260,10 +291,11 @@ export function ReplayApp() {
   );
   const visibleFixtureEntries = useMemo(
     () =>
-      fixtureStageFilter === "all"
-        ? fixtureBaseEntries
-        : fixtureBaseEntries.filter(({ match: runMatch }) => runMatch.stage === fixtureStageFilter),
-    [fixtureBaseEntries, fixtureStageFilter]
+      fixtureBaseEntries.filter(({ match: runMatch }) => {
+        const matchesStage = fixtureStageFilter === "all" || runMatch.stage === fixtureStageFilter;
+        return matchesStage && matchesFixtureMediaFilter(runMatch, fixtureMediaFilter);
+      }),
+    [fixtureBaseEntries, fixtureMediaFilter, fixtureStageFilter]
   );
   const countryMarkers = useMemo(
     () =>
@@ -465,6 +497,7 @@ export function ReplayApp() {
     setSelectedMatchIndex(null);
     setSelectedVenueId(undefined);
     setFixtureStageFilter("all");
+    setFixtureMediaFilter("all");
     setMapMode("world");
     setIsMatchOpen(false);
     setShowCountryFlags(true);
@@ -505,6 +538,7 @@ export function ReplayApp() {
     setSelectedMatchIndex(null);
     setSelectedVenueId(undefined);
     setFixtureStageFilter("all");
+    setFixtureMediaFilter("all");
     setIsMatchOpen(false);
     setShowLandingConfetti(false);
     setTournamentFlightProgress(0);
@@ -670,6 +704,11 @@ export function ReplayApp() {
     { label: "SF", value: "sf" },
     { label: "Finals", value: "final" }
   ] satisfies { label: string; value: FixtureStageFilter }[];
+  const fixtureMediaFilters = [
+    { label: "All media", value: "all" },
+    { label: "Playable", value: "playable" },
+    { label: "Reports", value: "reports" }
+  ] satisfies { label: string; value: FixtureMediaFilter }[];
 
   return (
     <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"}`}>
@@ -811,7 +850,33 @@ export function ReplayApp() {
                 </button>
               ))}
             </div>
+            <div className="tray-filter-row tray-media-filter-row" aria-label="Fixture highlight filters">
+              {fixtureMediaFilters.map((filter) => (
+                <button
+                  className={fixtureMediaFilter === filter.value ? "active" : ""}
+                  key={filter.value}
+                  onClick={() => setFixtureMediaFilter(filter.value)}
+                  type="button"
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
             <div className="tray-fixture-list">
+              {visibleFixtureEntries.length === 0 ? (
+                <div className="tray-empty">
+                  <strong>No fixtures match these filters.</strong>
+                  <button
+                    onClick={() => {
+                      setFixtureStageFilter("all");
+                      setFixtureMediaFilter("all");
+                    }}
+                    type="button"
+                  >
+                    Clear
+                  </button>
+                </div>
+              ) : null}
               {visibleFixtureEntries.map(({ match: routeMatch, index }, runIndex) => {
                   const routeMatchVenue = tournament.venues.find((venue) => venue.id === routeMatch.venueId);
 
@@ -831,7 +896,12 @@ export function ReplayApp() {
                           <TeamFlag code={routeMatch.away} />
                           {teamNames[routeMatch.away]}
                         </strong>
-                        <small>{getStageLabel(routeMatch.stage)} · {routeMatchVenue?.city ?? routeMatch.venue}</small>
+                        <small className="fixture-meta">
+                          <span>{getStageLabel(routeMatch.stage)} · {routeMatchVenue?.city ?? routeMatch.venue}</span>
+                          <em className={`fixture-highlight-status status-${routeMatch.highlights.status}`}>
+                            {getHighlightStatusLabel(routeMatch.highlights.status)}
+                          </em>
+                        </small>
                       </span>
                     </button>
                   );
@@ -906,7 +976,7 @@ export function ReplayApp() {
               <section className="tray-highlight-card" aria-label="Highlight reel">
                 <div className="tray-card-header">
                   <span>Highlight reel</span>
-                  <small>{formatClock(currentEvent, state.status)}</small>
+                  <small>{getHighlightStatusLabel(match.highlights.status)}</small>
                 </div>
                 {match.highlights.embeddable && highlightEmbedUrl ? (
                   <iframe
@@ -919,7 +989,10 @@ export function ReplayApp() {
                     title={`${match.home} vs ${match.away} highlights`}
                   />
                 ) : (
-                  <div className="highlight-empty tray-highlight-empty">Highlights open externally for this fixture.</div>
+                  <div className="highlight-empty tray-highlight-empty">
+                    <strong>{getHighlightStatusLabel(match.highlights.status)}</strong>
+                    <span>{getHighlightEmptyCopy(match)}</span>
+                  </div>
                 )}
               </section>
 

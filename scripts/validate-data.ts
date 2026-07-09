@@ -89,6 +89,7 @@ const eventSchema = z
 
 const highlightsSchema = z
   .object({
+    status: z.enum(["none", "official-report", "external-video", "embeddable-video"]),
     officialUrl: z.string().url().optional(),
     officialSourceName: z.string().min(1).optional(),
     directUrl: z.string().url().optional(),
@@ -103,6 +104,34 @@ const highlightsSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Embeddable highlights require embedUrl."
+      });
+    }
+
+    if (highlights.status === "embeddable-video" && (!highlights.embeddable || !highlights.embedUrl || !highlights.directUrl)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Embeddable video highlights require embeddable, embedUrl, and directUrl."
+      });
+    }
+
+    if (highlights.status === "external-video" && (!highlights.directUrl || highlights.embeddable)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "External video highlights require directUrl and must not be marked embeddable."
+      });
+    }
+
+    if (highlights.status === "official-report" && (!highlights.officialUrl || highlights.embeddable || highlights.directUrl || highlights.embedUrl)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Official report highlights require only an officialUrl and must not be marked embeddable."
+      });
+    }
+
+    if (highlights.status === "none" && (highlights.officialUrl || highlights.directUrl || highlights.embedUrl || highlights.embeddable)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Missing highlights must not include URLs or be marked embeddable."
       });
     }
 
@@ -221,8 +250,7 @@ function validateTournamentConsistency(tournament: Tournament) {
     }
 
     const goalScore = countGoalEvents(match);
-    const hasGoalEvents = match.events.some((event) => event.type === "goal");
-    if (hasGoalEvents && (goalScore.home !== match.score.home || goalScore.away !== match.score.away)) {
+    if (goalScore.home !== match.score.home || goalScore.away !== match.score.away) {
       errors.push(`${match.id}: goal events (${goalScore.home}-${goalScore.away}) do not match final score (${match.score.home}-${match.score.away}).`);
     }
 
@@ -237,6 +265,10 @@ function validateTournamentConsistency(tournament: Tournament) {
 
     if (match.highlights.embeddable !== match.highlightEmbeddable) {
       errors.push(`${match.id}: legacy highlightEmbeddable must match highlights.embeddable while both fields exist.`);
+    }
+
+    if (tournament.status === "complete" && !match.highlights.officialUrl) {
+      errors.push(`${match.id}: complete datasets must include an official highlight/report URL.`);
     }
   }
 

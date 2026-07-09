@@ -8,6 +8,7 @@ const getYoutubeEmbedUrl = (videoId: string) => `https://www.youtube.com/embed/$
 
 function youtubeHighlight(videoId: string, officialMatchId: string, sourceName: string): MatchHighlights {
   return {
+    status: "embeddable-video",
     officialUrl: getFifaMatchUrl(officialMatchId),
     officialSourceName: "FIFA match report",
     directUrl: getYoutubeWatchUrl(videoId),
@@ -21,6 +22,7 @@ function youtubeHighlight(videoId: string, officialMatchId: string, sourceName: 
 
 function fifaReportHighlight(officialMatchId: string): MatchHighlights {
   return {
+    status: "official-report",
     officialUrl: getFifaMatchUrl(officialMatchId),
     officialSourceName: "FIFA match report",
     embeddable: false,
@@ -146,12 +148,69 @@ const venues: Venue[] = venueSeeds.map((venue) => ({
 }));
 
 const highlightOverrides = new Map<number, MatchHighlights>([
+  [1, youtubeHighlight("RdkGf_mpFCY", "43950001", "FIFA 15-Minute Match")],
+  [2, youtubeHighlight("lTuakjsMjJE", "43950002", "Football Frontline highlights")],
+  [3, youtubeHighlight("OPlwXvaArD4", "43950003", "Football Frontline highlights")],
+  [4, youtubeHighlight("0pxA3jVxgMM", "43950004", "FIFA 10-Minute Match")],
+  [5, youtubeHighlight("D9cCefvcVQQ", "43950005", "FIFA highlights")],
+  [6, youtubeHighlight("DFhKq4AQhkY", "43950006", "Football Frontline highlights")],
+  [7, youtubeHighlight("i84F8efvzgk", "43950007", "Benjamín Rodríguez highlights")],
+  [8, youtubeHighlight("2GxzmxJjod4", "43950008", "World Cup Goals highlights")],
+  [9, youtubeHighlight("mAXbNIyXcKA", "43950009", "FIFA highlights")],
   [10, youtubeHighlight("uyIgW_efCpo", "43950010", "TYFC HD highlights")],
+  [11, youtubeHighlight("pMj8UbHjDt0", "43950011", "Football Star highlights")],
+  [12, youtubeHighlight("YlMm3EJHODA", "43950012", "VintageHDtv highlights")],
+  [13, youtubeHighlight("Yo0D91rkAM0", "43950013", "Football Time Machine highlights")],
+  [14, youtubeHighlight("W0Xs-RS_U9Y", "43950014", "World Cup Goals highlights")],
+  [15, youtubeHighlight("F-Opdnrmhuk", "43950015", "World Cup Goals highlights")],
+  [16, youtubeHighlight("WruEcrS2ZvA", "43950016", "FIFA highlights")],
+  [17, youtubeHighlight("wu7R289yzsA", "43950017", "VintageHDtv2 highlights")],
+  [18, youtubeHighlight("UywRPMr8XHQ", "43950018", "World Cup Goals highlights")],
+  [19, youtubeHighlight("Pv85aSCMd9s", "43950019", "World Cup Goals highlights")],
+  [20, youtubeHighlight("HZpedyZ_TfY", "43950020", "World Cup Goals highlights")],
+  [21, youtubeHighlight("BXj_it8J75M", "43950021", "World Cup Goals highlights")],
+  [22, youtubeHighlight("CXXUo4B47gg", "43950022", "World Cup Goals highlights")],
+  [23, youtubeHighlight("Skq5lMUr64U", "43950023", "World Cup Goals highlights")],
+  [24, youtubeHighlight("QliHrHZa4BM", "43950024", "World Cup Goals highlights")],
+  [25, youtubeHighlight("fzsWEn5kQJ4", "43950025", "World Cup Goals highlights")],
   [26, youtubeHighlight("s4F41XW3Fxw", "43950026", "TYFC HD highlights")],
+  [27, youtubeHighlight("e6Wz7lC7yps", "43950027", "World Cup Goals highlights")],
+  [28, youtubeHighlight("lUkClV-PWyA", "43950028", "FIFA 15-Minute Match")],
+  [29, youtubeHighlight("bA05dQA3yO0", "43950029", "HistoryFull Worldcup highlights")],
+  [30, youtubeHighlight("3rKeker7uGo", "43950030", "World Cup Goals highlights")],
+  [31, youtubeHighlight("r1ebJKDc_Yo", "43950031", "VintageHDtv2 highlights")],
+  [32, youtubeHighlight("KG6X7CfxHbk", "43950032", "FIFA highlights")],
+  [33, youtubeHighlight("gHqW4Fr0Ki4", "43950033", "FIFA highlights")],
+  [34, youtubeHighlight("LADw3WqZMBU", "43950034", "sp1873 highlights")],
+  [35, youtubeHighlight("fTRGpNHWqAU", "43950035", "World Cup Goals highlights")],
+  [36, youtubeHighlight("yBDRLIZfRdk", "43950036", "FIFA highlights")],
+  [37, youtubeHighlight("POgFKaPynbo", "43950037", "World Cup Goals highlights")],
+  [38, youtubeHighlight("B_5T5nB2tyU", "43950038", "World Cup Goals highlights")],
+  [39, youtubeHighlight("gYFvvWptWGc", "43950039", "World Cup Goals highlights")],
+  [40, youtubeHighlight("80bf2Ij08zk", "43950040", "World Cup Goals highlights")],
   [41, youtubeHighlight("aP5HgLcLxuw", "43950041", "TYFC HD highlights")],
+  [42, youtubeHighlight("RfXeQ2VgdAo", "43950042", "World Cup Goals highlights")],
+  [43, youtubeHighlight("v9Jo7DSUTrY", "43950043", "World Cup Goals highlights")],
+  [44, youtubeHighlight("VJFyuF7mZ6c", "43950044", "World Cup Goals highlights")],
+  [45, youtubeHighlight("dhf7LzNVA00", "43950045", "World Cup Goals highlights")],
+  [46, youtubeHighlight("CXPn5SM01MA", "43950046", "FIFA highlights")],
+  [47, youtubeHighlight("zHZDaBonWAA", "43950047", "FIFA 10-Minute Match")],
+  [48, youtubeHighlight("nnSZjoN5lG8", "43950048", "World Cup Goals highlights")],
+  [49, youtubeHighlight("CRXuTA_Hm7U", "43950049", "FIFA 15-Minute Match")],
+  [50, youtubeHighlight("PeI5OKtOMpA", "43950050", "World Cup Goals highlights")],
+  [51, youtubeHighlight("6WhcszCaJYc", "43950051", "World Cup Goals highlights")],
+  [52, youtubeHighlight("st8f8W70BO0", "43950052", "World Cup Goals highlights")],
+  [53, youtubeHighlight("8T8u0K52Lzs", "43950053", "FIFA highlights")],
   [54, youtubeHighlight("lOJDouQTsgw", "43950054", "TYFC HD highlights")],
+  [55, youtubeHighlight("hE1Ro-KrHsw", "43950055", "World Cup Goals highlights")],
+  [56, youtubeHighlight("GGPgOncLpD4", "43950056", "FIFA 1-Minute Drama")],
   [57, youtubeHighlight("4JcwixRnFhs", "43950057", "FIFA highlights")],
+  [58, youtubeHighlight("ctBKzj6HUSk", "43950058", "FIFA highlights")],
+  [59, youtubeHighlight("TTuHlPD6eaY", "43950059", "FIFA penalty shoot-out")],
+  [60, youtubeHighlight("C79SbWyyKhY", "43950060", "World Cup Goals highlights")],
+  [61, youtubeHighlight("s5jDWEw2S4Y", "43950061", "Kings Football highlights")],
   [62, youtubeHighlight("F5-OqNH-VDU", "43950062", "TYFC HD highlights")],
+  [63, youtubeHighlight("MpqCv4vt4J4", "43950063", "FIFA World Cup Uncut")],
   [64, youtubeHighlight("rL9JCz7S8Jg", "43950064", "FIFA highlights")]
 ]);
 
@@ -266,12 +325,143 @@ const fixtureSeeds: FixtureSeed[] = [
   { no: 64, stage: "final", date: "2002-06-30", venueId: "international-stadium-yokohama", home: "GER", away: "BRA", score: { home: 0, away: 2 }, goals: [{ minute: 67, team: "BRA", player: "Ronaldo", detail: "Ronaldo reacts first after a spill in the box. Brazil have the breakthrough." }, { minute: 79, team: "BRA", player: "Ronaldo", detail: "Rivaldo lets the ball run and Ronaldo sweeps it low into the corner." }] }
 ];
 
+const goalOverrides = new Map<number, GoalSeed[]>([
+  [1, [{ minute: 30, team: "SEN", player: "Papa Bouba Diop" }]],
+  [2, [{ minute: 45, team: "DEN", player: "Jon Dahl Tomasson" }, { minute: 47, team: "URU", player: "Dario Rodriguez" }, { minute: 83, team: "DEN", player: "Jon Dahl Tomasson" }]],
+  [3, [{ minute: 39, team: "CMR", player: "Patrick Mboma" }, { minute: 52, team: "IRL", player: "Matt Holland" }]],
+  [
+    4,
+    [
+      { minute: 20, team: "GER", player: "Miroslav Klose" },
+      { minute: 25, team: "GER", player: "Miroslav Klose" },
+      { minute: 40, team: "GER", player: "Michael Ballack" },
+      { minute: 45, team: "GER", player: "Carsten Jancker" },
+      { minute: 70, team: "GER", player: "Miroslav Klose" },
+      { minute: 73, team: "GER", player: "Thomas Linke" },
+      { minute: 84, team: "GER", player: "Oliver Bierhoff" },
+      { minute: 90, team: "GER", player: "Bernd Schneider" }
+    ]
+  ],
+  [5, [{ minute: 63, team: "ARG", player: "Gabriel Batistuta" }]],
+  [6, [{ minute: 24, team: "ENG", player: "Sol Campbell" }, { minute: 59, team: "SWE", player: "Niclas Alexandersson" }]],
+  [
+    7,
+    [
+      { minute: 39, team: "PAR", player: "Roque Santa Cruz" },
+      { minute: 55, team: "PAR", player: "Francisco Arce" },
+      { minute: 63, team: "RSA", player: "Teboho Mokoena" },
+      { minute: 90, team: "RSA", player: "Quinton Fortune", detail: "Quinton Fortune scores from the penalty spot." }
+    ]
+  ],
+  [
+    8,
+    [
+      { minute: 44, team: "ESP", player: "Raul" },
+      { minute: 74, team: "ESP", player: "Juan Carlos Valeron" },
+      { minute: 82, team: "SVN", player: "Sebastjan Cimirotic" },
+      { minute: 87, team: "ESP", player: "Fernando Hierro", detail: "Fernando Hierro scores from the penalty spot." }
+    ]
+  ],
+  [9, [{ minute: 60, team: "MEX", player: "Cuauhtemoc Blanco", detail: "Cuauhtemoc Blanco scores from the penalty spot." }]],
+  [11, [{ minute: 7, team: "ITA", player: "Christian Vieri" }, { minute: 27, team: "ITA", player: "Christian Vieri" }]],
+  [12, [{ minute: 26, team: "KOR", player: "Hwang Sun-hong" }, { minute: 53, team: "KOR", player: "Yoo Sang-chul" }]],
+  [13, [{ minute: 61, team: "CRC", player: "Ronald Gomez" }, { minute: 65, team: "CRC", player: "Mauricio Wright" }]],
+  [
+    14,
+    [
+      { minute: 57, team: "BEL", player: "Marc Wilmots" },
+      { minute: 59, team: "JPN", player: "Takayuki Suzuki" },
+      { minute: 68, team: "JPN", player: "Junichi Inamoto" },
+      { minute: 75, team: "BEL", player: "Peter Van der Heyden" }
+    ]
+  ],
+  [15, [{ minute: 59, team: "RUS", player: "Yegor Titov" }, { minute: 64, team: "RUS", player: "Valery Karpin", detail: "Valery Karpin scores from the penalty spot." }]],
+  [
+    16,
+    [
+      { minute: 4, team: "USA", player: "John O'Brien" },
+      { minute: 29, team: "USA", player: "Jorge Costa own goal", detail: "Jorge Costa turns the ball into his own net." },
+      { minute: 36, team: "USA", player: "Brian McBride" },
+      { minute: 39, team: "POR", player: "Beto" },
+      { minute: 71, team: "POR", player: "Jeff Agoos own goal", detail: "Jeff Agoos turns the ball into his own net." }
+    ]
+  ],
+  [17, [{ minute: 19, team: "GER", player: "Miroslav Klose" }, { minute: 90, team: "IRL", player: "Robbie Keane", detail: "Robbie Keane equalises in stoppage time." }]],
+  [18, [{ minute: 16, team: "DEN", player: "Jon Dahl Tomasson", detail: "Jon Dahl Tomasson scores from the penalty spot." }, { minute: 52, team: "SEN", player: "Salif Diao" }]],
+  [19, [{ minute: 66, team: "CMR", player: "Samuel Eto'o" }]],
+  [21, [{ minute: 44, team: "ENG", player: "David Beckham", detail: "David Beckham scores from the penalty spot." }]],
+  [
+    22,
+    [
+      { minute: 10, team: "PAR", player: "Carles Puyol own goal", detail: "Carles Puyol turns the ball into his own net." },
+      { minute: 53, team: "ESP", player: "Fernando Morientes" },
+      { minute: 69, team: "ESP", player: "Fernando Morientes" },
+      { minute: 82, team: "ESP", player: "Fernando Hierro", detail: "Fernando Hierro scores from the penalty spot." }
+    ]
+  ],
+  [23, [{ minute: 27, team: "NGA", player: "Julius Aghahowa" }, { minute: 35, team: "SWE", player: "Henrik Larsson" }, { minute: 63, team: "SWE", player: "Henrik Larsson", detail: "Henrik Larsson scores from the penalty spot." }]],
+  [24, [{ minute: 55, team: "ITA", player: "Christian Vieri" }, { minute: 73, team: "CRO", player: "Ivica Olic" }, { minute: 76, team: "CRO", player: "Milan Rapaic" }]],
+  [25, [{ minute: 4, team: "RSA", player: "Siyabonga Nomvethe" }]],
+  [27, [{ minute: 51, team: "JPN", player: "Junichi Inamoto" }]],
+  [28, [{ minute: 5, team: "ECU", player: "Agustin Delgado" }, { minute: 28, team: "MEX", player: "Jared Borgetti" }, { minute: 57, team: "MEX", player: "Gerardo Torrado" }]],
+  [29, [{ minute: 56, team: "TUR", player: "Emre Belozoglu" }, { minute: 86, team: "CRC", player: "Winston Parks" }]],
+  [30, [{ minute: 13, team: "BEL", player: "Marc Wilmots" }, { minute: 17, team: "TUN", player: "Raouf Bouzaiene" }]],
+  [31, [{ minute: 24, team: "USA", player: "Clint Mathis" }, { minute: 78, team: "KOR", player: "Ahn Jung-hwan" }]],
+  [32, [{ minute: 14, team: "POR", player: "Pauleta" }, { minute: 65, team: "POR", player: "Pauleta" }, { minute: 77, team: "POR", player: "Pauleta" }, { minute: 88, team: "POR", player: "Rui Costa" }]],
+  [33, [{ minute: 50, team: "GER", player: "Marco Bode" }, { minute: 79, team: "GER", player: "Miroslav Klose" }]],
+  [34, [{ minute: 7, team: "IRL", player: "Robbie Keane" }, { minute: 61, team: "IRL", player: "Gary Breen" }, { minute: 87, team: "IRL", player: "Damien Duff" }]],
+  [35, [{ minute: 22, team: "DEN", player: "Dennis Rommedahl" }, { minute: 67, team: "DEN", player: "Jon Dahl Tomasson" }]],
+  [
+    36,
+    [
+      { minute: 20, team: "SEN", player: "Khalilou Fadiga", detail: "Khalilou Fadiga scores from the penalty spot." },
+      { minute: 26, team: "SEN", player: "Papa Bouba Diop" },
+      { minute: 38, team: "SEN", player: "Papa Bouba Diop" },
+      { minute: 46, team: "URU", player: "Richard Morales" },
+      { minute: 69, team: "URU", player: "Diego Forlan" },
+      { minute: 88, team: "URU", player: "Alvaro Recoba", detail: "Alvaro Recoba scores from the penalty spot." }
+    ]
+  ],
+  [37, [{ minute: 59, team: "SWE", player: "Anders Svensson" }, { minute: 88, team: "ARG", player: "Hernan Crespo" }]],
+  [
+    39,
+    [
+      { minute: 4, team: "ESP", player: "Raul" },
+      { minute: 31, team: "RSA", player: "Benni McCarthy" },
+      { minute: 45, team: "ESP", player: "Gaizka Mendieta", detail: "Gaizka Mendieta scores from the penalty spot." },
+      { minute: 53, team: "RSA", player: "Lucas Radebe" },
+      { minute: 56, team: "ESP", player: "Raul" }
+    ]
+  ],
+  [40, [{ minute: 45, team: "SVN", player: "Milenko Acimovic" }, { minute: 65, team: "PAR", player: "Nelson Cuevas" }, { minute: 73, team: "PAR", player: "Jorge Campos" }, { minute: 84, team: "PAR", player: "Nelson Cuevas" }]],
+  [42, [{ minute: 6, team: "TUR", player: "Hasan Sas" }, { minute: 9, team: "TUR", player: "Bulent Korkmaz" }, { minute: 85, team: "TUR", player: "Umit Davala" }]],
+  [43, [{ minute: 34, team: "MEX", player: "Jared Borgetti" }, { minute: 85, team: "ITA", player: "Alessandro Del Piero" }]],
+  [44, [{ minute: 48, team: "ECU", player: "Edison Mendez" }]],
+  [45, [{ minute: 48, team: "JPN", player: "Hiroaki Morishima" }, { minute: 75, team: "JPN", player: "Hidetoshi Nakata" }]],
+  [
+    46,
+    [
+      { minute: 7, team: "BEL", player: "Johan Walem" },
+      { minute: 52, team: "RUS", player: "Vladimir Beschastnykh" },
+      { minute: 78, team: "BEL", player: "Wesley Sonck" },
+      { minute: 82, team: "BEL", player: "Marc Wilmots" },
+      { minute: 88, team: "RUS", player: "Dmitri Sychev" }
+    ]
+  ],
+  [47, [{ minute: 70, team: "KOR", player: "Park Ji-sung" }]],
+  [48, [{ minute: 3, team: "POL", player: "Emmanuel Olisadebe" }, { minute: 5, team: "POL", player: "Pawel Kryszalowicz" }, { minute: 66, team: "POL", player: "Marcin Zewlakow" }, { minute: 83, team: "USA", player: "Landon Donovan" }]]
+]);
+
 function createSlug(match: FixtureSeed) {
   return `wc-2002-${String(match.no).padStart(2, "0")}-${match.home.toLowerCase()}-${match.away.toLowerCase()}`;
 }
 
 function getVenueName(venueId: string) {
   return venues.find((venue) => venue.id === venueId)?.name ?? venueId;
+}
+
+function getFixtureGoals(match: FixtureSeed) {
+  return match.goals ?? goalOverrides.get(match.no) ?? [];
 }
 
 function getHalftimeScore(goals: GoalSeed[] | undefined, home: TeamCode, away: TeamCode): Score {
@@ -290,7 +480,7 @@ function createGoalEvents(match: FixtureSeed): ReplayEvent[] {
   let homeScore = 0;
   let awayScore = 0;
 
-  return [...(match.goals ?? [])]
+  return [...getFixtureGoals(match)]
     .sort((a, b) => a.minute - b.minute)
     .map((goal, index) => {
       if (goal.team === match.home) homeScore += 1;
@@ -310,7 +500,8 @@ function createGoalEvents(match: FixtureSeed): ReplayEvent[] {
 
 function createEvents(match: FixtureSeed): ReplayEvent[] {
   const venue = getVenueName(match.venueId);
-  const halftimeScore = getHalftimeScore(match.goals, match.home, match.away);
+  const goals = getFixtureGoals(match);
+  const halftimeScore = getHalftimeScore(goals, match.home, match.away);
   const goalEvents = createGoalEvents(match);
   const resultDetail = `${teamNamesByCode[match.home]} ${match.score.home}-${match.score.away} ${teamNamesByCode[match.away]}${match.note ? ` (${match.note})` : ""}.`;
 
@@ -333,7 +524,7 @@ function createEvents(match: FixtureSeed): ReplayEvent[] {
     ...goalEvents.filter((event) => event.minute !== null && event.minute > 45),
     {
       id: "full-time",
-      minute: match.goals?.some((goal) => goal.minute > 90) ? Math.max(...match.goals.map((goal) => goal.minute)) : 90,
+      minute: goals.some((goal) => goal.minute > 90) ? Math.max(...goals.map((goal) => goal.minute)) : 90,
       type: "full_time",
       detail: `Full time. ${resultDetail}`,
       scoreAfter: match.score
