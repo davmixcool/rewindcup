@@ -73,14 +73,14 @@ const groupAssignments: Record<TeamCode, string> = {
   ENG: "F",
   NGA: "F",
   SWE: "F",
-  BEL: "G",
-  JPN: "G",
-  RUS: "G",
-  TUN: "G",
-  CRO: "H",
-  ECU: "H",
-  ITA: "H",
-  MEX: "H"
+  CRO: "G",
+  ECU: "G",
+  ITA: "G",
+  MEX: "G",
+  BEL: "H",
+  JPN: "H",
+  RUS: "H",
+  TUN: "H"
 };
 
 const groupOrder = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -297,6 +297,35 @@ export function ReplayApp() {
       }),
     [fixtureBaseEntries, fixtureMediaFilter, fixtureStageFilter]
   );
+  const fixtureMediaCounts = useMemo(
+    () =>
+      fixtureBaseEntries.reduce(
+        (counts, { match: runMatch }) => {
+          counts.all += 1;
+          if (runMatch.highlights.status === "embeddable-video") counts.playable += 1;
+          if (runMatch.highlights.status === "official-report") counts.reports += 1;
+
+          return counts;
+        },
+        { all: 0, playable: 0, reports: 0 }
+      ),
+    [fixtureBaseEntries]
+  );
+  const fixtureMediaFilterOptions = useMemo(() => {
+    const filters: { label: string; value: FixtureMediaFilter }[] = [
+      { label: `All ${fixtureMediaCounts.all}`, value: "all" }
+    ];
+
+    if (fixtureMediaCounts.playable > 0 && fixtureMediaCounts.playable < fixtureMediaCounts.all) {
+      filters.push({ label: `Playable ${fixtureMediaCounts.playable}`, value: "playable" });
+    }
+
+    if (fixtureMediaCounts.reports > 0) {
+      filters.push({ label: `Reports ${fixtureMediaCounts.reports}`, value: "reports" });
+    }
+
+    return filters;
+  }, [fixtureMediaCounts]);
   const countryMarkers = useMemo(
     () =>
       !tournament
@@ -440,6 +469,12 @@ export function ReplayApp() {
 
     return () => window.clearTimeout(timer);
   }, [showLandingConfetti]);
+
+  useEffect(() => {
+    if (fixtureMediaFilterOptions.some((filter) => filter.value === fixtureMediaFilter)) return;
+
+    setFixtureMediaFilter("all");
+  }, [fixtureMediaFilter, fixtureMediaFilterOptions]);
 
   useEffect(() => {
     return () => {
@@ -702,13 +737,9 @@ export function ReplayApp() {
     { label: "R16", value: "r16" },
     { label: "QF", value: "qf" },
     { label: "SF", value: "sf" },
-    { label: "Finals", value: "final" }
+    { label: "3rd", value: "third" },
+    { label: "Final", value: "final" }
   ] satisfies { label: string; value: FixtureStageFilter }[];
-  const fixtureMediaFilters = [
-    { label: "All media", value: "all" },
-    { label: "Playable", value: "playable" },
-    { label: "Reports", value: "reports" }
-  ] satisfies { label: string; value: FixtureMediaFilter }[];
 
   return (
     <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"}`}>
@@ -850,18 +881,20 @@ export function ReplayApp() {
                 </button>
               ))}
             </div>
-            <div className="tray-filter-row tray-media-filter-row" aria-label="Fixture highlight filters">
-              {fixtureMediaFilters.map((filter) => (
-                <button
-                  className={fixtureMediaFilter === filter.value ? "active" : ""}
-                  key={filter.value}
-                  onClick={() => setFixtureMediaFilter(filter.value)}
-                  type="button"
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
+            {fixtureMediaFilterOptions.length > 1 ? (
+              <div className="tray-filter-row tray-media-filter-row" aria-label="Fixture highlight filters">
+                {fixtureMediaFilterOptions.map((filter) => (
+                  <button
+                    className={fixtureMediaFilter === filter.value ? "active" : ""}
+                    key={filter.value}
+                    onClick={() => setFixtureMediaFilter(filter.value)}
+                    type="button"
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <div className="tray-fixture-list">
               {visibleFixtureEntries.length === 0 ? (
                 <div className="tray-empty">
