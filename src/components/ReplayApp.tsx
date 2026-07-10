@@ -179,12 +179,14 @@ export function ReplayApp() {
   const [showLandingConfetti, setShowLandingConfetti] = useState(false);
   const [showCountryFlags, setShowCountryFlags] = useState(true);
   const [enableGlobeSpin, setEnableGlobeSpin] = useState(true);
+  const [countryFocusRequest, setCountryFocusRequest] = useState(0);
   const [selectedVenueId, setSelectedVenueId] = useState<string | undefined>(undefined);
   const [routeTravelProgress, setRouteTravelProgress] = useState(0);
   const [tournamentFlightProgress, setTournamentFlightProgress] = useState(0);
   const routeTravelProgressRef = useRef(0);
   const tournamentFlightProgressRef = useRef(0);
   const landingTimerRef = useRef<number | null>(null);
+  const countrySelectionTimerRef = useRef<number | null>(null);
   const highlightFrameRef = useRef<HTMLIFrameElement | null>(null);
 
   const currentEvent = match?.events[state.cursor];
@@ -436,6 +438,9 @@ export function ReplayApp() {
       if (landingTimerRef.current) {
         window.clearTimeout(landingTimerRef.current);
       }
+      if (countrySelectionTimerRef.current) {
+        window.clearTimeout(countrySelectionTimerRef.current);
+      }
     };
   }, []);
 
@@ -444,6 +449,13 @@ export function ReplayApp() {
 
     window.clearTimeout(landingTimerRef.current);
     landingTimerRef.current = null;
+  }
+
+  function clearCountrySelectionTimer() {
+    if (!countrySelectionTimerRef.current) return;
+
+    window.clearTimeout(countrySelectionTimerRef.current);
+    countrySelectionTimerRef.current = null;
   }
 
   function resetRouteTravel() {
@@ -477,6 +489,7 @@ export function ReplayApp() {
     if (resetPlayback) {
       resetReplayPlayback();
     }
+    clearCountrySelectionTimer();
     clearLandingTimer();
     setRailMode("run");
     setIsTournamentMenuOpen(false);
@@ -494,6 +507,7 @@ export function ReplayApp() {
     const firstEntry = nextRun?.matches[0];
     if (!firstEntry) return;
 
+    clearCountrySelectionTimer();
     resetReplayPlayback();
     setActiveTrayMenu(null);
     setSelectedTeam(teamCode);
@@ -508,6 +522,7 @@ export function ReplayApp() {
 
   function resetSelectedTournamentExperience() {
     resetReplayPlayback();
+    clearCountrySelectionTimer();
     clearLandingTimer();
     setRailMode("tournamentSetup");
     setIsTournamentMenuOpen(false);
@@ -543,6 +558,7 @@ export function ReplayApp() {
 
   function returnToWorld() {
     resetReplayPlayback();
+    clearCountrySelectionTimer();
     clearLandingTimer();
     setMapMode("world");
     setIsTournamentMenuOpen(false);
@@ -657,11 +673,13 @@ export function ReplayApp() {
   }
 
   function toggleTournamentTray() {
+    clearCountrySelectionTimer();
     setIsTournamentMenuOpen(false);
     setActiveTrayMenu((menu) => (menu === "tournaments" ? null : "tournaments"));
   }
 
   function toggleTeamTray() {
+    clearCountrySelectionTimer();
     setIsTournamentMenuOpen(false);
     if (!tournament) {
       setActiveTrayMenu("tournaments");
@@ -671,6 +689,7 @@ export function ReplayApp() {
   }
 
   function toggleFixtureTray() {
+    clearCountrySelectionTimer();
     setIsTournamentMenuOpen(false);
     if (!tournament) {
       setActiveTrayMenu("tournaments");
@@ -680,11 +699,13 @@ export function ReplayApp() {
   }
 
   function toggleSettingsTray() {
+    clearCountrySelectionTimer();
     setIsTournamentMenuOpen(false);
     setActiveTrayMenu((menu) => (menu === "settings" ? null : "settings"));
   }
 
   function closeBottomTray() {
+    clearCountrySelectionTimer();
     setActiveTrayMenu(null);
   }
 
@@ -697,7 +718,16 @@ export function ReplayApp() {
     if (!tournament) return;
 
     selectTeamRun(teamCode);
-    setActiveTrayMenu("fixtures");
+    setCountryFocusRequest((request) => request + 1);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setActiveTrayMenu("fixtures");
+      return;
+    }
+
+    countrySelectionTimerRef.current = window.setTimeout(() => {
+      countrySelectionTimerRef.current = null;
+      setActiveTrayMenu("fixtures");
+    }, 780);
   }
 
   function selectFixtureFromTray(index: number) {
@@ -736,6 +766,7 @@ export function ReplayApp() {
       <section className="map-stage" aria-label="Map stage">
         <HostMap
           countryMarkers={!tournament || !showCountryFlags ? [] : countryMarkers}
+          countryFocusRequest={countryFocusRequest}
           enableWorldSpin={enableGlobeSpin}
           focusVenueId={selectedVenueId}
           mapView={mapView}
@@ -769,6 +800,7 @@ export function ReplayApp() {
           flightStartCoordinates={selectedTeam ? worldCup2002TeamCoordinates[selectedTeam] : mapView.center}
           onCountrySelect={selectCountryFromGlobe}
           routeVenueIds={routeVenueIds}
+          selectedCountryCode={selectedTeam}
           showHostMarker={Boolean(tournament)}
           tournamentName={tournament?.name ?? ""}
           venues={tournament?.venues ?? []}
@@ -779,7 +811,10 @@ export function ReplayApp() {
             <button
               aria-expanded={isTournamentMenuOpen}
               className="app-identity"
-              onClick={() => setIsTournamentMenuOpen((isOpen) => !isOpen)}
+              onClick={() => {
+                clearCountrySelectionTimer();
+                setIsTournamentMenuOpen((isOpen) => !isOpen);
+              }}
               type="button"
             >
               <span className="user-avatar" aria-hidden="true">{selectedTeam ? <img alt="" src={teamFlags[selectedTeam]} /> : "RW"}</span>

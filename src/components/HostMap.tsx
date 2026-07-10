@@ -15,8 +15,14 @@ type CountryMarker = {
   name: string;
 };
 
+type CountryMarkerInstance = {
+  code: TeamCode;
+  marker: Marker;
+};
+
 type HostMapProps = {
   countryMarkers: CountryMarker[];
+  countryFocusRequest: number;
   enableWorldSpin: boolean;
   flightStartCoordinates: Coordinates;
   focusVenueId?: string;
@@ -27,6 +33,7 @@ type HostMapProps = {
   onVenueSelect: (venueId: string) => void;
   progress: number;
   routeVenueIds: string[];
+  selectedCountryCode: TeamCode | null;
   showHostMarker: boolean;
   tournamentName: string;
   venues: Venue[];
@@ -94,6 +101,7 @@ function getFirstTextLayerId(map: MapLibreMap) {
 
 export function HostMap({
   countryMarkers,
+  countryFocusRequest,
   enableWorldSpin,
   flightStartCoordinates,
   focusVenueId,
@@ -104,6 +112,7 @@ export function HostMap({
   onVenueSelect,
   progress,
   routeVenueIds,
+  selectedCountryCode,
   showHostMarker,
   tournamentName,
   venues
@@ -113,7 +122,8 @@ export function HostMap({
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapInstanceKey, setMapInstanceKey] = useState(0);
   const [isGlobeDragging, setIsGlobeDragging] = useState(false);
-  const countryMarkerRefs = useRef<Marker[]>([]);
+  const countryMarkerRefs = useRef<CountryMarkerInstance[]>([]);
+  const selectedCountryCodeRef = useRef(selectedCountryCode);
   const extrusionLayersAddedRef = useRef(false);
   const cameraKeyRef = useRef("");
   const cameraTimeoutRef = useRef<number | null>(null);
@@ -134,6 +144,10 @@ export function HostMap({
     const focusedRouteIndex = focusVenueId ? routeVenueIds.indexOf(focusVenueId) : -1;
     return focusedRouteIndex > 0 ? focusedRouteIndex / Math.max(routeVenueIds.length - 1, 1) : 0;
   }, [focusVenueId, routeVenueIds]);
+  const selectedCountryMarker = useMemo(
+    () => countryMarkers.find((marker) => marker.code === selectedCountryCode),
+    [countryMarkers, selectedCountryCode]
+  );
 
   useEffect(() => {
     progressRef.current = progress;
@@ -154,6 +168,17 @@ export function HostMap({
   useEffect(() => {
     onVenueSelectRef.current = onVenueSelect;
   }, [onVenueSelect]);
+
+  useEffect(() => {
+    selectedCountryCodeRef.current = selectedCountryCode;
+    countryMarkerRefs.current.forEach(({ code, marker }) => {
+      const markerElement = marker.getElement();
+      const isSelected = code === selectedCountryCode;
+      markerElement.classList.toggle("is-selected", isSelected);
+      markerElement.classList.toggle("is-muted", Boolean(selectedCountryCode && !isSelected));
+      markerElement.setAttribute("aria-pressed", String(isSelected));
+    });
+  }, [selectedCountryCode]);
 
   useEffect(() => {
     let isMounted = true;
@@ -472,7 +497,7 @@ export function HostMap({
       if (spinResumeTimerRef.current) {
         window.clearTimeout(spinResumeTimerRef.current);
       }
-      countryMarkerRefs.current.forEach((marker) => marker.remove());
+      countryMarkerRefs.current.forEach(({ marker }) => marker.remove());
       countryMarkerRefs.current = [];
       mapRef.current?.remove();
       mapRef.current = null;
@@ -488,7 +513,7 @@ export function HostMap({
     let isCancelled = false;
 
     function removeCountryMarkers() {
-      countryMarkerRefs.current.forEach((marker) => marker.remove());
+      countryMarkerRefs.current.forEach(({ marker }) => marker.remove());
       countryMarkerRefs.current = [];
     }
 
@@ -503,22 +528,41 @@ export function HostMap({
       removeCountryMarkers();
       countryMarkerRefs.current = countryMarkers.map((marker) => {
         const markerElement = document.createElement("button");
+        const isSelected = marker.code === selectedCountryCodeRef.current;
         markerElement.className = "country-flag-marker";
+        markerElement.classList.toggle("is-selected", isSelected);
+        markerElement.classList.toggle("is-muted", Boolean(selectedCountryCodeRef.current && !isSelected));
         markerElement.style.setProperty("--marker-color", marker.color);
         markerElement.type = "button";
         markerElement.title = marker.name;
         markerElement.setAttribute("aria-label", `${marker.name} tournament team`);
-        markerElement.innerHTML = `<img alt="" src="${marker.flagSrc}" />`;
+        markerElement.setAttribute("aria-pressed", String(isSelected));
+
+        const markerDisc = document.createElement("span");
+        markerDisc.className = "country-flag-disc";
+        const markerImage = document.createElement("img");
+        markerImage.alt = "";
+        markerImage.src = marker.flagSrc;
+        markerDisc.append(markerImage);
+
+        const markerLabel = document.createElement("span");
+        markerLabel.className = "country-flag-label";
+        markerLabel.textContent = marker.name;
+        markerElement.append(markerDisc, markerLabel);
         markerElement.addEventListener("click", () => {
           onCountrySelectRef.current(marker.code);
         });
 
-        return new maplibregl.Marker({
-          element: markerElement,
-          anchor: "center"
-        })
-          .setLngLat(marker.coordinates)
-          .addTo(mapRef.current!);
+        return {
+          code: marker.code,
+          marker: new maplibregl.Marker({
+            element: markerElement,
+            anchor: "center",
+            subpixelPositioning: true
+          })
+            .setLngLat(marker.coordinates)
+            .addTo(mapRef.current!)
+        };
       });
     }
 
@@ -529,6 +573,52 @@ export function HostMap({
       removeCountryMarkers();
     };
   }, [countryMarkers, isMapReady, mapInstanceKey, mode]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!isMapReady || !map || mode !== "world" || !selectedCountryMarker) return;
+
+    isUserInteractingRef.current = true;
+    if (spinResumeTimerRef.current) {
+      window.clearTimeout(spinResumeTimerRef.current);
+    }
+
+    map.stop();
+    const nextZoom = Math.max(map.getZoom(), WORLD_VIEW.zoom + 0.42);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      map.jumpTo({
+        center: selectedCountryMarker.coordinates,
+        zoom: nextZoom,
+        bearing: WORLD_VIEW.bearing,
+        pitch: WORLD_VIEW.pitch
+      });
+      isUserInteractingRef.current = false;
+      return;
+    }
+
+    map.easeTo({
+      center: selectedCountryMarker.coordinates,
+      zoom: nextZoom,
+      bearing: WORLD_VIEW.bearing,
+      pitch: WORLD_VIEW.pitch,
+      duration: 760,
+      essential: true,
+      easing: (progress) => 1 - Math.pow(1 - progress, 3)
+    });
+
+    spinResumeTimerRef.current = window.setTimeout(() => {
+      spinResumeTimerRef.current = null;
+      isUserInteractingRef.current = false;
+    }, 980);
+
+    return () => {
+      if (spinResumeTimerRef.current) {
+        window.clearTimeout(spinResumeTimerRef.current);
+        spinResumeTimerRef.current = null;
+      }
+      isUserInteractingRef.current = false;
+    };
+  }, [countryFocusRequest, isMapReady, mapInstanceKey, mode, selectedCountryMarker]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -805,7 +895,7 @@ export function HostMap({
       map.setPaintProperty("stadium-extrusion", "fill-extrusion-opacity", mode === "stadium" ? 0.72 : 0);
     }
 
-    const modeKey = `${mode}:${focusVenueId ?? "none"}`;
+    const modeKey = mode === "world" ? "world" : `${mode}:${focusVenueId ?? "none"}`;
     const selectedVenue = venues.find((venue) => venue.id === focusVenueId);
 
     if (mode !== "stadium") {
