@@ -43,6 +43,10 @@ type OpenFixtureOptions = {
   resetPlayback?: boolean;
   trayMenu?: TrayMenu;
 };
+type PendingFixtureArrival = {
+  matchId: string;
+  venueId: string;
+};
 
 const stageRank: Record<Match["stage"], number> = {
   group: 0,
@@ -181,15 +185,15 @@ export function ReplayApp() {
   const [enableGlobeSpin, setEnableGlobeSpin] = useState(true);
   const [countryFocusRequest, setCountryFocusRequest] = useState(0);
   const [selectedVenueId, setSelectedVenueId] = useState<string | undefined>(undefined);
+  const [fixtureTravelRequest, setFixtureTravelRequest] = useState(0);
+  const [pendingFixtureArrival, setPendingFixtureArrival] = useState<PendingFixtureArrival | null>(null);
   const [routeTravelProgress, setRouteTravelProgress] = useState(0);
-  const [tournamentFlightProgress, setTournamentFlightProgress] = useState(0);
   const routeTravelProgressRef = useRef(0);
-  const tournamentFlightProgressRef = useRef(0);
-  const landingTimerRef = useRef<number | null>(null);
   const countrySelectionTimerRef = useRef<number | null>(null);
   const highlightFrameRef = useRef<HTMLIFrameElement | null>(null);
 
   const currentEvent = match?.events[state.cursor];
+  const isFixtureTraveling = pendingFixtureArrival !== null;
   const teamRunOptions = useMemo(
     () => {
       if (!tournament) return [];
@@ -384,40 +388,6 @@ export function ReplayApp() {
   }, [routeProgress]);
 
   useEffect(() => {
-    if (mapMode !== "flight") return;
-
-    tournamentFlightProgressRef.current = 0;
-    setTournamentFlightProgress(0);
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      tournamentFlightProgressRef.current = 1;
-      setTournamentFlightProgress(1);
-      return;
-    }
-
-    let frameId = 0;
-    const duration = 3000;
-    const startTime = performance.now();
-
-    function animateTournamentFlight(now: number) {
-      const elapsed = now - startTime;
-      const eased = easeInOutCubic(Math.min(elapsed / duration, 1));
-      tournamentFlightProgressRef.current = eased;
-      setTournamentFlightProgress(eased);
-
-      if (elapsed < duration) {
-        frameId = window.requestAnimationFrame(animateTournamentFlight);
-      }
-    }
-
-    frameId = window.requestAnimationFrame(animateTournamentFlight);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-    };
-  }, [mapMode]);
-
-  useEffect(() => {
     if (!showLandingConfetti) return;
 
     const timer = window.setTimeout(() => {
@@ -435,21 +405,11 @@ export function ReplayApp() {
 
   useEffect(() => {
     return () => {
-      if (landingTimerRef.current) {
-        window.clearTimeout(landingTimerRef.current);
-      }
       if (countrySelectionTimerRef.current) {
         window.clearTimeout(countrySelectionTimerRef.current);
       }
     };
   }, []);
-
-  function clearLandingTimer() {
-    if (!landingTimerRef.current) return;
-
-    window.clearTimeout(landingTimerRef.current);
-    landingTimerRef.current = null;
-  }
 
   function clearCountrySelectionTimer() {
     if (!countrySelectionTimerRef.current) return;
@@ -458,14 +418,13 @@ export function ReplayApp() {
     countrySelectionTimerRef.current = null;
   }
 
+  function clearPendingFixtureArrival() {
+    setPendingFixtureArrival(null);
+  }
+
   function resetRouteTravel() {
     setRouteTravelProgress(0);
     routeTravelProgressRef.current = 0;
-  }
-
-  function resetTournamentFlight() {
-    setTournamentFlightProgress(0);
-    tournamentFlightProgressRef.current = 0;
   }
 
   function resetReplayPlayback() {
@@ -489,8 +448,8 @@ export function ReplayApp() {
     if (resetPlayback) {
       resetReplayPlayback();
     }
+    clearPendingFixtureArrival();
     clearCountrySelectionTimer();
-    clearLandingTimer();
     setRailMode("run");
     setIsTournamentMenuOpen(false);
     setActiveTrayMenu(trayMenu);
@@ -498,6 +457,26 @@ export function ReplayApp() {
     setSelectedVenueId(nextMatch.venueId);
     setMapMode(nextMode);
     setIsMatchOpen(openMatch);
+  }
+
+  function travelToFixture(index: number) {
+    if (!tournament) return;
+
+    const nextMatch = tournament.matches[index];
+    if (!nextMatch) return;
+
+    resetReplayPlayback();
+    clearCountrySelectionTimer();
+    setFixtureTravelRequest((request) => request + 1);
+    setPendingFixtureArrival({ matchId: nextMatch.id, venueId: nextMatch.venueId });
+    setRailMode("run");
+    setIsTournamentMenuOpen(false);
+    setActiveTrayMenu(null);
+    setSelectedMatchIndex(index);
+    setSelectedVenueId(nextMatch.venueId);
+    setShowLandingConfetti(false);
+    setIsMatchOpen(false);
+    setMapMode(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "stadium" : "flight");
   }
 
   function selectTeamRun(teamCode: TeamCode) {
@@ -508,6 +487,7 @@ export function ReplayApp() {
     if (!firstEntry) return;
 
     clearCountrySelectionTimer();
+    clearPendingFixtureArrival();
     resetReplayPlayback();
     setActiveTrayMenu(null);
     setSelectedTeam(teamCode);
@@ -522,8 +502,8 @@ export function ReplayApp() {
 
   function resetSelectedTournamentExperience() {
     resetReplayPlayback();
+    clearPendingFixtureArrival();
     clearCountrySelectionTimer();
-    clearLandingTimer();
     setRailMode("tournamentSetup");
     setIsTournamentMenuOpen(false);
     setActiveTrayMenu(null);
@@ -537,7 +517,6 @@ export function ReplayApp() {
     setShowCountryFlags(true);
     setShowLandingConfetti(false);
     resetRouteTravel();
-    resetTournamentFlight();
   }
 
   function selectTournament(index: number) {
@@ -558,8 +537,8 @@ export function ReplayApp() {
 
   function returnToWorld() {
     resetReplayPlayback();
+    clearPendingFixtureArrival();
     clearCountrySelectionTimer();
-    clearLandingTimer();
     setMapMode("world");
     setIsTournamentMenuOpen(false);
     setActiveTrayMenu(null);
@@ -573,7 +552,6 @@ export function ReplayApp() {
     setShowCountryFlags(true);
     setShowLandingConfetti(false);
     resetRouteTravel();
-    resetTournamentFlight();
   }
 
   function openReplayFromDock() {
@@ -581,6 +559,8 @@ export function ReplayApp() {
       setActiveTrayMenu("tournaments");
       return;
     }
+
+    if (isFixtureTraveling) return;
 
     if (selectedMatchIndex === null) {
       setActiveTrayMenu("fixtures");
@@ -601,11 +581,26 @@ export function ReplayApp() {
   }
 
   function openReplayFixture(index: number) {
-    openFixture(index, {
-      nextMode: "stadium",
-      openMatch: true,
-      trayMenu: "replay"
-    });
+    travelToFixture(index);
+  }
+
+  function handleFixtureFlightArrival(venueId: string) {
+    if (!pendingFixtureArrival || pendingFixtureArrival.venueId !== venueId) return;
+    if (!match || pendingFixtureArrival.matchId !== match.id) return;
+
+    setMapMode("stadium");
+  }
+
+  function handleStadiumArrival(venueId: string) {
+    if (!pendingFixtureArrival || pendingFixtureArrival.venueId !== venueId) return;
+    if (!match || pendingFixtureArrival.matchId !== match.id) return;
+
+    setPendingFixtureArrival(null);
+    setIsMatchOpen(true);
+    setActiveTrayMenu("replay");
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShowLandingConfetti(true);
+    }
   }
 
   function sendHighlightCommand(command: "playVideo" | "pauseVideo" | "seekTo", args: unknown[] = []) {
@@ -762,22 +757,25 @@ export function ReplayApp() {
   ] satisfies { label: string; value: FixtureStageFilter }[];
 
   return (
-    <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"}`}>
-      <section className="map-stage" aria-label="Map stage">
+    <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"} ${isFixtureTraveling ? "fixture-traveling" : ""}`}>
+      <section className="map-stage" aria-busy={isFixtureTraveling} aria-label="Map stage">
         <HostMap
           countryMarkers={!tournament || !showCountryFlags ? [] : countryMarkers}
           countryFocusRequest={countryFocusRequest}
           enableWorldSpin={enableGlobeSpin}
           focusVenueId={selectedVenueId}
+          isCameraTransitioning={isFixtureTraveling}
           mapView={mapView}
           mode={mapMode}
           onHostSelect={() => {
-            if (!tournament) return;
+            if (!tournament || isFixtureTraveling) return;
             setMapMode("host");
             setIsMatchOpen(false);
           }}
+          onFlightArrival={handleFixtureFlightArrival}
+          onStadiumArrival={handleStadiumArrival}
           onVenueSelect={(venueId) => {
-            if (!tournament) return;
+            if (!tournament || isFixtureTraveling) return;
 
             const venueEntry = selectedRunEntries.find(({ match: routeMatch }) => routeMatch.venueId === venueId);
             if (venueEntry) {
@@ -789,19 +787,18 @@ export function ReplayApp() {
             }
 
             resetReplayPlayback();
-            clearLandingTimer();
             setActiveTrayMenu(null);
             setMapMode("stadium");
             setSelectedMatchIndex(null);
             setSelectedVenueId(venueId);
             setIsMatchOpen(true);
           }}
-          progress={mapMode === "flight" ? tournamentFlightProgress : routeTravelProgress}
-          flightStartCoordinates={selectedTeam ? worldCup2002TeamCoordinates[selectedTeam] : mapView.center}
+          progress={routeTravelProgress}
           onCountrySelect={selectCountryFromGlobe}
           routeVenueIds={routeVenueIds}
           selectedCountryCode={selectedTeam}
           showHostMarker={Boolean(tournament)}
+          stadiumFocusRequest={fixtureTravelRequest}
           tournamentName={tournament?.name ?? ""}
           venues={tournament?.venues ?? []}
         />
@@ -811,6 +808,7 @@ export function ReplayApp() {
             <button
               aria-expanded={isTournamentMenuOpen}
               className="app-identity"
+              disabled={isFixtureTraveling}
               onClick={() => {
                 clearCountrySelectionTimer();
                 setIsTournamentMenuOpen((isOpen) => !isOpen);
@@ -1196,19 +1194,19 @@ export function ReplayApp() {
         ) : null}
 
         <nav className="bottom-dock" aria-label="Primary views">
-          <button className={activeTrayMenu === "tournaments" || isLibrary ? "active" : ""} onClick={toggleTournamentTray} title="Tournament selection" type="button">
+          <button className={activeTrayMenu === "tournaments" || isLibrary ? "active" : ""} disabled={isFixtureTraveling} onClick={toggleTournamentTray} title="Tournament selection" type="button">
             <Trophy size={21} />
           </button>
-          <button className={activeTrayMenu === "teams" || isTournamentSetup ? "active" : ""} disabled={!tournament} onClick={toggleTeamTray} title="Group stages" type="button">
+          <button className={activeTrayMenu === "teams" || isTournamentSetup ? "active" : ""} disabled={!tournament || isFixtureTraveling} onClick={toggleTeamTray} title="Group stages" type="button">
             <Users size={21} />
           </button>
-          <button className={activeTrayMenu === "fixtures" || (isRun && !isMatchOpen) ? "active" : ""} disabled={!tournament} onClick={toggleFixtureTray} title="Fixture selection" type="button">
+          <button className={activeTrayMenu === "fixtures" || (isRun && !isMatchOpen) ? "active" : ""} disabled={!tournament || isFixtureTraveling} onClick={toggleFixtureTray} title="Fixture selection" type="button">
             <CalendarDays size={21} />
           </button>
-          <button className={activeTrayMenu === "replay" || (isRun && isMatchOpen) ? "active" : ""} disabled={!tournament || !match} onClick={openReplayFromDock} title="Replay" type="button">
+          <button className={activeTrayMenu === "replay" || (isRun && isMatchOpen) ? "active" : ""} disabled={!tournament || !match || isFixtureTraveling} onClick={openReplayFromDock} title="Replay" type="button">
             <Clapperboard size={21} />
           </button>
-          <button className={activeTrayMenu === "settings" ? "active" : ""} onClick={toggleSettingsTray} title="Experience settings" type="button">
+          <button className={activeTrayMenu === "settings" ? "active" : ""} disabled={isFixtureTraveling} onClick={toggleSettingsTray} title="Experience settings" type="button">
             <Settings size={21} />
           </button>
           <button className="dock-count" disabled={!tournament} onClick={openTournamentSetup} title="Back to country globe" type="button">

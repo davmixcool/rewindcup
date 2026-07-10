@@ -1,6 +1,6 @@
 import type { ExpressionSpecification, FillExtrusionLayerSpecification, StyleSpecification } from "maplibre-gl";
 
-const defaultVectorStyleUrl = "https://tiles.openfreemap.org/styles/liberty";
+const defaultVectorStyleUrl = "https://tiles.openfreemap.org/styles/liberty?v=20260710";
 
 const osmRasterStyle: StyleSpecification = {
   version: 8,
@@ -32,8 +32,16 @@ export function getProviderBuildingLayer(): FillExtrusionLayerSpecification | nu
 
   if (!source || !sourceLayer) return null;
 
-  const buildingHeight = ["coalesce", ["get", "render_height"], ["get", "height"], 0] as ExpressionSpecification;
-  const buildingBase = ["coalesce", ["get", "render_min_height"], ["get", "min_height"], 0] as ExpressionSpecification;
+  const buildingHeight = [
+    "to-number",
+    ["coalesce", ["get", "render_height"], ["get", "height"], 0],
+    0
+  ] as ExpressionSpecification;
+  const buildingBase = [
+    "to-number",
+    ["coalesce", ["get", "render_min_height"], ["get", "min_height"], 0],
+    0
+  ] as ExpressionSpecification;
 
   return {
     id: "provider-building-extrusion",

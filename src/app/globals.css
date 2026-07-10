@@ -68,6 +68,10 @@ button {
   z-index: 0;
 }
 
+.tour-map.is-transitioning {
+  pointer-events: none;
+}
+
 .tour-map-canvas {
   background: #f8f7f4;
 }
@@ -154,6 +158,11 @@ button {
   cursor: pointer;
   font-size: 1rem;
   text-align: left;
+}
+
+.app-identity:disabled {
+  cursor: default;
+  opacity: 0.72;
 }
 
 .app-logo {
@@ -1605,5 +1614,9 @@ button {
   .country-flag-label,
   .bottom-dock button {
     transition: none;
+  }
+
+  .confetti-burst {
+    display: none;
   }
 }
