@@ -8,6 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "validate:data": "tsx scripts/validate-data.ts",
+    "audit:journey": "tsx scripts/audit-journey.ts",
     "audit:highlights": "tsx scripts/audit-highlights.ts"
   },
   "dependencies": {

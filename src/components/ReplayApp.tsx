@@ -1,10 +1,35 @@
 "use client";
 
-import { CalendarDays, Clapperboard, Globe2, Pause, Play, RotateCcw, Settings, SkipForward, Trophy, Users, X } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clapperboard,
+  Globe2,
+  Pause,
+  Play,
+  RotateCcw,
+  Settings,
+  SkipForward,
+  Trophy,
+  Users,
+  X
+} from "lucide-react";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { teamColors, teamFlags, teamNames, tournaments } from "@/data/tournaments";
+import {
+  worldCup2002GroupAssignments,
+  worldCup2002GroupOrder,
+  worldCup2002TeamCoordinates
+} from "@/data/worldCup2002Experience";
 import { HostMap } from "@/components/HostMap";
 import { initialReplayState, replayReducer } from "@/lib/replay";
+import {
+  getReplayNavigation,
+  getReplaySequenceEntries,
+  getTeamMatchResult,
+  getTeamRunEntries
+} from "@/lib/tournamentJourney";
 import type { Coordinates, Match, ReplayEvent, TeamCode } from "@/lib/types";
 
 type MapMode = "world" | "flight" | "host" | "stadium";
@@ -12,78 +37,13 @@ type RailMode = "library" | "tournamentSetup" | "run";
 type TrayMenu = "tournaments" | "teams" | "fixtures" | "replay" | "settings" | null;
 type FixtureStageFilter = "all" | Match["stage"];
 type FixtureMediaFilter = "all" | "playable" | "reports";
-
-const teamStartCoordinates: Record<TeamCode, Coordinates> = {
-  ARG: [-58.3816, -34.6037],
-  BEL: [4.3517, 50.8503],
-  BRA: [-47.8825, -15.7942],
-  CMR: [11.5021, 3.848],
-  CHN: [116.4074, 39.9042],
-  CRO: [15.9819, 45.815],
-  CRC: [-84.0907, 9.9281],
-  DEN: [12.5683, 55.6761],
-  ECU: [-78.4678, -0.1807],
-  ENG: [-0.1276, 51.5072],
-  FRA: [2.3522, 48.8566],
-  GER: [13.405, 52.52],
-  IRL: [-6.2603, 53.3498],
-  ITA: [12.4964, 41.9028],
-  JPN: [139.6917, 35.6895],
-  KOR: [126.978, 37.5665],
-  KSA: [46.6753, 24.7136],
-  MEX: [-99.1332, 19.4326],
-  NGA: [7.3986, 9.0765],
-  PAR: [-57.5759, -25.2637],
-  POL: [21.0122, 52.2297],
-  POR: [-9.1393, 38.7223],
-  RSA: [28.2293, -25.7479],
-  RUS: [37.6173, 55.7558],
-  SEN: [-17.4677, 14.7167],
-  SVN: [14.5058, 46.0569],
-  ESP: [-3.7038, 40.4168],
-  SWE: [18.0686, 59.3293],
-  TUN: [10.1815, 36.8065],
-  TUR: [32.8597, 39.9334],
-  URU: [-56.1645, -34.9011],
-  USA: [-77.0369, 38.9072]
+type OpenFixtureOptions = {
+  nextMode?: MapMode;
+  openMatch?: boolean;
+  resetPlayback?: boolean;
+  trayMenu?: TrayMenu;
 };
 
-const groupAssignments: Record<TeamCode, string> = {
-  DEN: "A",
-  FRA: "A",
-  SEN: "A",
-  URU: "A",
-  PAR: "B",
-  RSA: "B",
-  SVN: "B",
-  ESP: "B",
-  BRA: "C",
-  CHN: "C",
-  CRC: "C",
-  TUR: "C",
-  KOR: "D",
-  POL: "D",
-  POR: "D",
-  USA: "D",
-  CMR: "E",
-  GER: "E",
-  IRL: "E",
-  KSA: "E",
-  ARG: "F",
-  ENG: "F",
-  NGA: "F",
-  SWE: "F",
-  CRO: "G",
-  ECU: "G",
-  ITA: "G",
-  MEX: "G",
-  BEL: "H",
-  JPN: "H",
-  RUS: "H",
-  TUN: "H"
-};
-
-const groupOrder = ["A", "B", "C", "D", "E", "F", "G", "H"];
 const stageRank: Record<Match["stage"], number> = {
   group: 0,
   r16: 1,
@@ -185,16 +145,6 @@ function matchesFixtureMediaFilter(match: Match, filter: FixtureMediaFilter) {
   return true;
 }
 
-function getTeamMatchResult(match: Match, teamCode: TeamCode) {
-  const isHome = match.home === teamCode;
-  const teamScore = isHome ? match.score.home : match.score.away;
-  const opponentScore = isHome ? match.score.away : match.score.home;
-
-  if (teamScore > opponentScore) return "W";
-  if (teamScore < opponentScore) return "L";
-  return "D";
-}
-
 function getTeamFinishLabel(teamCode: TeamCode, matches: Match[]) {
   const lastMatch = matches.at(-1);
   if (!lastMatch) return "No run";
@@ -243,9 +193,7 @@ export function ReplayApp() {
       if (!tournament) return [];
 
       return tournament.teams.map((teamCode) => {
-        const matches = tournament.matches
-          .map((runMatch, index) => ({ match: runMatch, index }))
-          .filter(({ match: runMatch }) => runMatch.home === teamCode || runMatch.away === teamCode);
+        const matches = getTeamRunEntries(tournament, teamCode);
         const record = matches.reduce(
           (totals, { match: runMatch }) => {
             const result = getTeamMatchResult(runMatch, teamCode);
@@ -262,7 +210,7 @@ export function ReplayApp() {
         return {
           teamCode,
           matches,
-          group: groupAssignments[teamCode],
+          group: worldCup2002GroupAssignments[teamCode],
           record,
           finishLabel
         };
@@ -274,20 +222,14 @@ export function ReplayApp() {
     () => {
       if (!selectedTeam || !tournament) return [];
 
-      return tournament.matches
-        .map((runMatch, index) => ({ match: runMatch, index }))
-        .filter(({ match: runMatch }) => runMatch.home === selectedTeam || runMatch.away === selectedTeam);
+      return getTeamRunEntries(tournament, selectedTeam);
     },
     [selectedTeam, tournament]
   );
   const fixtureBaseEntries = useMemo(
     () =>
-      !tournament
-        ? []
-        : selectedTeam
-        ? selectedRunEntries
-        : tournament.matches.map((runMatch, index) => ({ match: runMatch, index })),
-    [selectedRunEntries, selectedTeam, tournament]
+      !tournament ? [] : getReplaySequenceEntries(tournament, selectedTeam),
+    [selectedTeam, tournament]
   );
   const visibleFixtureEntries = useMemo(
     () =>
@@ -333,7 +275,7 @@ export function ReplayApp() {
         : tournament.teams.map((teamCode) => ({
         code: teamCode,
         color: teamColors[teamCode],
-        coordinates: teamStartCoordinates[teamCode],
+        coordinates: worldCup2002TeamCoordinates[teamCode],
         flagSrc: teamFlags[teamCode],
         name: teamNames[teamCode]
       })),
@@ -341,7 +283,7 @@ export function ReplayApp() {
   );
   const groupedTeamRunOptions = useMemo(
     () =>
-      groupOrder.map((group) => ({
+      worldCup2002GroupOrder.map((group) => ({
         group,
         teams: teamRunOptions.filter((option) => option.group === group)
       })),
@@ -351,16 +293,29 @@ export function ReplayApp() {
     () => selectedRunEntries.map(({ match: runMatch }) => runMatch.venueId),
     [selectedRunEntries]
   );
+  const replaySequenceEntries = useMemo(
+    () =>
+      !tournament ? [] : getReplaySequenceEntries(tournament, selectedTeam),
+    [selectedTeam, tournament]
+  );
+  const replayNavigation = useMemo(
+    () => getReplayNavigation(replaySequenceEntries, selectedMatchIndex),
+    [replaySequenceEntries, selectedMatchIndex]
+  );
+  const replaySequenceIndex = replayNavigation.position;
+  const previousReplayEntry = replayNavigation.previous;
+  const nextReplayEntry = replayNavigation.next;
+  const replayScopeLabel = selectedTeam ? `${teamNames[selectedTeam]} run` : "Tournament";
   const matchVenue = useMemo(
     () => (tournament && match ? tournament.venues.find((venue) => venue.id === match.venueId) : undefined),
     [match, tournament]
   );
   const routeProgress = useMemo(() => {
-    if (!match) return 0;
+    if (selectedMatchIndex === null) return 0;
 
-    const routeIndex = Math.max(routeVenueIds.indexOf(match.venueId), 0);
+    const routeIndex = Math.max(selectedRunEntries.findIndex((entry) => entry.index === selectedMatchIndex), 0);
     return routeIndex / Math.max(routeVenueIds.length - 1, 1);
-  }, [match, routeVenueIds]);
+  }, [routeVenueIds.length, selectedMatchIndex, selectedRunEntries]);
   const revealedEvents = useMemo(
     () => (match ? match.events.slice(0, Math.max(state.cursor + 1, 0)) : []),
     [match, state.cursor]
@@ -484,18 +439,52 @@ export function ReplayApp() {
     };
   }, []);
 
-  function selectMatch(index: number, nextMode: MapMode = "host", openMatch = true) {
+  function clearLandingTimer() {
+    if (!landingTimerRef.current) return;
+
+    window.clearTimeout(landingTimerRef.current);
+    landingTimerRef.current = null;
+  }
+
+  function resetRouteTravel() {
+    setRouteTravelProgress(0);
+    routeTravelProgressRef.current = 0;
+  }
+
+  function resetTournamentFlight() {
+    setTournamentFlightProgress(0);
+    tournamentFlightProgressRef.current = 0;
+  }
+
+  function resetReplayPlayback() {
+    resetHighlight();
+    dispatch({ type: "RESET" });
+  }
+
+  function openFixture(index: number, options: OpenFixtureOptions = {}) {
     if (!tournament) return;
 
     const nextMatch = tournament.matches[index];
     if (!nextMatch) return;
 
-    setActiveTrayMenu(null);
+    const {
+      nextMode = "stadium",
+      openMatch = true,
+      resetPlayback = true,
+      trayMenu = null
+    } = options;
+
+    if (resetPlayback) {
+      resetReplayPlayback();
+    }
+    clearLandingTimer();
+    setRailMode("run");
+    setIsTournamentMenuOpen(false);
+    setActiveTrayMenu(trayMenu);
     setSelectedMatchIndex(index);
     setSelectedVenueId(nextMatch.venueId);
     setMapMode(nextMode);
     setIsMatchOpen(openMatch);
-    dispatch({ type: "RESET" });
   }
 
   function selectTeamRun(teamCode: TeamCode) {
@@ -505,26 +494,21 @@ export function ReplayApp() {
     const firstEntry = nextRun?.matches[0];
     if (!firstEntry) return;
 
-    resetHighlight();
+    resetReplayPlayback();
     setActiveTrayMenu(null);
     setSelectedTeam(teamCode);
     setSelectedMatchIndex(firstEntry.index);
     setSelectedVenueId(firstEntry.match.venueId);
-    setRouteTravelProgress(0);
-    routeTravelProgressRef.current = 0;
+    resetRouteTravel();
     setIsMatchOpen(false);
     if (mapMode !== "world" && mapMode !== "flight") {
       setMapMode("host");
     }
-    dispatch({ type: "RESET" });
   }
 
   function resetSelectedTournamentExperience() {
-    resetHighlight();
-    dispatch({ type: "RESET" });
-    if (landingTimerRef.current) {
-      window.clearTimeout(landingTimerRef.current);
-    }
+    resetReplayPlayback();
+    clearLandingTimer();
     setRailMode("tournamentSetup");
     setIsTournamentMenuOpen(false);
     setActiveTrayMenu(null);
@@ -537,10 +521,8 @@ export function ReplayApp() {
     setIsMatchOpen(false);
     setShowCountryFlags(true);
     setShowLandingConfetti(false);
-    setRouteTravelProgress(0);
-    routeTravelProgressRef.current = 0;
-    setTournamentFlightProgress(0);
-    tournamentFlightProgressRef.current = 0;
+    resetRouteTravel();
+    resetTournamentFlight();
   }
 
   function selectTournament(index: number) {
@@ -556,28 +538,26 @@ export function ReplayApp() {
       return;
     }
 
-    resetSelectedTournamentExperience();
+    returnToWorld();
   }
 
   function returnToWorld() {
-    resetHighlight();
-    dispatch({ type: "RESET" });
-    if (landingTimerRef.current) {
-      window.clearTimeout(landingTimerRef.current);
-    }
+    resetReplayPlayback();
+    clearLandingTimer();
     setMapMode("world");
     setIsTournamentMenuOpen(false);
     setActiveTrayMenu(null);
-    setRailMode("library");
+    setRailMode(tournament ? "tournamentSetup" : "library");
     setSelectedTeam(null);
     setSelectedMatchIndex(null);
     setSelectedVenueId(undefined);
     setFixtureStageFilter("all");
     setFixtureMediaFilter("all");
     setIsMatchOpen(false);
+    setShowCountryFlags(true);
     setShowLandingConfetti(false);
-    setTournamentFlightProgress(0);
-    tournamentFlightProgressRef.current = 0;
+    resetRouteTravel();
+    resetTournamentFlight();
   }
 
   function openReplayFromDock() {
@@ -591,20 +571,25 @@ export function ReplayApp() {
       return;
     }
 
-    const nextMatchIndex = selectedMatchIndex ?? 0;
-    const nextMatch = tournament.matches[nextMatchIndex];
-    if (!nextMatch) return;
-
-    if (landingTimerRef.current) {
-      window.clearTimeout(landingTimerRef.current);
+    if (activeTrayMenu === "replay") {
+      setActiveTrayMenu(null);
+      return;
     }
-    setRailMode("run");
-    setIsTournamentMenuOpen(false);
-    setActiveTrayMenu((menu) => (menu === "replay" ? null : "replay"));
-    setSelectedMatchIndex(nextMatchIndex);
-    setSelectedVenueId(nextMatch.venueId);
-    setMapMode("stadium");
-    setIsMatchOpen(true);
+
+    openFixture(selectedMatchIndex, {
+      nextMode: "stadium",
+      openMatch: true,
+      resetPlayback: false,
+      trayMenu: "replay"
+    });
+  }
+
+  function openReplayFixture(index: number) {
+    openFixture(index, {
+      nextMode: "stadium",
+      openMatch: true,
+      trayMenu: "replay"
+    });
   }
 
   function sendHighlightCommand(command: "playVideo" | "pauseVideo" | "seekTo", args: unknown[] = []) {
@@ -659,6 +644,13 @@ export function ReplayApp() {
     dispatch({ type: "RESET" });
   }
 
+  function openAdjacentReplayFixture(direction: -1 | 1) {
+    const nextEntry = direction < 0 ? previousReplayEntry : nextReplayEntry;
+    if (!nextEntry) return;
+
+    openReplayFixture(nextEntry.index);
+  }
+
   function selectTournamentFromNav(index: number) {
     selectTournament(index);
     setIsTournamentMenuOpen(false);
@@ -711,9 +703,7 @@ export function ReplayApp() {
   function selectFixtureFromTray(index: number) {
     if (!tournament) return;
 
-    setRailMode("run");
-    selectMatch(index, "stadium", true);
-    setActiveTrayMenu("replay");
+    openReplayFixture(index);
   }
 
   function selectTeamFromTray(teamCode: TeamCode) {
@@ -760,16 +750,23 @@ export function ReplayApp() {
 
             const venueEntry = selectedRunEntries.find(({ match: routeMatch }) => routeMatch.venueId === venueId);
             if (venueEntry) {
-              selectMatch(venueEntry.index, "stadium", true);
+              openFixture(venueEntry.index, {
+                nextMode: "stadium",
+                openMatch: true
+              });
               return;
             }
 
+            resetReplayPlayback();
+            clearLandingTimer();
+            setActiveTrayMenu(null);
             setMapMode("stadium");
+            setSelectedMatchIndex(null);
             setSelectedVenueId(venueId);
             setIsMatchOpen(true);
           }}
           progress={mapMode === "flight" ? tournamentFlightProgress : routeTravelProgress}
-          flightStartCoordinates={selectedTeam ? teamStartCoordinates[selectedTeam] : mapView.center}
+          flightStartCoordinates={selectedTeam ? worldCup2002TeamCoordinates[selectedTeam] : mapView.center}
           onCountrySelect={selectCountryFromGlobe}
           routeVenueIds={routeVenueIds}
           showHostMarker={Boolean(tournament)}
@@ -1032,23 +1029,47 @@ export function ReplayApp() {
               <section className="tray-moment-card" aria-label="Replay controls">
                 <div className="tray-card-header">
                   <span>{formatClock(currentEvent, state.status)}</span>
-                  <small>{state.mode === "blackout" ? "Blackout" : "Live score"}</small>
+                  <small>{highlightEmbedUrl ? "Replay + video" : state.mode === "blackout" ? "Blackout" : "Live score"}</small>
+                </div>
+                <div className="tray-fixture-nav" aria-label={`${replayScopeLabel} fixture navigation`}>
+                  <button
+                    className="icon-button"
+                    disabled={!previousReplayEntry}
+                    onClick={() => openAdjacentReplayFixture(-1)}
+                    title={`Previous fixture in ${replayScopeLabel}`}
+                    type="button"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <span>
+                    {replaySequenceIndex >= 0 ? replaySequenceIndex + 1 : 0}/{replaySequenceEntries.length}
+                  </span>
+                  <button
+                    className="icon-button"
+                    disabled={!nextReplayEntry}
+                    onClick={() => openAdjacentReplayFixture(1)}
+                    title={`Next fixture in ${replayScopeLabel}`}
+                    type="button"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
                 </div>
                 <div className="controls media-control-row tray-control-row">
                   <button
-                    className="icon-button primary"
+                    className="icon-button primary replay-action-button"
                     disabled={isFinished}
                     onClick={handlePrimaryReplayAction}
-                    title={state.cursor === -1 ? "Start replay" : "Next moment"}
+                    title={state.cursor === -1 ? "Start replay and highlight" : "Next replay moment"}
                     type="button"
                   >
                     {state.cursor === -1 ? <Play size={20} /> : <SkipForward size={20} />}
+                    <span>{state.cursor === -1 ? "Play" : "Next"}</span>
                   </button>
                   <button
                     className="icon-button"
                     disabled={isFinished}
                     onClick={handleAutoplayToggle}
-                    title={state.isAutoplaying ? "Pause autoplay" : "Start autoplay"}
+                    title={state.isAutoplaying ? "Pause replay and highlight" : "Autoplay replay and highlight"}
                     type="button"
                   >
                     {state.isAutoplaying ? <Pause size={20} /> : <Play size={20} />}
@@ -1061,7 +1082,7 @@ export function ReplayApp() {
                   >
                     <RotateCcw size={20} />
                   </button>
-                  <button className="toggle-button" onClick={() => dispatch({ type: "TOGGLE_MODE" })} type="button">
+                  <button className="toggle-button" onClick={() => dispatch({ type: "TOGGLE_MODE", match })} type="button">
                     {state.mode === "blackout" ? "Show live score" : "Blackout score"}
                   </button>
                 </div>
