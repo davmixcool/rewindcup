@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+});
+
 test("tray disclosures expose state and keep keyboard focus in context", async ({ page }) => {
   await page.goto("/");
 

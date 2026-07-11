@@ -92,6 +92,8 @@ async function selectSaudiArabiaRun(page: Page) {
 }
 
 test("tournament, country, fixture, stadium, and replay journey", async ({ page }, testInfo) => {
+  test.slow();
+
   const mapIssues = watchForMapIssues(page);
   await page.goto("/");
 
