@@ -109,6 +109,12 @@ function getFirstTextLayerId(map: MapLibreMap) {
   return map.getStyle().layers?.find((layer) => layer.type === "symbol" && "layout" in layer && layer.layout?.["text-field"])?.id;
 }
 
+function setMapProjection(map: MapLibreMap, type: "globe" | "mercator") {
+  if (map.getProjection().type === type) return;
+
+  map.setProjection({ type });
+}
+
 export function HostMap({
   countryMarkers,
   countryFocusRequest,
@@ -133,6 +139,7 @@ export function HostMap({
   const mapNodeRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [areMapLayersReady, setAreMapLayersReady] = useState(false);
   const [mapInstanceKey, setMapInstanceKey] = useState(0);
   const [isGlobeDragging, setIsGlobeDragging] = useState(false);
   const countryMarkerRefs = useRef<CountryMarkerInstance[]>([]);
@@ -142,6 +149,8 @@ export function HostMap({
   const cameraTimeoutRef = useRef<number | null>(null);
   const flightArrivalListenerRef = useRef<Listener | null>(null);
   const stadiumArrivalListenerRef = useRef<Listener | null>(null);
+  const stadiumIdleListenerRef = useRef<Listener | null>(null);
+  const stadiumReadyTimeoutRef = useRef<number | null>(null);
   const isUserInteractingRef = useRef(false);
   const spinResumeTimerRef = useRef<number | null>(null);
   const onHostSelectRef = useRef(onHostSelect);
@@ -222,7 +231,8 @@ export function HostMap({
         maxPitch: 80,
         attributionControl: false,
         dragRotate: true,
-        style: getBaseMapStyle()
+        style: getBaseMapStyle(),
+        validateStyle: process.env.NODE_ENV !== "production"
       });
 
       map.on("styleimagemissing", (event: MapStyleImageMissingEvent) => {
@@ -279,7 +289,7 @@ export function HostMap({
         }
 
         didSetupMapLayers = true;
-        map.setProjection({ type: modeRef.current === "world" || modeRef.current === "flight" ? "globe" : "mercator" });
+        setMapProjection(map, modeRef.current === "world" || modeRef.current === "flight" ? "globe" : "mercator");
 
         for (const layer of map.getStyle().layers ?? []) {
           if (layer.type === "fill-extrusion") {
@@ -394,6 +404,7 @@ export function HostMap({
           source: "host",
           layout: {
             "text-field": ["get", "name"],
+            "text-font": ["Noto Sans Regular"],
             "text-size": 15,
             "text-offset": [0, 1.75],
             "text-anchor": "top"
@@ -473,6 +484,7 @@ export function HostMap({
           source: "venues",
           layout: {
             "text-field": ["get", "name"],
+            "text-font": ["Noto Sans Regular"],
             "text-size": 12,
             "text-offset": [0, 1.5],
             "text-anchor": "top"
@@ -511,6 +523,8 @@ export function HostMap({
             onVenueSelectRef.current(venueId);
           }
         });
+
+        setAreMapLayersReady(true);
       }
 
       map.on("load", setupMapLayers);
@@ -536,6 +550,14 @@ export function HostMap({
         mapRef.current.off("moveend", stadiumArrivalListenerRef.current);
         stadiumArrivalListenerRef.current = null;
       }
+      if (stadiumIdleListenerRef.current && mapRef.current) {
+        mapRef.current.off("idle", stadiumIdleListenerRef.current);
+        stadiumIdleListenerRef.current = null;
+      }
+      if (stadiumReadyTimeoutRef.current) {
+        window.clearTimeout(stadiumReadyTimeoutRef.current);
+        stadiumReadyTimeoutRef.current = null;
+      }
       if (spinResumeTimerRef.current) {
         window.clearTimeout(spinResumeTimerRef.current);
       }
@@ -544,6 +566,7 @@ export function HostMap({
       mapRef.current?.remove();
       mapRef.current = null;
       setIsMapReady(false);
+      setAreMapLayersReady(false);
       setIsGlobeDragging(false);
       isUserInteractingRef.current = false;
       extrusionLayersAddedRef.current = false;
@@ -670,19 +693,24 @@ export function HostMap({
 
     let frameId = 0;
     let timerId = 0;
-    let lastTime = performance.now();
+    let lastRenderTime = performance.now();
     const degreesPerMillisecond = 0.00042;
+    const renderInterval = 1000 / 30;
 
     function spinWorld(now: number) {
       const activeMap = mapRef.current;
       if (!activeMap || modeRef.current !== "world") return;
 
-      const elapsed = Math.min(now - lastTime, 80);
-      lastTime = now;
-      if (isUserInteractingRef.current) {
+      if (document.hidden || isUserInteractingRef.current || now - lastRenderTime < renderInterval) {
+        if (document.hidden || isUserInteractingRef.current) {
+          lastRenderTime = now;
+        }
         frameId = window.requestAnimationFrame(spinWorld);
         return;
       }
+
+      const elapsed = Math.min(now - lastRenderTime, 80);
+      lastRenderTime = now;
       const center = activeMap.getCenter();
       const nextLng = wrapLongitude(center.lng + elapsed * degreesPerMillisecond);
       activeMap.setCenter([nextLng, center.lat]);
@@ -690,7 +718,7 @@ export function HostMap({
     }
 
     timerId = window.setTimeout(() => {
-      lastTime = performance.now();
+      lastRenderTime = performance.now();
       frameId = window.requestAnimationFrame(spinWorld);
     }, 1050);
 
@@ -800,7 +828,7 @@ export function HostMap({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map?.isStyleLoaded()) return;
+    if (!areMapLayersReady || !map) return;
 
     if (
       !map.getLayer("route-glow") ||
@@ -836,9 +864,40 @@ export function HostMap({
     }
 
     function clearPendingStadiumArrival() {
-      if (!stadiumArrivalListenerRef.current) return;
-      map?.off("moveend", stadiumArrivalListenerRef.current);
-      stadiumArrivalListenerRef.current = null;
+      if (stadiumArrivalListenerRef.current) {
+        map?.off("moveend", stadiumArrivalListenerRef.current);
+        stadiumArrivalListenerRef.current = null;
+      }
+      if (stadiumIdleListenerRef.current) {
+        map?.off("idle", stadiumIdleListenerRef.current);
+        stadiumIdleListenerRef.current = null;
+      }
+      if (stadiumReadyTimeoutRef.current) {
+        window.clearTimeout(stadiumReadyTimeoutRef.current);
+        stadiumReadyTimeoutRef.current = null;
+      }
+    }
+
+    function reportStadiumArrivalWhenReady(venueId: string) {
+      let didReportArrival = false;
+      const reportArrival = () => {
+        if (didReportArrival || modeRef.current !== "stadium") return;
+        didReportArrival = true;
+        if (stadiumIdleListenerRef.current === idleListener) {
+          map?.off("idle", idleListener);
+          stadiumIdleListenerRef.current = null;
+        }
+        if (stadiumReadyTimeoutRef.current) {
+          window.clearTimeout(stadiumReadyTimeoutRef.current);
+          stadiumReadyTimeoutRef.current = null;
+        }
+        onStadiumArrivalRef.current(venueId);
+      };
+      const idleListener: Listener = reportArrival;
+
+      stadiumIdleListenerRef.current = idleListener;
+      map?.once("idle", idleListener);
+      stadiumReadyTimeoutRef.current = window.setTimeout(reportArrival, 1400);
     }
 
     function ensureExtrusionLayers() {
@@ -961,14 +1020,18 @@ export function HostMap({
       clearPendingStadiumArrival();
       map.stop();
       removeExtrusionLayers();
-      map.setProjection({ type: "globe" });
-      map.easeTo({
-        center: WORLD_VIEW.center,
-        zoom: WORLD_VIEW.zoom,
-        bearing: WORLD_VIEW.bearing,
-        pitch: WORLD_VIEW.pitch,
-        duration: 950
-      });
+      setMapProjection(map, "globe");
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        map.jumpTo(WORLD_VIEW);
+      } else {
+        map.easeTo({
+          center: WORLD_VIEW.center,
+          zoom: WORLD_VIEW.zoom,
+          bearing: WORLD_VIEW.bearing,
+          pitch: WORLD_VIEW.pitch,
+          duration: 950
+        });
+      }
       return;
     }
 
@@ -980,13 +1043,25 @@ export function HostMap({
       clearPendingStadiumArrival();
       map.stop();
       removeExtrusionLayers();
-      map.setProjection({ type: "globe" });
+      setMapProjection(map, "globe");
 
       const arrivalListener: Listener = () => {
         if (flightArrivalListenerRef.current !== arrivalListener || modeRef.current !== "flight") return;
         flightArrivalListenerRef.current = null;
         onFlightArrivalRef.current(selectedVenue.id);
       };
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        map.jumpTo({
+          center: focusedCoordinates,
+          zoom: WORLD_VIEW.zoom + 1.25,
+          bearing: -12,
+          pitch: 18
+        });
+        onFlightArrivalRef.current(selectedVenue.id);
+        return;
+      }
+
       flightArrivalListenerRef.current = arrivalListener;
       map.once("moveend", arrivalListener);
 
@@ -1002,7 +1077,7 @@ export function HostMap({
       return;
     }
 
-    map.setProjection({ type: "mercator" });
+    setMapProjection(map, "mercator");
     ensureExtrusionLayers();
 
     if (mode === "stadium" && selectedVenue) {
@@ -1021,7 +1096,7 @@ export function HostMap({
           bearing: selectedVenue.stadiumView.bearing,
           pitch: selectedVenue.stadiumView.pitch
         });
-        onStadiumArrivalRef.current(selectedVenue.id);
+        reportStadiumArrivalWhenReady(selectedVenue.id);
         return;
       }
 
@@ -1047,7 +1122,7 @@ export function HostMap({
         const arrivalListener: Listener = () => {
           if (stadiumArrivalListenerRef.current !== arrivalListener) return;
           stadiumArrivalListenerRef.current = null;
-          onStadiumArrivalRef.current(selectedVenue.id);
+          reportStadiumArrivalWhenReady(selectedVenue.id);
         };
         stadiumArrivalListenerRef.current = arrivalListener;
         map.once("moveend", arrivalListener);
@@ -1061,20 +1136,45 @@ export function HostMap({
     clearPendingFlightArrival();
     clearPendingStadiumArrival();
     map.stop();
-    map.flyTo({
+    const focusedView = {
       center: focusedCoordinates,
       zoom: focusedRouteProgress > 0.75 ? Math.max(mapView.zoom + 1.1, 5.15) : mapView.zoom,
       bearing: mapView.bearing,
-      pitch: mapView.pitch,
-      duration: 1300,
-      essential: true
-    });
-  }, [focusVenueId, focusedCoordinates, focusedRouteProgress, mapInstanceKey, mapView, mode, progress, routeCoordinates, showHostMarker, stadiumFocusRequest, tournamentName, venues]);
+      pitch: mapView.pitch
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      map.jumpTo(focusedView);
+    } else {
+      map.flyTo({
+        ...focusedView,
+        duration: 1300
+      });
+    }
+  }, [areMapLayersReady, focusVenueId, focusedCoordinates, focusedRouteProgress, mapInstanceKey, mapView, mode, progress, routeCoordinates, showHostMarker, stadiumFocusRequest, tournamentName, venues]);
 
   return (
     <section className={`tour-map ${isCameraTransitioning ? "is-transitioning" : ""}`} aria-label="Host map">
       <div className={`tour-map-canvas ${mode === "world" ? "is-world" : ""} ${isGlobeDragging ? "is-grabbing" : ""}`} ref={mapNodeRef} />
-      <div className="map-vignette" />
+      {!isCameraTransitioning && showHostMarker && mode === "world" ? (
+        <div aria-label="Map locations" className="map-keyboard-actions" role="group">
+          <button onClick={onHostSelect} type="button">Open {tournamentName} host map</button>
+        </div>
+      ) : null}
+      {!isCameraTransitioning && (mode === "host" || mode === "stadium") && venues.length > 0 ? (
+        <div aria-label="Map locations" className="map-keyboard-actions" role="group">
+          {venues.map((venue) => (
+            <button
+              aria-pressed={venue.id === focusVenueId}
+              key={venue.id}
+              onClick={() => onVenueSelect(venue.id)}
+              type="button"
+            >
+              Open {venue.name}, {venue.city}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <div aria-hidden="true" className="map-vignette" />
     </section>
   );
 }

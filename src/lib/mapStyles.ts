@@ -1,6 +1,6 @@
 import type { ExpressionSpecification, FillExtrusionLayerSpecification, StyleSpecification } from "maplibre-gl";
 
-const defaultVectorStyleUrl = "https://tiles.openfreemap.org/styles/liberty?v=20260710";
+const defaultVectorStyleUrl = "/map-styles/liberty.json";
 
 const osmRasterStyle: StyleSpecification = {
   version: 8,

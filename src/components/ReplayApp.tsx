@@ -57,6 +57,8 @@ const stageRank: Record<Match["stage"], number> = {
   final: 5
 };
 
+const ROUTE_PROGRESS_UPDATES_PER_SECOND = 30;
+
 const DEFAULT_WORLD_MAP_VIEW = {
   center: [31, 8],
   zoom: 2.28,
@@ -71,8 +73,8 @@ const DEFAULT_WORLD_MAP_VIEW = {
 
 function TeamFlag({ code }: { code: Match["home"] }) {
   return (
-    <span className="flag-icon-frame" style={{ backgroundColor: teamColors[code] }}>
-      <img alt={`${teamNames[code]} flag`} className="flag-icon" src={teamFlags[code]} />
+    <span aria-hidden="true" className="flag-icon-frame" style={{ backgroundColor: teamColors[code] }}>
+      <img alt="" className="flag-icon" src={teamFlags[code]} />
     </span>
   );
 }
@@ -191,6 +193,10 @@ export function ReplayApp() {
   const routeTravelProgressRef = useRef(0);
   const countrySelectionTimerRef = useRef<number | null>(null);
   const highlightFrameRef = useRef<HTMLIFrameElement | null>(null);
+  const bottomTrayRef = useRef<HTMLDivElement | null>(null);
+  const previousTrayMenuRef = useRef<TrayMenu>(null);
+  const trayRestoreFocusRef = useRef<HTMLElement | null>(null);
+  const tournamentMenuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const currentEvent = match?.events[state.cursor];
   const isFixtureTraveling = pendingFixtureArrival !== null;
@@ -331,6 +337,17 @@ export function ReplayApp() {
   const progress = match ? ((state.cursor + 1) / match.events.length) * 100 : 0;
   const isFinished = state.status === "full_time";
   const highlightEmbedUrl = match?.highlights.embedUrl ? getPlayableEmbedUrl(match.highlights.embedUrl) : null;
+  const pendingMatch = pendingFixtureArrival && tournament
+    ? tournament.matches.find((candidate) => candidate.id === pendingFixtureArrival.matchId)
+    : null;
+  const pendingVenue = pendingFixtureArrival && tournament
+    ? tournament.venues.find((venue) => venue.id === pendingFixtureArrival.venueId)
+    : null;
+  const experienceStatus = pendingMatch
+    ? `Traveling to ${pendingVenue?.name ?? pendingVenue?.city ?? pendingMatch.venue} for ${teamNames[pendingMatch.home]} versus ${teamNames[pendingMatch.away]}.`
+    : activeTrayMenu === "replay" && match && isMatchOpen
+      ? `Arrived at ${matchVenue?.name ?? matchVenue?.city ?? match.venue}. Replay controls are ready.`
+      : "";
 
   useEffect(() => {
     if (!match) return;
@@ -363,21 +380,28 @@ export function ReplayApp() {
     let frameId = 0;
     const duration = Math.min(2200, Math.max(850, distance * 2600));
     const startTime = performance.now();
+    let lastUpdateTime = startTime;
+    const updateInterval = 1000 / ROUTE_PROGRESS_UPDATES_PER_SECOND;
 
     function animateRoute(now: number) {
       const elapsed = now - startTime;
       const eased = easeInOutCubic(Math.min(elapsed / duration, 1));
       const nextProgress = startProgress + (endProgress - startProgress) * eased;
-      setRouteTravelProgress(nextProgress);
-      routeTravelProgressRef.current = nextProgress;
+      const isComplete = elapsed >= duration;
 
-      if (elapsed < duration) {
-        frameId = window.requestAnimationFrame(animateRoute);
+      if (isComplete) {
+        setRouteTravelProgress(endProgress);
+        routeTravelProgressRef.current = endProgress;
         return;
       }
 
-      setRouteTravelProgress(endProgress);
-      routeTravelProgressRef.current = endProgress;
+      if (now - lastUpdateTime >= updateInterval) {
+        setRouteTravelProgress(nextProgress);
+        routeTravelProgressRef.current = nextProgress;
+        lastUpdateTime = now;
+      }
+
+      frameId = window.requestAnimationFrame(animateRoute);
     }
 
     frameId = window.requestAnimationFrame(animateRoute);
@@ -402,6 +426,50 @@ export function ReplayApp() {
 
     setFixtureMediaFilter("all");
   }, [fixtureMediaFilter, fixtureMediaFilterOptions]);
+
+  useEffect(() => {
+    const previousMenu = previousTrayMenuRef.current;
+    let frameId = 0;
+
+    if (activeTrayMenu) {
+      if (!previousMenu && document.activeElement instanceof HTMLElement) {
+        trayRestoreFocusRef.current = document.activeElement;
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        bottomTrayRef.current?.querySelector<HTMLButtonElement>(".tray-popover .tray-close-button")?.focus();
+      });
+    } else if (previousMenu) {
+      const restoreTarget = trayRestoreFocusRef.current;
+      trayRestoreFocusRef.current = null;
+      if (restoreTarget?.isConnected && !(restoreTarget instanceof HTMLButtonElement && restoreTarget.disabled)) {
+        frameId = window.requestAnimationFrame(() => restoreTarget.focus());
+      }
+    }
+
+    previousTrayMenuRef.current = activeTrayMenu;
+    return () => window.cancelAnimationFrame(frameId);
+  }, [activeTrayMenu]);
+
+  useEffect(() => {
+    if (!activeTrayMenu && !isTournamentMenuOpen) return;
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+
+      event.preventDefault();
+      if (activeTrayMenu) {
+        setActiveTrayMenu(null);
+        return;
+      }
+
+      setIsTournamentMenuOpen(false);
+      window.requestAnimationFrame(() => tournamentMenuButtonRef.current?.focus());
+    }
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [activeTrayMenu, isTournamentMenuOpen]);
 
   useEffect(() => {
     return () => {
@@ -758,6 +826,10 @@ export function ReplayApp() {
 
   return (
     <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"} ${isFixtureTraveling ? "fixture-traveling" : ""}`}>
+      <h1 className="sr-only">Rewind Cup tournament replay</h1>
+      <p aria-atomic="true" aria-live="polite" className="sr-only" role="status">
+        {experienceStatus}
+      </p>
       <section className="map-stage" aria-busy={isFixtureTraveling} aria-label="Map stage">
         <HostMap
           countryMarkers={!tournament || !showCountryFlags ? [] : countryMarkers}
@@ -806,6 +878,7 @@ export function ReplayApp() {
         <header className="tour-topbar">
           <div className="nav-project">
             <button
+              aria-controls="tournament-menu"
               aria-expanded={isTournamentMenuOpen}
               className="app-identity"
               disabled={isFixtureTraveling}
@@ -813,6 +886,7 @@ export function ReplayApp() {
                 clearCountrySelectionTimer();
                 setIsTournamentMenuOpen((isOpen) => !isOpen);
               }}
+              ref={tournamentMenuButtonRef}
               type="button"
             >
               <span className="user-avatar" aria-hidden="true">{selectedTeam ? <img alt="" src={teamFlags[selectedTeam]} /> : "RW"}</span>
@@ -827,14 +901,14 @@ export function ReplayApp() {
               </span>
             </button>
             {isTournamentMenuOpen ? (
-              <div className="nav-dropdown" role="menu">
+              <div className="nav-dropdown" id="tournament-menu">
                 <p className="nav-menu-kicker">Tournaments</p>
                 {worldCupTournamentOptions.map(({ tournament: worldCupTournament, index }) => (
                   <button
+                    aria-current={selectedTournamentIndex === index ? "true" : undefined}
                     className={`nav-menu-row ${selectedTournamentIndex === index ? "active" : ""}`}
                     key={worldCupTournament.id}
                     onClick={() => selectTournamentFromNav(index)}
-                    role="menuitem"
                     type="button"
                   >
                     <span className="nav-row-icon"><Trophy size={17} /></span>
@@ -862,18 +936,19 @@ export function ReplayApp() {
         {showLandingConfetti ? <div className="confetti-burst" aria-hidden="true" /> : null}
       </section>
 
-      <div className={`bottom-tray ${activeTrayMenu ? "is-open" : ""}`}>
+      <div className={`bottom-tray ${activeTrayMenu ? "is-open" : ""}`} ref={bottomTrayRef}>
         {activeTrayMenu === "tournaments" ? (
-          <section className="tray-popover tray-tournament-popover" aria-label="Tournament selection">
+          <section aria-label="Tournament selection" className="tray-popover tray-tournament-popover" id="active-tray-panel">
             <div className="tray-header">
-              <span>Tournaments</span>
+              <h2 id="tournament-tray-title">Tournaments</h2>
               <small>{worldCupTournamentOptions.length} World Cup{worldCupTournamentOptions.length === 1 ? "" : "s"}</small>
-              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+              <button aria-label="Close tournament selection" className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
                 <X size={16} />
               </button>
             </div>
             {worldCupTournamentOptions.map(({ tournament: worldCupTournament, index }) => (
               <button
+                aria-current={selectedTournamentIndex === index ? "true" : undefined}
                 className={`tray-tournament-row ${selectedTournamentIndex === index ? "active" : ""}`}
                 key={worldCupTournament.id}
                 onClick={() => selectTournamentFromTray(index)}
@@ -891,17 +966,18 @@ export function ReplayApp() {
         ) : null}
 
         {activeTrayMenu === "fixtures" && tournament ? (
-          <section className="tray-popover tray-fixture-popover" aria-label="Fixture selection">
+          <section aria-label="Fixture selection" className="tray-popover tray-fixture-popover" id="active-tray-panel">
             <div className="tray-header">
-              <span>{selectedTeam ? `${teamNames[selectedTeam]} fixtures` : `${tournament.name} fixtures`}</span>
+              <h2 id="fixture-tray-title">{selectedTeam ? `${teamNames[selectedTeam]} fixtures` : `${tournament.name} fixtures`}</h2>
               <small>{visibleFixtureEntries.length} matches</small>
-              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+              <button aria-label="Close fixture selection" className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
                 <X size={16} />
               </button>
             </div>
-            <div className="tray-filter-row" aria-label="Fixture stage filters">
+            <div aria-label="Fixture stage filters" className="tray-filter-row" role="group">
               {fixtureStageFilters.map((filter) => (
                 <button
+                  aria-pressed={fixtureStageFilter === filter.value}
                   className={fixtureStageFilter === filter.value ? "active" : ""}
                   key={filter.value}
                   onClick={() => setFixtureStageFilter(filter.value)}
@@ -912,9 +988,10 @@ export function ReplayApp() {
               ))}
             </div>
             {fixtureMediaFilterOptions.length > 1 ? (
-              <div className="tray-filter-row tray-media-filter-row" aria-label="Fixture highlight filters">
+              <div aria-label="Fixture highlight filters" className="tray-filter-row tray-media-filter-row" role="group">
                 {fixtureMediaFilterOptions.map((filter) => (
                   <button
+                    aria-pressed={fixtureMediaFilter === filter.value}
                     className={fixtureMediaFilter === filter.value ? "active" : ""}
                     key={filter.value}
                     onClick={() => setFixtureMediaFilter(filter.value)}
@@ -945,6 +1022,7 @@ export function ReplayApp() {
 
                   return (
                     <button
+                      aria-current={index === selectedMatchIndex ? "true" : undefined}
                       className={`tray-fixture-row ${index === selectedMatchIndex ? "active" : ""}`}
                       key={routeMatch.id}
                       onClick={() => selectFixtureFromTray(index)}
@@ -974,21 +1052,22 @@ export function ReplayApp() {
         ) : null}
 
         {activeTrayMenu === "teams" && tournament ? (
-          <section className="tray-popover tray-team-popover" aria-label="Group stage countries">
+          <section aria-label="Group stage countries" className="tray-popover tray-team-popover" id="active-tray-panel">
             <div className="tray-header">
-              <span>Group stages</span>
+              <h2 id="team-tray-title">Group stages</h2>
               <small>{tournament.teams.length} countries</small>
-              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+              <button aria-label="Close group stages" className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
                 <X size={16} />
               </button>
             </div>
             <div className="tray-team-list">
               {groupedTeamRunOptions.map(({ group, teams }) => (
                 <section className="tray-team-group" key={group}>
-                  <div className="tray-group-label">Group {group}</div>
+                  <h3 className="tray-group-label">Group {group}</h3>
                   <div className="tray-team-grid">
                     {teams.map(({ teamCode, matches, record, finishLabel }) => (
                       <button
+                        aria-pressed={teamCode === selectedTeam}
                         className={`tray-team-row ${teamCode === selectedTeam ? "active" : ""}`}
                         disabled={matches.length === 0}
                         key={teamCode}
@@ -1010,16 +1089,16 @@ export function ReplayApp() {
         ) : null}
 
         {activeTrayMenu === "replay" && tournament && match ? (
-          <section className="tray-popover tray-replay-popover" aria-label="Match replay and highlights">
+          <section aria-label="Match replay and highlights" className="tray-popover tray-replay-popover" id="active-tray-panel">
             <div className="tray-header">
-              <span>{teamNames[match.home]} vs {teamNames[match.away]}</span>
+              <h2 id="replay-tray-title">{teamNames[match.home]} vs {teamNames[match.away]}</h2>
               <small>{getStageLabel(match.stage)} · {matchVenue?.city ?? match.venue}</small>
-              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+              <button aria-label="Close match replay" className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
                 <X size={16} />
               </button>
             </div>
 
-            <div className="tray-scoreline">
+            <div aria-atomic="true" aria-live="polite" className="tray-scoreline" role="status">
               <TeamBadge code={match.home} />
               <div className="score">
                 {visibleScore ? (
@@ -1049,7 +1128,7 @@ export function ReplayApp() {
                     key={match.id}
                     ref={highlightFrameRef}
                     src={highlightEmbedUrl}
-                    title={`${match.home} vs ${match.away} highlights`}
+                    title={`${teamNames[match.home]} vs ${teamNames[match.away]} highlights`}
                   />
                 ) : (
                   <div className="highlight-empty tray-highlight-empty">
@@ -1064,7 +1143,7 @@ export function ReplayApp() {
                   <span>{formatClock(currentEvent, state.status)}</span>
                   <small>{highlightEmbedUrl ? "Replay + video" : state.mode === "blackout" ? "Blackout" : "Live score"}</small>
                 </div>
-                <div className="tray-fixture-nav" aria-label={`${replayScopeLabel} fixture navigation`}>
+                <div aria-label={`${replayScopeLabel} fixture navigation`} className="tray-fixture-nav" role="group">
                   <button
                     className="icon-button"
                     disabled={!previousReplayEntry}
@@ -1087,7 +1166,7 @@ export function ReplayApp() {
                     <ChevronRight size={20} />
                   </button>
                 </div>
-                <div className="controls media-control-row tray-control-row">
+                <div aria-label="Replay playback" className="controls media-control-row tray-control-row" role="group">
                   <button
                     className="icon-button primary replay-action-button"
                     disabled={isFinished}
@@ -1099,6 +1178,7 @@ export function ReplayApp() {
                     <span>{state.cursor === -1 ? "Play" : "Next"}</span>
                   </button>
                   <button
+                    aria-pressed={state.isAutoplaying}
                     className="icon-button"
                     disabled={isFinished}
                     onClick={handleAutoplayToggle}
@@ -1115,21 +1195,30 @@ export function ReplayApp() {
                   >
                     <RotateCcw size={20} />
                   </button>
-                  <button className="toggle-button" onClick={() => dispatch({ type: "TOGGLE_MODE", match })} type="button">
+                  <button aria-pressed={state.mode === "blackout"} className="toggle-button" onClick={() => dispatch({ type: "TOGGLE_MODE", match })} type="button">
                     {state.mode === "blackout" ? "Show live score" : "Blackout score"}
                   </button>
                 </div>
-                <div className="timeline tray-timeline" aria-label="Replay progress">
-                  <div className="timeline-fill" style={{ width: `${progress}%` }} />
+                <div
+                  aria-label="Replay progress"
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={Math.round(progress)}
+                  aria-valuetext={`${Math.max(state.cursor + 1, 0)} of ${match.events.length} moments`}
+                  className="timeline tray-timeline"
+                  role="progressbar"
+                >
+                  <div aria-hidden="true" className="timeline-fill" style={{ width: `${progress}%` }} />
                   {revealedEvents.map((event) => (
                     <span
+                      aria-hidden="true"
                       className={`timeline-dot ${event.type === "goal" ? "goal" : ""}`}
                       key={event.id}
                       style={{ left: `${(match.events.indexOf(event) / Math.max(match.events.length - 1, 1)) * 100}%` }}
                     />
                   ))}
                 </div>
-                <article className="tray-latest-moment">
+                <article aria-atomic="true" aria-live="polite" className="tray-latest-moment">
                   <span>Latest moment</span>
                   <strong>{currentEvent ? currentEvent.detail : `The replay is ready in ${matchVenue?.city ?? "the host city"}.`}</strong>
                 </article>
@@ -1152,30 +1241,30 @@ export function ReplayApp() {
         ) : null}
 
         {activeTrayMenu === "settings" ? (
-          <section className="tray-popover tray-settings-popover" aria-label="Experience settings">
+          <section aria-label="Experience settings" className="tray-popover tray-settings-popover" id="active-tray-panel">
             <div className="tray-header">
-              <span>Experience</span>
+              <h2 id="settings-tray-title">Experience</h2>
               <small>Controls</small>
-              <button className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
+              <button aria-label="Close experience settings" className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
                 <X size={16} />
               </button>
             </div>
             <div className="tray-settings-list">
-              <button className={`tray-setting-row ${showCountryFlags ? "active" : ""}`} onClick={() => setShowCountryFlags((value) => !value)} type="button">
+              <button aria-pressed={showCountryFlags} className={`tray-setting-row ${showCountryFlags ? "active" : ""}`} onClick={() => setShowCountryFlags((value) => !value)} type="button">
                 <span>
                   <strong>Country flags</strong>
                   <small>Show participating countries on the globe</small>
                 </span>
                 <b>{showCountryFlags ? "On" : "Off"}</b>
               </button>
-              <button className={`tray-setting-row ${enableGlobeSpin ? "active" : ""}`} onClick={() => setEnableGlobeSpin((value) => !value)} type="button">
+              <button aria-pressed={enableGlobeSpin} className={`tray-setting-row ${enableGlobeSpin ? "active" : ""}`} onClick={() => setEnableGlobeSpin((value) => !value)} type="button">
                 <span>
                   <strong>Slow globe spin</strong>
                   <small>Let the world view drift when idle</small>
                 </span>
                 <b>{enableGlobeSpin ? "On" : "Off"}</b>
               </button>
-              <button className={`tray-setting-row ${state.isAutoplaying ? "active" : ""}`} disabled={!match} onClick={handleAutoplayToggle} type="button">
+              <button aria-pressed={state.isAutoplaying} className={`tray-setting-row ${state.isAutoplaying ? "active" : ""}`} disabled={!match} onClick={handleAutoplayToggle} type="button">
                 <span>
                   <strong>Moment autoplay</strong>
                   <small>{match ? "Advance replay moments automatically" : "Select a fixture first"}</small>
@@ -1194,24 +1283,24 @@ export function ReplayApp() {
         ) : null}
 
         <nav className="bottom-dock" aria-label="Primary views">
-          <button className={activeTrayMenu === "tournaments" || isLibrary ? "active" : ""} disabled={isFixtureTraveling} onClick={toggleTournamentTray} title="Tournament selection" type="button">
+          <button aria-controls={activeTrayMenu === "tournaments" ? "active-tray-panel" : undefined} aria-expanded={activeTrayMenu === "tournaments"} aria-label="Tournament selection" className={activeTrayMenu === "tournaments" || isLibrary ? "active" : ""} disabled={isFixtureTraveling} onClick={toggleTournamentTray} title="Tournament selection" type="button">
             <Trophy size={21} />
           </button>
-          <button className={activeTrayMenu === "teams" || isTournamentSetup ? "active" : ""} disabled={!tournament || isFixtureTraveling} onClick={toggleTeamTray} title="Group stages" type="button">
+          <button aria-controls={activeTrayMenu === "teams" ? "active-tray-panel" : undefined} aria-expanded={activeTrayMenu === "teams"} aria-label="Group stages" className={activeTrayMenu === "teams" || isTournamentSetup ? "active" : ""} disabled={!tournament || isFixtureTraveling} onClick={toggleTeamTray} title="Group stages" type="button">
             <Users size={21} />
           </button>
-          <button className={activeTrayMenu === "fixtures" || (isRun && !isMatchOpen) ? "active" : ""} disabled={!tournament || isFixtureTraveling} onClick={toggleFixtureTray} title="Fixture selection" type="button">
+          <button aria-controls={activeTrayMenu === "fixtures" ? "active-tray-panel" : undefined} aria-expanded={activeTrayMenu === "fixtures"} aria-label="Fixture selection" className={activeTrayMenu === "fixtures" || (isRun && !isMatchOpen) ? "active" : ""} disabled={!tournament || isFixtureTraveling} onClick={toggleFixtureTray} title="Fixture selection" type="button">
             <CalendarDays size={21} />
           </button>
-          <button className={activeTrayMenu === "replay" || (isRun && isMatchOpen) ? "active" : ""} disabled={!tournament || !match || isFixtureTraveling} onClick={openReplayFromDock} title="Replay" type="button">
+          <button aria-controls={activeTrayMenu === "replay" ? "active-tray-panel" : undefined} aria-expanded={activeTrayMenu === "replay"} aria-label="Replay" className={activeTrayMenu === "replay" || (isRun && isMatchOpen) ? "active" : ""} disabled={!tournament || !match || isFixtureTraveling} onClick={openReplayFromDock} title="Replay" type="button">
             <Clapperboard size={21} />
           </button>
-          <button className={activeTrayMenu === "settings" ? "active" : ""} disabled={isFixtureTraveling} onClick={toggleSettingsTray} title="Experience settings" type="button">
+          <button aria-controls={activeTrayMenu === "settings" ? "active-tray-panel" : undefined} aria-expanded={activeTrayMenu === "settings"} aria-label="Experience settings" className={activeTrayMenu === "settings" ? "active" : ""} disabled={isFixtureTraveling} onClick={toggleSettingsTray} title="Experience settings" type="button">
             <Settings size={21} />
           </button>
-          <button className="dock-count" disabled={!tournament} onClick={openTournamentSetup} title="Back to country globe" type="button">
+          <button aria-label="Back to country globe" className="dock-count" disabled={!tournament} onClick={openTournamentSetup} title="Back to country globe" type="button">
             <Globe2 size={21} />
-            {tournament ? selectedRunEntries.length || tournament.matches.length : 0}
+            <span aria-hidden="true">{tournament ? selectedRunEntries.length || tournament.matches.length : 0}</span>
           </button>
         </nav>
       </div>

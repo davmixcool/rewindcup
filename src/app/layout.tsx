@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: "Watch classic football tournament moments unfold again."
 };
 
+const mapTileOrigin = "https://tiles.openfreemap.org";
+
 export default function RootLayout({
   children
 }: Readonly<{
@@ -14,6 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link crossOrigin="anonymous" href={mapTileOrigin} rel="preconnect" />
+      </head>
       <body>{children}</body>
     </html>
   );
