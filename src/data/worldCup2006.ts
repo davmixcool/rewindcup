@@ -1,4 +1,5 @@
 import { teamNames } from "@/data/teamMetadata";
+import { createOfficialReportHighlight, createYoutubeHighlight } from "@/data/highlights";
 import {
   worldCup2006Format,
   worldCup2006Groups,
@@ -270,26 +271,10 @@ function getHighlights(no: number): MatchHighlights {
   const highlight = youtubeHighlightsByFixture[no];
 
   if (highlight) {
-    return {
-      status: "embeddable-video",
-      officialUrl,
-      officialSourceName: "FIFA match report",
-      directUrl: `https://www.youtube.com/watch?v=${highlight.videoId}`,
-      embedUrl: `https://www.youtube.com/embed/${highlight.videoId}`,
-      provider: "youtube",
-      providerVideoId: highlight.videoId,
-      embeddable: true,
-      sourceName: highlight.sourceName
-    };
+    return createYoutubeHighlight(highlight.videoId, officialUrl, highlight.sourceName);
   }
 
-  return {
-    status: "official-report",
-    officialUrl,
-    officialSourceName: "FIFA match report",
-    embeddable: false,
-    sourceName: "FIFA match report"
-  };
+  return createOfficialReportHighlight(officialUrl);
 }
 
 function getVenueName(venueId: string) {

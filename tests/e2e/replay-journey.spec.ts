@@ -93,6 +93,7 @@ async function selectSaudiArabiaRun(page: Page) {
 
 test("tournament, country, fixture, stadium, and replay journey", async ({ page }, testInfo) => {
   test.slow();
+  await page.emulateMedia({ reducedMotion: "reduce" });
 
   const mapIssues = watchForMapIssues(page);
   await page.goto("/");
@@ -134,7 +135,7 @@ test("tournament, country, fixture, stadium, and replay journey", async ({ page 
   expect(mapIssues).toEqual([]);
 });
 
-test("Germany 2006 journey and tournament switching reset stale state", async ({ page }, testInfo) => {
+test("2006 and 2010 journeys and tournament switching reset stale state", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The cross-tournament regression only needs one browser viewport.");
   test.slow();
 
@@ -145,7 +146,7 @@ test("Germany 2006 journey and tournament switching reset stale state", async ({
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await expectInsideViewport(tournamentTray, page);
-  await expect(tournamentTray.getByText("2 World Cups", { exact: true })).toBeVisible();
+  await expect(tournamentTray.getByText("3 World Cups", { exact: true })).toBeVisible();
   await tournamentTray.getByRole("button", { name: /Germany 2006/i }).click();
   await expect(tournamentTray).toBeHidden();
 
@@ -208,6 +209,37 @@ test("Germany 2006 journey and tournament switching reset stale state", async ({
   await expect(teamTray.locator(".tray-team-row")).toHaveCount(32);
   const groupE = teamTray.locator(".tray-team-group").filter({ hasText: "Group E" });
   await expect(groupE.getByRole("button", { name: /Germany/i })).toHaveCount(1);
+
+  await page.getByTitle("Tournament selection").click();
+  await tournamentTray.getByRole("button", { name: /South Africa 2010/i }).click();
+  await expect(tournamentTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(32);
+  await expect(page.getByRole("button", { name: "Algeria tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(8);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(32);
+  await teamTray.getByRole("button", { name: /Spain/i }).click();
+  await expect(fixtureTray.getByText("Spain fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
+  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+
+  const finalFilter = fixtureTray.getByRole("button", { name: "Final", exact: true });
+  await finalFilter.click();
+  await expect(finalFilter).toHaveAttribute("aria-pressed", "true");
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Netherlands vs Spain", exact: true })).toBeVisible();
+  const finalHighlightsFrame = replayTray.locator("iframe[title='Netherlands vs Spain highlights']");
+  await expect(finalHighlightsFrame).toBeVisible();
+  await expect(finalHighlightsFrame).toHaveAttribute("src", /youtube\.com\/embed\/XJnIokctt7s/);
+  await expect(replayTray.getByRole("link", { name: "Open TYFC HD highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=XJnIokctt7s"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
 
   expect(mapIssues).toEqual([]);
 });

@@ -11,7 +11,8 @@
     "test:e2e:headed": "playwright test --headed",
     "validate:data": "tsx scripts/validate-data.ts",
     "audit:journey": "tsx scripts/audit-journey.ts",
-    "audit:highlights": "tsx scripts/audit-highlights.ts"
+    "audit:highlights": "tsx scripts/audit-highlights.ts",
+    "audit:youtube-embeds": "tsx scripts/audit-youtube-embeds.ts"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",

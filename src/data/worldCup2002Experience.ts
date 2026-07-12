@@ -60,6 +60,7 @@ export const worldCup2002GroupAssignments: Partial<Record<TeamCode, WorldCup2002
 ) as Partial<Record<TeamCode, WorldCup2002Group>>;
 
 export const worldCup2002Format = {
+  expectedGoalCount: 161,
   expectedMatchCount: 64,
   expectedVenueCount: 20,
   groupMatchesPerTeam: 3

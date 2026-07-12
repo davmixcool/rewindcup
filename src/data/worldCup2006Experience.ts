@@ -47,6 +47,7 @@ export const worldCup2006TeamCoordinates: Partial<Record<TeamCode, Coordinates>>
 };
 
 export const worldCup2006Format = {
+  expectedGoalCount: 147,
   expectedMatchCount: 64,
   expectedVenueCount: 12,
   groupMatchesPerTeam: 3

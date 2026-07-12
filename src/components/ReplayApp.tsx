@@ -431,6 +431,25 @@ export function ReplayApp() {
   }, [showLandingConfetti]);
 
   useEffect(() => {
+    if (!pendingFixtureArrival || !match || pendingFixtureArrival.matchId !== match.id) return;
+
+    // MapLibre normally reports both flight and stadium arrival. Keep the
+    // experience recoverable if delayed tiles or a throttled map suppress
+    // those events, otherwise every dock action remains disabled indefinitely.
+    const timer = window.setTimeout(() => {
+      setMapMode("stadium");
+      setPendingFixtureArrival(null);
+      setIsMatchOpen(true);
+      setActiveTrayMenu("replay");
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setShowLandingConfetti(true);
+      }
+    }, 8_000);
+
+    return () => window.clearTimeout(timer);
+  }, [match, pendingFixtureArrival]);
+
+  useEffect(() => {
     if (fixtureMediaFilterOptions.some((filter) => filter.value === fixtureMediaFilter)) return;
 
     setFixtureMediaFilter("all");
@@ -438,26 +457,24 @@ export function ReplayApp() {
 
   useEffect(() => {
     const previousMenu = previousTrayMenuRef.current;
-    let frameId = 0;
 
     if (activeTrayMenu) {
       if (!previousMenu && document.activeElement instanceof HTMLElement) {
         trayRestoreFocusRef.current = document.activeElement;
       }
 
-      frameId = window.requestAnimationFrame(() => {
-        bottomTrayRef.current?.querySelector<HTMLButtonElement>(".tray-popover .tray-close-button")?.focus();
-      });
+      bottomTrayRef.current
+        ?.querySelector<HTMLButtonElement>(".tray-popover .tray-close-button")
+        ?.focus({ preventScroll: true });
     } else if (previousMenu) {
       const restoreTarget = trayRestoreFocusRef.current;
       trayRestoreFocusRef.current = null;
       if (restoreTarget?.isConnected && !(restoreTarget instanceof HTMLButtonElement && restoreTarget.disabled)) {
-        frameId = window.requestAnimationFrame(() => restoreTarget.focus());
+        restoreTarget.focus({ preventScroll: true });
       }
     }
 
     previousTrayMenuRef.current = activeTrayMenu;
-    return () => window.cancelAnimationFrame(frameId);
   }, [activeTrayMenu]);
 
   useEffect(() => {

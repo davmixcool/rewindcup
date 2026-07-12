@@ -173,6 +173,7 @@ const tournamentGroupSchema = z.object({
 });
 
 const tournamentFormatSchema = z.object({
+  expectedGoalCount: z.number().int().nonnegative(),
   expectedMatchCount: z.number().int().positive(),
   expectedVenueCount: z.number().int().positive(),
   groupMatchesPerTeam: z.number().int().min(0)
@@ -446,6 +447,17 @@ function validateTournamentConsistency(tournament: Tournament) {
   }
 
   if (tournament.status === "complete") {
+    const goalCount = tournament.matches.reduce(
+      (count, match) => count + match.events.filter((event) => event.type === "goal").length,
+      0
+    );
+
+    if (goalCount !== tournament.format.expectedGoalCount) {
+      errors.push(
+        `${tournament.id}: complete dataset must include ${tournament.format.expectedGoalCount} goals, found ${goalCount}.`
+      );
+    }
+
     if (tournament.matches.length !== tournament.format.expectedMatchCount) {
       errors.push(
         `${tournament.id}: complete dataset must include ${tournament.format.expectedMatchCount} matches, found ${tournament.matches.length}.`
