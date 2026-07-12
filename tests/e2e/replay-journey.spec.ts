@@ -135,7 +135,7 @@ test("tournament, country, fixture, stadium, and replay journey", async ({ page 
   expect(mapIssues).toEqual([]);
 });
 
-test("2006 and 2010 journeys and tournament switching reset stale state", async ({ page }, testInfo) => {
+test("2006, 2010, and 2014 journeys and tournament switching reset stale state", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The cross-tournament regression only needs one browser viewport.");
   test.slow();
 
@@ -146,7 +146,7 @@ test("2006 and 2010 journeys and tournament switching reset stale state", async 
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await expectInsideViewport(tournamentTray, page);
-  await expect(tournamentTray.getByText("3 World Cups", { exact: true })).toBeVisible();
+  await expect(tournamentTray.getByText("6 World Cups", { exact: true })).toBeVisible();
   await tournamentTray.getByRole("button", { name: /Germany 2006/i }).click();
   await expect(tournamentTray).toBeHidden();
 
@@ -238,6 +238,114 @@ test("2006 and 2010 journeys and tournament switching reset stale state", async 
   await expect(replayTray.getByRole("link", { name: "Open TYFC HD highlights", exact: true })).toHaveAttribute(
     "href",
     "https://www.youtube.com/watch?v=XJnIokctt7s"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  await page.getByTitle("Tournament selection").click();
+  await expect(tournamentTray).toBeVisible();
+  await tournamentTray.getByRole("button", { name: /Brazil 2014/i }).click();
+  await expect(tournamentTray).toBeHidden();
+  await expect(replayTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(32);
+  await expect(page.getByRole("button", { name: "Bosnia and Herzegovina tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Colombia tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(8);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(32);
+  await teamTray.getByRole("button", { name: /Germany/i }).click();
+  await expect(fixtureTray.getByText("Germany fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
+  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+
+  await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Germany vs Argentina", exact: true })).toBeVisible();
+  const brazilFinalHighlightsFrame = replayTray.locator("iframe[title='Germany vs Argentina highlights']");
+  await expect(brazilFinalHighlightsFrame).toBeVisible();
+  await expect(brazilFinalHighlightsFrame).toHaveAttribute("src", /youtube\.com\/embed\/S4mRQnHPWTs/);
+  await expect(replayTray.getByRole("link", { name: "Open TYFC HD highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=S4mRQnHPWTs"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  expect(mapIssues).toEqual([]);
+});
+
+test("1994 and 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The historical-edition regression only needs one browser viewport.");
+  test.slow();
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const mapIssues = watchForMapIssues(page);
+  await page.goto("/");
+
+  await page.getByTitle("Tournament selection").click();
+  const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
+  await tournamentTray.getByRole("button", { name: /USA 1994/i }).click();
+  await expect(tournamentTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(24);
+  await expect(page.getByRole("button", { name: "Bolivia tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Romania tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(6);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(24);
+  await teamTray.getByRole("button", { name: /Brazil/i }).click();
+
+  const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
+  await expect(fixtureTray.getByText("Brazil fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
+  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Brazil vs Italy", exact: true })).toBeVisible();
+  await expect(replayTray.locator("iframe[title='Brazil vs Italy highlights']")).toHaveAttribute(
+    "src",
+    /youtube\.com\/embed\/g6Zi32X1u1Q/
+  );
+  await expect(replayTray.getByRole("link", { name: "Open fifa tv online highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=g6Zi32X1u1Q"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  await page.getByTitle("Tournament selection").click();
+  await tournamentTray.getByRole("button", { name: /France 1998/i }).click();
+  await expect(replayTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(32);
+  await expect(page.getByRole("button", { name: "Scotland tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Jamaica tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Yugoslavia tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(8);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(32);
+  await teamTray.getByRole("button", { name: /France/i }).click();
+  await expect(fixtureTray.getByText("France fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
+  await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Brazil vs France", exact: true })).toBeVisible();
+  await expect(replayTray.locator("iframe[title='Brazil vs France highlights']")).toHaveAttribute(
+    "src",
+    /youtube\.com\/embed\/xgWQmliYf2M/
+  );
+  await expect(replayTray.getByRole("link", { name: "Open World Cup Goals highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=xgWQmliYf2M"
   );
   await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
 
