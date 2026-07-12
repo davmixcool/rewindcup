@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 60">
+  <path fill="#00008b" d="M0 0h90v60H0z"/>
+  <path stroke="#fff" stroke-width="6" d="m0 0 45 30m0-30L0 30"/>
+  <path stroke="#cf142b" stroke-width="2.5" d="m0 0 45 30m0-30L0 30"/>
+  <path fill="#fff" d="M18 0h9v30h-9zM0 10h45v10H0z"/>
+  <path fill="#cf142b" d="M20 0h5v30h-5zM0 12h45v6H0z"/>
+  <defs>
+    <path id="aus-star" d="m0-4 1.2 2.4 2.6.4-1.9 1.8.5 2.7L0 2l-2.4 1.3.5-2.7-1.9-1.8 2.6-.4z"/>
+  </defs>
+  <g fill="#fff">
+    <use href="#aus-star" transform="translate(22 43) scale(1.5)"/>
+    <use href="#aus-star" transform="translate(66 12)"/>
+    <use href="#aus-star" transform="translate(76 25)"/>
+    <use href="#aus-star" transform="translate(64 31)"/>
+    <use href="#aus-star" transform="translate(74 45)"/>
+    <use href="#aus-star" transform="translate(60 45) scale(.7)"/>
+  </g>
+</svg>

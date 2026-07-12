@@ -20,10 +20,13 @@ function getStatusCounts(matches: Match[]) {
 
 for (const tournament of tournaments) {
   const counts = getStatusCounts(tournament.matches);
+  const videoCount = counts["embeddable-video"] + counts["external-video"];
+  const videoPercent = Math.round((videoCount / tournament.matches.length) * 100);
   const playablePercent = Math.round((counts["embeddable-video"] / tournament.matches.length) * 100);
 
   console.log(`${tournament.name}`);
   console.log(`  matches: ${tournament.matches.length}`);
+  console.log(`  video coverage: ${videoCount}/${tournament.matches.length} (${videoPercent}%)`);
   console.log(`  playable coverage: ${counts["embeddable-video"]}/${tournament.matches.length} (${playablePercent}%)`);
 
   for (const status of statusOrder) {

@@ -114,7 +114,13 @@ test("tournament, country, fixture, stadium, and replay journey", async ({ page 
   await fixtureTray.locator(".tray-fixture-row").first().click();
   const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
   await expect(replayTray).toBeVisible({ timeout: 20_000 });
-  await expect(replayTray.locator("iframe[title*='highlights']")).toBeVisible();
+  const highlightsFrame = replayTray.locator("iframe[title='Germany vs Saudi Arabia highlights']");
+  await expect(highlightsFrame).toBeVisible();
+  await expect(highlightsFrame).toHaveAttribute("src", /youtube\.com\/embed\/FC_0MHwyhuk/);
+  await expect(replayTray.getByRole("link", { name: "Open World Cup Goals highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=FC_0MHwyhuk"
+  );
   await expectInsideViewport(page.locator(".bottom-tray.is-open"), page);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("replay-tray.png") });
@@ -124,6 +130,84 @@ test("tournament, country, fixture, stadium, and replay journey", async ({ page 
   await expect(page.locator(".country-flag-marker")).toHaveCount(32);
   await expect(page.locator(".country-flag-marker.is-selected")).toHaveCount(0);
   await expect(page.getByTitle("Replay")).toBeDisabled();
+
+  expect(mapIssues).toEqual([]);
+});
+
+test("Germany 2006 journey and tournament switching reset stale state", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The cross-tournament regression only needs one browser viewport.");
+  test.slow();
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const mapIssues = watchForMapIssues(page);
+  await page.goto("/");
+
+  await page.getByTitle("Tournament selection").click();
+  const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
+  await expectInsideViewport(tournamentTray, page);
+  await expect(tournamentTray.getByText("2 World Cups", { exact: true })).toBeVisible();
+  await tournamentTray.getByRole("button", { name: /Germany 2006/i }).click();
+  await expect(tournamentTray).toBeHidden();
+
+  await expect(page.locator(".country-flag-marker")).toHaveCount(32);
+  await expect(page.getByRole("button", { name: "Ghana tournament team", exact: true })).toBeVisible();
+  await waitForMapPaint(page);
+
+  await page.getByTitle("Group stages").click();
+  const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(8);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(32);
+  const groupSizes = await teamTray.locator(".tray-team-group").evaluateAll((groups) =>
+    groups.map((group) => group.querySelectorAll(".tray-team-row").length)
+  );
+  expect(groupSizes).toEqual([4, 4, 4, 4, 4, 4, 4, 4]);
+  await teamTray.getByRole("button", { name: /Ghana/i }).click();
+  const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
+  await expect(fixtureTray.getByText("Ghana fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(4);
+
+  const roundOf16Filter = fixtureTray.getByRole("button", { name: "R16", exact: true });
+  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(4);
+  await expect(fixtureTray.getByRole("button", { name: /Reports/i })).toHaveCount(0);
+  await roundOf16Filter.click();
+  await expect(roundOf16Filter).toHaveAttribute("aria-pressed", "true");
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Brazil vs Ghana", exact: true })).toBeVisible();
+  const highlightsFrame = replayTray.locator("iframe[title='Brazil vs Ghana highlights']");
+  await expect(highlightsFrame).toBeVisible();
+  await expect(highlightsFrame).toHaveAttribute("src", /youtube\.com\/embed\/n1UWWqDpPYE/);
+  const youtubeLink = replayTray.getByRole("link", { name: "Open WorldCupHighlightsTM highlights", exact: true });
+  await expect(youtubeLink).toHaveAttribute("href", "https://www.youtube.com/watch?v=n1UWWqDpPYE");
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  await page.getByTitle("Tournament selection").click();
+  await expect(tournamentTray).toBeVisible();
+  await tournamentTray.getByRole("button", { name: /Korea\/Japan 2002/i }).click();
+
+  await expect(replayTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(32);
+  await expect(page.getByRole("button", { name: "Ghana tournament team", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "China tournament team", exact: true })).toBeVisible();
+  await expect(page.locator(".country-flag-marker.is-selected")).toHaveCount(0);
+  await expect(page.getByTitle("Replay")).toBeDisabled();
+
+  await page.getByTitle("Fixture selection").click();
+  await expect(fixtureTray.getByText("Korea/Japan 2002 fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(64);
+  await expect(fixtureTray.getByRole("button", { name: "All", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(fixtureTray.getByRole("button", { name: "R16", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await expect(fixtureTray.locator(".tray-fixture-row[aria-current='true']")).toHaveCount(0);
+  await fixtureTray.getByTitle("Close tray").click();
+
+  await page.getByTitle("Group stages").click();
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(8);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(32);
+  const groupE = teamTray.locator(".tray-team-group").filter({ hasText: "Group E" });
+  await expect(groupE.getByRole("button", { name: /Germany/i })).toHaveCount(1);
 
   expect(mapIssues).toEqual([]);
 });

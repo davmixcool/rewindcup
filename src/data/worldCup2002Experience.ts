@@ -1,10 +1,10 @@
-import type { Coordinates, TeamCode } from "@/lib/types";
+import type { Coordinates, TeamCode, TournamentFormat, TournamentGroup } from "@/lib/types";
 
 export const worldCup2002GroupOrder = ["A", "B", "C", "D", "E", "F", "G", "H"] as const;
 
 export type WorldCup2002Group = (typeof worldCup2002GroupOrder)[number];
 
-export const worldCup2002TeamCoordinates: Record<TeamCode, Coordinates> = {
+export const worldCup2002TeamCoordinates: Partial<Record<TeamCode, Coordinates>> = {
   ARG: [-58.3816, -34.6037],
   BEL: [4.3517, 50.8503],
   BRA: [-47.8825, -15.7942],
@@ -39,37 +39,28 @@ export const worldCup2002TeamCoordinates: Record<TeamCode, Coordinates> = {
   USA: [-77.0369, 38.9072]
 };
 
-export const worldCup2002GroupAssignments: Record<TeamCode, WorldCup2002Group> = {
-  DEN: "A",
-  FRA: "A",
-  SEN: "A",
-  URU: "A",
-  PAR: "B",
-  RSA: "B",
-  SVN: "B",
-  ESP: "B",
-  BRA: "C",
-  CHN: "C",
-  CRC: "C",
-  TUR: "C",
-  KOR: "D",
-  POL: "D",
-  POR: "D",
-  USA: "D",
-  CMR: "E",
-  GER: "E",
-  IRL: "E",
-  KSA: "E",
-  ARG: "F",
-  ENG: "F",
-  NGA: "F",
-  SWE: "F",
-  CRO: "G",
-  ECU: "G",
-  ITA: "G",
-  MEX: "G",
-  BEL: "H",
-  JPN: "H",
-  RUS: "H",
-  TUN: "H"
+const worldCup2002GroupTeams: Record<WorldCup2002Group, TeamCode[]> = {
+  A: ["DEN", "FRA", "SEN", "URU"],
+  B: ["PAR", "RSA", "SVN", "ESP"],
+  C: ["BRA", "CHN", "CRC", "TUR"],
+  D: ["KOR", "POL", "POR", "USA"],
+  E: ["CMR", "GER", "IRL", "KSA"],
+  F: ["ARG", "ENG", "NGA", "SWE"],
+  G: ["CRO", "ECU", "ITA", "MEX"],
+  H: ["BEL", "JPN", "RUS", "TUN"]
 };
+
+export const worldCup2002Groups: TournamentGroup[] = worldCup2002GroupOrder.map((id) => ({
+  id,
+  teams: worldCup2002GroupTeams[id]
+}));
+
+export const worldCup2002GroupAssignments: Partial<Record<TeamCode, WorldCup2002Group>> = Object.fromEntries(
+  worldCup2002Groups.flatMap((group) => group.teams.map((teamCode) => [teamCode, group.id]))
+) as Partial<Record<TeamCode, WorldCup2002Group>>;
+
+export const worldCup2002Format = {
+  expectedMatchCount: 64,
+  expectedVenueCount: 20,
+  groupMatchesPerTeam: 3
+} satisfies TournamentFormat;

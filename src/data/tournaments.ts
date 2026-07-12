@@ -1,4 +1,11 @@
 import type { Coordinates, Match, MatchHighlights, ReplayEvent, Score, TeamCode, Tournament, Venue } from "@/lib/types";
+import { teamColors, teamFlags, teamNames } from "@/data/teamMetadata";
+import {
+  worldCup2002Format,
+  worldCup2002Groups,
+  worldCup2002TeamCoordinates
+} from "@/data/worldCup2002Experience";
+import { worldCup2006 } from "@/data/worldCup2006";
 
 const getFifaMatchUrl = (matchId: string) =>
   `https://www.fifa.com/tournaments/mens/worldcup/2002korea-japan/match-center/${matchId}/index.html`;
@@ -53,43 +60,11 @@ type FixtureSeed = {
   score: Score;
   shootout?: Score;
   goals?: GoalSeed[];
+  durationMinutes?: 90 | 120;
   note?: string;
 };
 
-const teamNamesByCode: Record<TeamCode, string> = {
-  ARG: "Argentina",
-  BEL: "Belgium",
-  BRA: "Brazil",
-  CMR: "Cameroon",
-  CHN: "China",
-  CRC: "Costa Rica",
-  CRO: "Croatia",
-  DEN: "Denmark",
-  ECU: "Ecuador",
-  ENG: "England",
-  FRA: "France",
-  GER: "Germany",
-  IRL: "Republic of Ireland",
-  ITA: "Italy",
-  JPN: "Japan",
-  KOR: "South Korea",
-  KSA: "Saudi Arabia",
-  MEX: "Mexico",
-  NGA: "Nigeria",
-  PAR: "Paraguay",
-  POL: "Poland",
-  POR: "Portugal",
-  RSA: "South Africa",
-  RUS: "Russia",
-  SEN: "Senegal",
-  SVN: "Slovenia",
-  ESP: "Spain",
-  SWE: "Sweden",
-  TUN: "Tunisia",
-  TUR: "Turkey",
-  URU: "Uruguay",
-  USA: "United States"
-};
+const teamNamesByCode = teamNames;
 
 const venueSeeds: VenueSeed[] = [
   { id: "daegu-world-cup-stadium", name: "Daegu World Cup Stadium", city: "Daegu", country: "KOR", coordinates: [128.6906, 35.8298] },
@@ -148,22 +123,22 @@ const venues: Venue[] = venueSeeds.map((venue) => ({
 }));
 
 const highlightOverrides = new Map<number, MatchHighlights>([
-  [1, youtubeHighlight("RdkGf_mpFCY", "43950001", "FIFA 15-Minute Match")],
+  [1, youtubeHighlight("RaBkN-Dyx58", "43950001", "WorldCupHighlightsTM highlights")],
   [2, youtubeHighlight("lTuakjsMjJE", "43950002", "Football Frontline highlights")],
   [3, youtubeHighlight("OPlwXvaArD4", "43950003", "Football Frontline highlights")],
-  [4, youtubeHighlight("0pxA3jVxgMM", "43950004", "FIFA 10-Minute Match")],
-  [5, youtubeHighlight("D9cCefvcVQQ", "43950005", "FIFA highlights")],
+  [4, youtubeHighlight("FC_0MHwyhuk", "43950004", "World Cup Goals highlights")],
+  [5, youtubeHighlight("Ch-j0YAF3SE", "43950005", "World Cup Goals highlights")],
   [6, youtubeHighlight("DFhKq4AQhkY", "43950006", "Football Frontline highlights")],
   [7, youtubeHighlight("i84F8efvzgk", "43950007", "Benjamín Rodríguez highlights")],
   [8, youtubeHighlight("2GxzmxJjod4", "43950008", "World Cup Goals highlights")],
-  [9, youtubeHighlight("mAXbNIyXcKA", "43950009", "FIFA highlights")],
+  [9, youtubeHighlight("odwFA_T0iTE", "43950009", "World Cup Goals highlights")],
   [10, youtubeHighlight("uyIgW_efCpo", "43950010", "TYFC HD highlights")],
   [11, youtubeHighlight("pMj8UbHjDt0", "43950011", "Football Star highlights")],
   [12, youtubeHighlight("YlMm3EJHODA", "43950012", "VintageHDtv highlights")],
   [13, youtubeHighlight("Yo0D91rkAM0", "43950013", "Football Time Machine highlights")],
   [14, youtubeHighlight("W0Xs-RS_U9Y", "43950014", "World Cup Goals highlights")],
   [15, youtubeHighlight("F-Opdnrmhuk", "43950015", "World Cup Goals highlights")],
-  [16, youtubeHighlight("WruEcrS2ZvA", "43950016", "FIFA highlights")],
+  [16, youtubeHighlight("Kx_VVgMObt0", "43950016", "Football Time Machine highlights")],
   [17, youtubeHighlight("wu7R289yzsA", "43950017", "VintageHDtv2 highlights")],
   [18, youtubeHighlight("UywRPMr8XHQ", "43950018", "World Cup Goals highlights")],
   [19, youtubeHighlight("Pv85aSCMd9s", "43950019", "World Cup Goals highlights")],
@@ -175,15 +150,15 @@ const highlightOverrides = new Map<number, MatchHighlights>([
   [25, youtubeHighlight("fzsWEn5kQJ4", "43950025", "World Cup Goals highlights")],
   [26, youtubeHighlight("s4F41XW3Fxw", "43950026", "TYFC HD highlights")],
   [27, youtubeHighlight("e6Wz7lC7yps", "43950027", "World Cup Goals highlights")],
-  [28, youtubeHighlight("lUkClV-PWyA", "43950028", "FIFA 15-Minute Match")],
+  [28, youtubeHighlight("9PLH9Dd18aM", "43950028", "World Cup Goals highlights")],
   [29, youtubeHighlight("bA05dQA3yO0", "43950029", "HistoryFull Worldcup highlights")],
   [30, youtubeHighlight("3rKeker7uGo", "43950030", "World Cup Goals highlights")],
   [31, youtubeHighlight("r1ebJKDc_Yo", "43950031", "VintageHDtv2 highlights")],
-  [32, youtubeHighlight("KG6X7CfxHbk", "43950032", "FIFA highlights")],
-  [33, youtubeHighlight("gHqW4Fr0Ki4", "43950033", "FIFA highlights")],
+  [32, youtubeHighlight("z4h8ebyr3CM", "43950032", "Football Time Machine highlights")],
+  [33, youtubeHighlight("XS_1evIc8EY", "43950033", "World Cup Goals highlights")],
   [34, youtubeHighlight("LADw3WqZMBU", "43950034", "sp1873 highlights")],
   [35, youtubeHighlight("fTRGpNHWqAU", "43950035", "World Cup Goals highlights")],
-  [36, youtubeHighlight("yBDRLIZfRdk", "43950036", "FIFA highlights")],
+  [36, youtubeHighlight("2bPj4ODS2Ys", "43950036", "World Cup Goals highlights")],
   [37, youtubeHighlight("POgFKaPynbo", "43950037", "World Cup Goals highlights")],
   [38, youtubeHighlight("B_5T5nB2tyU", "43950038", "World Cup Goals highlights")],
   [39, youtubeHighlight("gYFvvWptWGc", "43950039", "World Cup Goals highlights")],
@@ -193,25 +168,25 @@ const highlightOverrides = new Map<number, MatchHighlights>([
   [43, youtubeHighlight("v9Jo7DSUTrY", "43950043", "World Cup Goals highlights")],
   [44, youtubeHighlight("VJFyuF7mZ6c", "43950044", "World Cup Goals highlights")],
   [45, youtubeHighlight("dhf7LzNVA00", "43950045", "World Cup Goals highlights")],
-  [46, youtubeHighlight("CXPn5SM01MA", "43950046", "FIFA highlights")],
-  [47, youtubeHighlight("zHZDaBonWAA", "43950047", "FIFA 10-Minute Match")],
+  [46, youtubeHighlight("yYZZReDblzc", "43950046", "World Cup Goals highlights")],
+  [47, youtubeHighlight("vfAS4C4pDkc", "43950047", "World Cup Goals highlights")],
   [48, youtubeHighlight("nnSZjoN5lG8", "43950048", "World Cup Goals highlights")],
-  [49, youtubeHighlight("CRXuTA_Hm7U", "43950049", "FIFA 15-Minute Match")],
+  [49, youtubeHighlight("Lze2k7VHmCw", "43950049", "World Cup Goals highlights")],
   [50, youtubeHighlight("PeI5OKtOMpA", "43950050", "World Cup Goals highlights")],
   [51, youtubeHighlight("6WhcszCaJYc", "43950051", "World Cup Goals highlights")],
   [52, youtubeHighlight("st8f8W70BO0", "43950052", "World Cup Goals highlights")],
-  [53, youtubeHighlight("8T8u0K52Lzs", "43950053", "FIFA highlights")],
+  [53, youtubeHighlight("3YMZcwyB1ec", "43950053", "World Cup Goals highlights")],
   [54, youtubeHighlight("lOJDouQTsgw", "43950054", "TYFC HD highlights")],
   [55, youtubeHighlight("hE1Ro-KrHsw", "43950055", "World Cup Goals highlights")],
-  [56, youtubeHighlight("GGPgOncLpD4", "43950056", "FIFA 1-Minute Drama")],
-  [57, youtubeHighlight("4JcwixRnFhs", "43950057", "FIFA highlights")],
-  [58, youtubeHighlight("ctBKzj6HUSk", "43950058", "FIFA highlights")],
-  [59, youtubeHighlight("TTuHlPD6eaY", "43950059", "FIFA penalty shoot-out")],
+  [56, youtubeHighlight("KZ_PAZIpS_w", "43950056", "Kings Football highlights")],
+  [57, youtubeHighlight("9w2EWURq0UU", "43950057", "TYFC HD highlights")],
+  [58, youtubeHighlight("Fr3xXBAkiQU", "43950058", "World Cup Goals highlights")],
+  [59, youtubeHighlight("Nxxkd_LtQHw", "43950059", "World Cup Goals highlights")],
   [60, youtubeHighlight("C79SbWyyKhY", "43950060", "World Cup Goals highlights")],
   [61, youtubeHighlight("s5jDWEw2S4Y", "43950061", "Kings Football highlights")],
   [62, youtubeHighlight("F5-OqNH-VDU", "43950062", "TYFC HD highlights")],
-  [63, youtubeHighlight("MpqCv4vt4J4", "43950063", "FIFA World Cup Uncut")],
-  [64, youtubeHighlight("rL9JCz7S8Jg", "43950064", "FIFA highlights")]
+  [63, youtubeHighlight("S2fxSPjlA-s", "43950063", "Ford Cosworth 1973 highlights")],
+  [64, youtubeHighlight("GDUzo7oIeXE", "43950064", "Ford Cosworth 1973 highlights")]
 ]);
 
 const fixtureSeeds: FixtureSeed[] = [
@@ -310,14 +285,14 @@ const fixtureSeeds: FixtureSeed[] = [
   { no: 49, stage: "r16", date: "2002-06-15", venueId: "jeju-world-cup-stadium", home: "GER", away: "PAR", score: { home: 1, away: 0 }, goals: [{ minute: 88, team: "GER", player: "Oliver Neuville" }] },
   { no: 50, stage: "r16", date: "2002-06-15", venueId: "niigata-stadium", home: "DEN", away: "ENG", score: { home: 0, away: 3 }, goals: [{ minute: 5, team: "ENG", player: "Rio Ferdinand" }, { minute: 22, team: "ENG", player: "Michael Owen" }, { minute: 44, team: "ENG", player: "Emile Heskey" }] },
   { no: 51, stage: "r16", date: "2002-06-16", venueId: "oita-stadium", home: "SWE", away: "SEN", score: { home: 1, away: 2 }, goals: [{ minute: 11, team: "SWE", player: "Henrik Larsson" }, { minute: 37, team: "SEN", player: "Henri Camara" }, { minute: 104, team: "SEN", player: "Henri Camara", detail: "Henri Camara wins it with a golden goal." }], note: "After extra time" },
-  { no: 52, stage: "r16", date: "2002-06-16", venueId: "suwon-world-cup-stadium", home: "ESP", away: "IRL", score: { home: 1, away: 1 }, shootout: { home: 3, away: 2 }, goals: [{ minute: 8, team: "ESP", player: "Fernando Morientes" }, { minute: 90, team: "IRL", player: "Robbie Keane" }], note: "Spain won 3-2 on penalties" },
+  { no: 52, stage: "r16", date: "2002-06-16", venueId: "suwon-world-cup-stadium", home: "ESP", away: "IRL", score: { home: 1, away: 1 }, shootout: { home: 3, away: 2 }, goals: [{ minute: 8, team: "ESP", player: "Fernando Morientes" }, { minute: 90, team: "IRL", player: "Robbie Keane" }], durationMinutes: 120, note: "Spain won 3-2 on penalties" },
   { no: 53, stage: "r16", date: "2002-06-17", venueId: "jeonju-world-cup-stadium", home: "MEX", away: "USA", score: { home: 0, away: 2 }, goals: [{ minute: 8, team: "USA", player: "Brian McBride" }, { minute: 65, team: "USA", player: "Landon Donovan" }] },
   { no: 54, stage: "r16", date: "2002-06-17", venueId: "kobe-wing-stadium", home: "BRA", away: "BEL", score: { home: 2, away: 0 }, goals: [{ minute: 67, team: "BRA", player: "Rivaldo", detail: "Rivaldo breaks Belgium's resistance." }, { minute: 87, team: "BRA", player: "Ronaldo", detail: "Ronaldo seals Brazil's place in the quarter-finals." }] },
   { no: 55, stage: "r16", date: "2002-06-18", venueId: "miyagi-stadium", home: "JPN", away: "TUR", score: { home: 0, away: 1 }, goals: [{ minute: 12, team: "TUR", player: "Umit Davala" }] },
   { no: 56, stage: "r16", date: "2002-06-18", venueId: "daejeon-world-cup-stadium", home: "KOR", away: "ITA", score: { home: 2, away: 1 }, goals: [{ minute: 18, team: "ITA", player: "Christian Vieri" }, { minute: 88, team: "KOR", player: "Seol Ki-hyeon" }, { minute: 117, team: "KOR", player: "Ahn Jung-hwan", detail: "Ahn Jung-hwan wins it with a golden goal." }], note: "After extra time" },
   { no: 57, stage: "qf", date: "2002-06-21", venueId: "shizuoka-stadium-ecopa", home: "ENG", away: "BRA", score: { home: 1, away: 2 }, goals: [{ minute: 23, team: "ENG", player: "Michael Owen", detail: "Michael Owen puts England in front." }, { minute: 45, team: "BRA", player: "Rivaldo", detail: "Rivaldo levels in first-half stoppage time." }, { minute: 50, team: "BRA", player: "Ronaldinho", detail: "Ronaldinho gives Brazil the lead." }] },
   { no: 58, stage: "qf", date: "2002-06-21", venueId: "ulsan-munsu-stadium", home: "GER", away: "USA", score: { home: 1, away: 0 }, goals: [{ minute: 39, team: "GER", player: "Michael Ballack" }] },
-  { no: 59, stage: "qf", date: "2002-06-22", venueId: "gwangju-world-cup-stadium", home: "ESP", away: "KOR", score: { home: 0, away: 0 }, shootout: { home: 3, away: 5 }, note: "South Korea won 5-3 on penalties" },
+  { no: 59, stage: "qf", date: "2002-06-22", venueId: "gwangju-world-cup-stadium", home: "ESP", away: "KOR", score: { home: 0, away: 0 }, shootout: { home: 3, away: 5 }, durationMinutes: 120, note: "South Korea won 5-3 on penalties" },
   { no: 60, stage: "qf", date: "2002-06-22", venueId: "nagai-stadium", home: "SEN", away: "TUR", score: { home: 0, away: 1 }, goals: [{ minute: 94, team: "TUR", player: "Ilhan Mansiz", detail: "Ilhan Mansiz wins it with a golden goal." }], note: "After extra time" },
   { no: 61, stage: "sf", date: "2002-06-25", venueId: "seoul-world-cup-stadium", home: "GER", away: "KOR", score: { home: 1, away: 0 }, goals: [{ minute: 75, team: "GER", player: "Michael Ballack" }] },
   { no: 62, stage: "sf", date: "2002-06-26", venueId: "saitama-stadium-2002", home: "BRA", away: "TUR", score: { home: 1, away: 0 }, goals: [{ minute: 49, team: "BRA", player: "Ronaldo", detail: "Ronaldo scores the decisive goal early in the second half." }] },
@@ -524,7 +499,7 @@ function createEvents(match: FixtureSeed): ReplayEvent[] {
     ...goalEvents.filter((event) => event.minute !== null && event.minute > 45),
     {
       id: "full-time",
-      minute: goals.some((goal) => goal.minute > 90) ? Math.max(...goals.map((goal) => goal.minute)) : 90,
+      minute: Math.max(match.durationMinutes ?? 90, ...goals.map((goal) => goal.minute)),
       type: "full_time",
       detail: `Full time. ${resultDetail}`,
       scoreAfter: match.score
@@ -602,6 +577,9 @@ export const tournaments: Tournament[] = [
       "URU",
       "USA"
     ],
+    groups: worldCup2002Groups,
+    teamCoordinates: worldCup2002TeamCoordinates,
+    format: worldCup2002Format,
     stages: ["group", "r16", "qf", "sf", "third", "final"],
     status: "complete",
     mapView: {
@@ -613,77 +591,8 @@ export const tournaments: Tournament[] = [
     venues,
     featuredRoute: venues.map((venue) => venue.id),
     matches
-  }
+  },
+  worldCup2006
 ];
 
-export const teamNames = teamNamesByCode;
-
-export const teamFlags: Record<TeamCode, string> = {
-  ARG: "/flags/arg.svg",
-  BEL: "/flags/bel.svg",
-  BRA: "/flags/bra.svg",
-  CMR: "/flags/cmr.svg",
-  CHN: "/flags/chn.svg",
-  CRC: "/flags/crc.svg",
-  CRO: "/flags/cro.svg",
-  DEN: "/flags/den.svg",
-  ECU: "/flags/ecu.svg",
-  ENG: "/flags/eng.svg",
-  FRA: "/flags/fra.svg",
-  GER: "/flags/ger.svg",
-  IRL: "/flags/irl.svg",
-  ITA: "/flags/ita.svg",
-  JPN: "/flags/jpn.svg",
-  KOR: "/flags/kor.svg",
-  KSA: "/flags/ksa.svg",
-  MEX: "/flags/mex.svg",
-  NGA: "/flags/nga.svg",
-  PAR: "/flags/par.svg",
-  POL: "/flags/pol.svg",
-  POR: "/flags/por.svg",
-  RSA: "/flags/rsa.svg",
-  RUS: "/flags/rus.svg",
-  SEN: "/flags/sen.svg",
-  SVN: "/flags/svn.svg",
-  ESP: "/flags/esp.svg",
-  SWE: "/flags/swe.svg",
-  TUN: "/flags/tun.svg",
-  TUR: "/flags/tur.svg",
-  URU: "/flags/uru.svg",
-  USA: "/flags/usa.svg"
-};
-
-export const teamColors: Record<TeamCode, string> = {
-  ARG: "#74acdf",
-  BEL: "#ef3340",
-  BRA: "#229e45",
-  CMR: "#007a5e",
-  CHN: "#de2910",
-  CRC: "#002b7f",
-  CRO: "#f00000",
-  DEN: "#c60c30",
-  ECU: "#ffdd00",
-  ENG: "#ffffff",
-  FRA: "#0055a4",
-  GER: "#dd0000",
-  IRL: "#169b62",
-  ITA: "#008c45",
-  JPN: "#bc002d",
-  KOR: "#003478",
-  KSA: "#006c35",
-  MEX: "#006847",
-  NGA: "#008751",
-  PAR: "#d52b1e",
-  POL: "#dc143c",
-  POR: "#006600",
-  RSA: "#007a4d",
-  RUS: "#0039a6",
-  SEN: "#00853f",
-  SVN: "#005da4",
-  ESP: "#aa151b",
-  SWE: "#006aa7",
-  TUN: "#e70013",
-  TUR: "#e30a17",
-  URU: "#0038a8",
-  USA: "#3c3b6e"
-};
+export { teamColors, teamFlags, teamNames };

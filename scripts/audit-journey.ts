@@ -1,10 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
 import { teamFlags, tournaments } from "../src/data/tournaments";
-import {
-  worldCup2002GroupAssignments,
-  worldCup2002GroupOrder,
-  worldCup2002TeamCoordinates
-} from "../src/data/worldCup2002Experience";
 import { initialReplayState, replayReducer } from "../src/lib/replay";
 import {
   getReplayNavigation,
@@ -16,6 +11,7 @@ import type { ReplayState } from "../src/lib/replay";
 import type { Match, Score } from "../src/lib/types";
 
 const errors: string[] = [];
+const mediaReports: string[] = [];
 
 function check(condition: unknown, message: string) {
   if (!condition) errors.push(message);
@@ -29,78 +25,104 @@ function playToEnd(match: Match, startingState: ReplayState = initialReplayState
   return match.events.reduce((state) => replayReducer(state, { type: "NEXT", match }), startingState);
 }
 
-const tournament = tournaments.find((entry) => entry.id === "wc-2002");
+const completeTournaments = tournaments.filter((tournament) => tournament.status === "complete");
+check(completeTournaments.length > 0, "No complete tournaments are available for the journey audit.");
 
-if (!tournament) {
-  errors.push("The Korea/Japan 2002 tournament is missing.");
-} else {
-  check(tournament.competition === "WORLD_CUP", `${tournament.id}: the journey must be World Cup-only.`);
-  check(tournament.teams.length === 32, `${tournament.id}: expected 32 selectable countries.`);
-  check(new Set(tournament.teams).size === tournament.teams.length, `${tournament.id}: country selection contains duplicates.`);
-
-  const groupCounts = new Map(worldCup2002GroupOrder.map((group) => [group, 0]));
+for (const tournament of completeTournaments) {
+  const tournamentPrefix = tournament.id;
   const venueIds = new Set(tournament.venues.map((venue) => venue.id));
   const usedVenueIds = new Set(tournament.matches.map((match) => match.venueId));
   const tournamentSequence = getReplaySequenceEntries(tournament, null);
+  const groupedTeams = tournament.groups.flatMap((group) => group.teams);
+  const playableMatches = tournament.matches.filter(
+    (match) => match.highlights.status === "embeddable-video" && match.highlights.embeddable && Boolean(match.highlights.embedUrl)
+  );
+  const videoMatches = tournament.matches.filter(
+    (match) => match.highlights.status === "embeddable-video" || match.highlights.status === "external-video"
+  );
 
-  check(tournamentSequence.length === 64, `${tournament.id}: tournament replay sequence must contain all 64 fixtures.`);
+  mediaReports.push(
+    `${tournament.name}: video highlights ${videoMatches.length}/${tournament.matches.length} (${playableMatches.length} embedded)`
+  );
+  check(
+    playableMatches.length === tournament.matches.length,
+    `${tournamentPrefix}: expected playable embedded highlights for all ${tournament.matches.length} fixtures, found ${playableMatches.length}.`
+  );
+
+  check(
+    tournament.matches.length === tournament.format.expectedMatchCount,
+    `${tournamentPrefix}: expected ${tournament.format.expectedMatchCount} fixtures, found ${tournament.matches.length}.`
+  );
+  check(
+    tournament.venues.length === tournament.format.expectedVenueCount,
+    `${tournamentPrefix}: expected ${tournament.format.expectedVenueCount} stadiums, found ${tournament.venues.length}.`
+  );
+  check(
+    new Set(tournament.teams).size === tournament.teams.length,
+    `${tournamentPrefix}: country selection contains duplicates.`
+  );
+  check(
+    groupedTeams.length === tournament.teams.length && new Set(groupedTeams).size === tournament.teams.length,
+    `${tournamentPrefix}: groups must contain each tournament team exactly once.`
+  );
+  check(
+    tournamentSequence.length === tournament.format.expectedMatchCount,
+    `${tournamentPrefix}: tournament replay sequence must contain all ${tournament.format.expectedMatchCount} fixtures.`
+  );
   check(
     tournamentSequence.every((entry, position) => entry.index === position && entry.match === tournament.matches[position]),
-    `${tournament.id}: tournament replay sequence is not in fixture order.`
+    `${tournamentPrefix}: tournament replay sequence is not in fixture order.`
   );
 
   for (const teamCode of tournament.teams) {
-    const coordinates = worldCup2002TeamCoordinates[teamCode];
-    const group = worldCup2002GroupAssignments[teamCode];
+    const coordinates = tournament.teamCoordinates[teamCode];
+    const assignedGroups = tournament.groups.filter((group) => group.teams.includes(teamCode));
     const run = getTeamRunEntries(tournament, teamCode);
     const replaySequence = getReplaySequenceEntries(tournament, teamCode);
     const groupMatches = run.filter(({ match }) => match.stage === "group");
+    const teamPrefix = `${tournamentPrefix}/${teamCode}`;
 
-    check(Boolean(teamFlags[teamCode]), `${teamCode}: globe marker is missing a flag.`);
-    check(Boolean(coordinates), `${teamCode}: globe marker is missing coordinates.`);
+    check(Boolean(teamFlags[teamCode]), `${teamPrefix}: globe marker is missing a flag.`);
+    check(Boolean(coordinates), `${teamPrefix}: globe marker is missing coordinates.`);
     if (coordinates) {
-      check(coordinates[0] >= -180 && coordinates[0] <= 180, `${teamCode}: marker longitude is invalid.`);
-      check(coordinates[1] >= -90 && coordinates[1] <= 90, `${teamCode}: marker latitude is invalid.`);
+      check(coordinates[0] >= -180 && coordinates[0] <= 180, `${teamPrefix}: marker longitude is invalid.`);
+      check(coordinates[1] >= -90 && coordinates[1] <= 90, `${teamPrefix}: marker latitude is invalid.`);
     }
 
-    check(Boolean(group), `${teamCode}: group assignment is missing.`);
-    if (group) groupCounts.set(group, (groupCounts.get(group) ?? 0) + 1);
-
-    check(groupMatches.length === 3, `${teamCode}: expected 3 group-stage fixtures, found ${groupMatches.length}.`);
-    check(run.length >= 3, `${teamCode}: team run must contain at least 3 fixtures.`);
+    check(assignedGroups.length === 1, `${teamPrefix}: expected exactly one group assignment, found ${assignedGroups.length}.`);
+    check(
+      groupMatches.length === tournament.format.groupMatchesPerTeam,
+      `${teamPrefix}: expected ${tournament.format.groupMatchesPerTeam} group-stage fixtures, found ${groupMatches.length}.`
+    );
+    check(
+      run.length >= tournament.format.groupMatchesPerTeam,
+      `${teamPrefix}: team run is shorter than its group-stage schedule.`
+    );
     check(
       replaySequence.every((entry, position) => entry.index === run[position]?.index),
-      `${teamCode}: replay sequence does not match the team run.`
+      `${teamPrefix}: replay sequence does not match the team run.`
     );
 
     const firstNavigation = getReplayNavigation(replaySequence, replaySequence[0]?.index ?? null);
     const lastNavigation = getReplayNavigation(replaySequence, replaySequence.at(-1)?.index ?? null);
-    check(!firstNavigation.previous, `${teamCode}: first replay fixture incorrectly has a previous fixture.`);
+    check(!firstNavigation.previous, `${teamPrefix}: first replay fixture incorrectly has a previous fixture.`);
     check(
       replaySequence.length < 2 || firstNavigation.next?.index === replaySequence[1].index,
-      `${teamCode}: first replay fixture does not advance to the second fixture.`
+      `${teamPrefix}: first replay fixture does not advance to the second fixture.`
     );
-    check(!lastNavigation.next, `${teamCode}: last replay fixture incorrectly has a next fixture.`);
+    check(!lastNavigation.next, `${teamPrefix}: last replay fixture incorrectly has a next fixture.`);
     check(
       replaySequence.length < 2 || lastNavigation.previous?.index === replaySequence.at(-2)?.index,
-      `${teamCode}: last replay fixture does not return to the previous fixture.`
+      `${teamPrefix}: last replay fixture does not return to the previous fixture.`
     );
 
     for (let index = 1; index < run.length; index += 1) {
-      check(run[index - 1].match.date <= run[index].match.date, `${teamCode}: team run is not chronological.`);
+      check(run[index - 1].match.date <= run[index].match.date, `${teamPrefix}: team run is not chronological.`);
     }
-  }
-
-  for (const group of worldCup2002GroupOrder) {
-    check(groupCounts.get(group) === 4, `Group ${group}: expected 4 countries, found ${groupCounts.get(group) ?? 0}.`);
   }
 
   for (const match of tournament.matches) {
     check(venueIds.has(match.venueId), `${match.id}: fixture cannot focus a known stadium.`);
-    check(
-      match.highlights.status === "embeddable-video" && match.highlights.embeddable && Boolean(match.highlights.embedUrl),
-      `${match.id}: fixture replay does not have a playable embedded highlight.`
-    );
 
     const liveScoreEndState = playToEnd(match);
     check(liveScoreEndState.cursor === match.events.length - 1, `${match.id}: replay did not reach its last event.`);
@@ -131,9 +153,11 @@ if (!tournament) {
   }
 
   for (const venue of tournament.venues) {
-    check(usedVenueIds.has(venue.id), `${venue.id}: stadium is not reachable from any fixture.`);
+    check(usedVenueIds.has(venue.id), `${tournamentPrefix}/${venue.id}: stadium is not reachable from any fixture.`);
   }
 }
+
+for (const report of mediaReports) console.log(report);
 
 if (errors.length > 0) {
   console.error(`Journey audit failed with ${errors.length} issue(s).`);
@@ -141,6 +165,9 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
+const teamCount = completeTournaments.reduce((count, tournament) => count + tournament.teams.length, 0);
+const matchCount = completeTournaments.reduce((count, tournament) => count + tournament.matches.length, 0);
+const venueCount = completeTournaments.reduce((count, tournament) => count + tournament.venues.length, 0);
 console.log(
-  `Journey audit passed: ${tournament?.teams.length ?? 0} countries, ${tournament?.matches.length ?? 0} fixtures, ${tournament?.venues.length ?? 0} stadiums.`
+  `Journey audit passed: ${completeTournaments.length} tournament(s), ${teamCount} team entries, ${matchCount} fixtures, ${venueCount} stadiums.`
 );

@@ -2,39 +2,54 @@ export type Competition = "WORLD_CUP" | "EURO" | "AFCON" | "COPA_AMERICA" | "ASI
 
 export type Stage = "group" | "r16" | "qf" | "sf" | "third" | "final";
 
-export type TeamCode =
-  | "BEL"
-  | "BRA"
-  | "CMR"
-  | "CHN"
-  | "CRO"
-  | "CRC"
-  | "DEN"
-  | "ECU"
-  | "GER"
-  | "TUR"
-  | "KOR"
-  | "JPN"
-  | "ENG"
-  | "ARG"
-  | "FRA"
-  | "IRL"
-  | "ITA"
-  | "KSA"
-  | "MEX"
-  | "NGA"
-  | "PAR"
-  | "POL"
-  | "POR"
-  | "RSA"
-  | "RUS"
-  | "SEN"
-  | "SVN"
-  | "ESP"
-  | "SWE"
-  | "TUN"
-  | "URU"
-  | "USA";
+export const TEAM_CODES = [
+  "ANG",
+  "ARG",
+  "AUS",
+  "BEL",
+  "BRA",
+  "CIV",
+  "CMR",
+  "CHN",
+  "CRC",
+  "CRO",
+  "CZE",
+  "DEN",
+  "ECU",
+  "ENG",
+  "ESP",
+  "FRA",
+  "GER",
+  "GHA",
+  "IRL",
+  "IRN",
+  "ITA",
+  "JPN",
+  "KOR",
+  "KSA",
+  "MEX",
+  "NED",
+  "NGA",
+  "PAR",
+  "POL",
+  "POR",
+  "RSA",
+  "RUS",
+  "SCG",
+  "SEN",
+  "SUI",
+  "SVN",
+  "SWE",
+  "TOG",
+  "TRI",
+  "TUN",
+  "TUR",
+  "UKR",
+  "URU",
+  "USA"
+] as const;
+
+export type TeamCode = (typeof TEAM_CODES)[number];
 
 export type Score = {
   home: number;
@@ -113,6 +128,17 @@ export type Match = {
   highlightEmbeddable: boolean;
 };
 
+export type TournamentGroup = {
+  id: string;
+  teams: TeamCode[];
+};
+
+export type TournamentFormat = {
+  expectedMatchCount: number;
+  expectedVenueCount: number;
+  groupMatchesPerTeam: number;
+};
+
 export type Tournament = {
   id: string;
   competition: Competition;
@@ -120,6 +146,9 @@ export type Tournament = {
   year: number;
   hosts: TeamCode[];
   teams: TeamCode[];
+  groups: TournamentGroup[];
+  teamCoordinates: Partial<Record<TeamCode, Coordinates>>;
+  format: TournamentFormat;
   stages: Stage[];
   status: "complete" | "partial" | "locked";
   mapView: MapView;

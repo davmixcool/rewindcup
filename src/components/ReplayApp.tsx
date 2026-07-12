@@ -17,11 +17,6 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { teamColors, teamFlags, teamNames, tournaments } from "@/data/tournaments";
-import {
-  worldCup2002GroupAssignments,
-  worldCup2002GroupOrder,
-  worldCup2002TeamCoordinates
-} from "@/data/worldCup2002Experience";
 import { HostMap } from "@/components/HostMap";
 import { initialReplayState, replayReducer } from "@/lib/replay";
 import {
@@ -55,6 +50,15 @@ const stageRank: Record<Match["stage"], number> = {
   sf: 3,
   third: 4,
   final: 5
+};
+
+const stageFilterLabels: Record<Match["stage"], string> = {
+  group: "Group",
+  r16: "R16",
+  qf: "QF",
+  sf: "SF",
+  third: "3rd",
+  final: "Final"
 };
 
 const ROUTE_PROGRESS_UPDATES_PER_SECOND = 30;
@@ -222,7 +226,7 @@ export function ReplayApp() {
         return {
           teamCode,
           matches,
-          group: worldCup2002GroupAssignments[teamCode],
+          group: tournament.groups.find((entry) => entry.teams.includes(teamCode))?.id,
           record,
           finishLabel
         };
@@ -284,22 +288,27 @@ export function ReplayApp() {
     () =>
       !tournament
         ? []
-        : tournament.teams.map((teamCode) => ({
-        code: teamCode,
-        color: teamColors[teamCode],
-        coordinates: worldCup2002TeamCoordinates[teamCode],
-        flagSrc: teamFlags[teamCode],
-        name: teamNames[teamCode]
-      })),
+        : tournament.teams.flatMap((teamCode) => {
+            const coordinates = tournament.teamCoordinates[teamCode];
+            if (!coordinates) return [];
+
+            return [{
+              code: teamCode,
+              color: teamColors[teamCode],
+              coordinates,
+              flagSrc: teamFlags[teamCode],
+              name: teamNames[teamCode]
+            }];
+          }),
     [tournament]
   );
   const groupedTeamRunOptions = useMemo(
     () =>
-      worldCup2002GroupOrder.map((group) => ({
-        group,
-        teams: teamRunOptions.filter((option) => option.group === group)
+      (tournament?.groups ?? []).map((group) => ({
+        group: group.id,
+        teams: teamRunOptions.filter((option) => option.group === group.id)
       })),
-    [teamRunOptions]
+    [teamRunOptions, tournament]
   );
   const routeVenueIds = useMemo(
     () => selectedRunEntries.map(({ match: runMatch }) => runMatch.venueId),
@@ -814,15 +823,10 @@ export function ReplayApp() {
   const isLibrary = railMode === "library";
   const isTournamentSetup = railMode === "tournamentSetup";
   const isRun = railMode === "run";
-  const fixtureStageFilters = [
+  const fixtureStageFilters: { label: string; value: FixtureStageFilter }[] = [
     { label: "All", value: "all" },
-    { label: "Group", value: "group" },
-    { label: "R16", value: "r16" },
-    { label: "QF", value: "qf" },
-    { label: "SF", value: "sf" },
-    { label: "3rd", value: "third" },
-    { label: "Final", value: "final" }
-  ] satisfies { label: string; value: FixtureStageFilter }[];
+    ...(tournament?.stages ?? []).map((stage) => ({ label: stageFilterLabels[stage], value: stage }))
+  ];
 
   return (
     <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"} ${isFixtureTraveling ? "fixture-traveling" : ""}`}>
