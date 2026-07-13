@@ -1,6 +1,6 @@
 export type Competition = "WORLD_CUP" | "EURO" | "AFCON" | "COPA_AMERICA" | "ASIAN_CUP";
 
-export type Stage = "group" | "r16" | "qf" | "sf" | "third" | "final";
+export type Stage = "group" | "group2" | "r16" | "qf" | "sf" | "third" | "final";
 
 export const TEAM_CODES = [
   "ALG",
@@ -41,6 +41,7 @@ export const TEAM_CODES = [
   "JPN",
   "KOR",
   "KSA",
+  "KUW",
   "MAR",
   "MEX",
   "NED",
@@ -49,6 +50,7 @@ export const TEAM_CODES = [
   "NOR",
   "NZL",
   "PAR",
+  "PER",
   "POL",
   "POR",
   "PRK",
@@ -60,6 +62,7 @@ export const TEAM_CODES = [
   "SEN",
   "SRB",
   "SUI",
+  "SLV",
   "SVK",
   "SVN",
   "SWE",
@@ -165,6 +168,7 @@ export type TournamentFormat = {
   expectedMatchCount: number;
   expectedVenueCount: number;
   groupMatchesPerTeam: number;
+  secondGroupMatchesPerTeam?: number;
 };
 
 export type Tournament = {
@@ -175,6 +179,7 @@ export type Tournament = {
   hosts: TeamCode[];
   teams: TeamCode[];
   groups: TournamentGroup[];
+  secondGroups?: TournamentGroup[];
   teamCoordinates: Partial<Record<TeamCode, Coordinates>>;
   format: TournamentFormat;
   stages: Stage[];

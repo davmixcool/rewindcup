@@ -1,5 +1,37 @@
 # Tournament data sources
 
+## Spain 1982
+
+Tournament structure, official match numbers, dates, venues, results, and
+knockout decisions were checked against FIFA's current calendar API and
+tournament archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=59&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1982spain
+
+Scorers, event minutes, and stadium records were cross-checked with the Fjelstul
+World Cup Database. Its records were joined to FIFA's schedule by date and exact
+team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 52 matches, 146 match goals excluding shootout kicks, 24
+teams, and 17 stadiums. It preserves the edition's six first-round groups and
+four three-team second-round groups, as well as the semi-final shootout. Stadium
+and team coordinates are approximate map anchors.
+
+Every fixture has an exact-match YouTube highlight. On July 13, 2026, all 52
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. Each fixture also retains its
+official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1982`.
+
 ## Mexico 1986
 
 Tournament structure, official match numbers, dates, venues, results, and

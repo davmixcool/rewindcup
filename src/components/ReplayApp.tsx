@@ -45,15 +45,17 @@ type PendingFixtureArrival = {
 
 const stageRank: Record<Match["stage"], number> = {
   group: 0,
-  r16: 1,
-  qf: 2,
-  sf: 3,
-  third: 4,
-  final: 5
+  group2: 1,
+  r16: 2,
+  qf: 3,
+  sf: 4,
+  third: 5,
+  final: 6
 };
 
 const stageFilterLabels: Record<Match["stage"], string> = {
   group: "Group",
+  group2: "Group 2",
   r16: "R16",
   qf: "QF",
   sf: "SF",
@@ -102,6 +104,7 @@ function formatClock(event: ReplayEvent | undefined, status: string) {
 function getStageLabel(stage: Match["stage"]) {
   const labels: Record<Match["stage"], string> = {
     group: "Group stage",
+    group2: "Second group stage",
     r16: "Round of 16",
     qf: "Quarter-final",
     sf: "Semi-final",
@@ -302,14 +305,23 @@ export function ReplayApp() {
           }),
     [tournament]
   );
-  const groupedTeamRunOptions = useMemo(
-    () =>
-      (tournament?.groups ?? []).map((group) => ({
-        group: group.id,
-        teams: teamRunOptions.filter((option) => option.group === group.id)
-      })),
-    [teamRunOptions, tournament]
-  );
+  const groupedTeamRunOptions = useMemo(() => {
+    if (!tournament) return [];
+
+    const hasSecondGroupStage = Boolean(tournament.secondGroups?.length);
+    const firstGroups = tournament.groups.map((group) => ({
+      phase: hasSecondGroupStage ? "First group stage" : null,
+      group: group.id,
+      teams: teamRunOptions.filter((option) => group.teams.includes(option.teamCode))
+    }));
+    const secondGroups = (tournament.secondGroups ?? []).map((group) => ({
+      phase: "Second group stage",
+      group: group.id,
+      teams: teamRunOptions.filter((option) => group.teams.includes(option.teamCode))
+    }));
+
+    return [...firstGroups, ...secondGroups];
+  }, [teamRunOptions, tournament]);
   const routeVenueIds = useMemo(
     () => selectedRunEntries.map(({ match: runMatch }) => runMatch.venueId),
     [selectedRunEntries]
@@ -1082,9 +1094,9 @@ export function ReplayApp() {
               </button>
             </div>
             <div className="tray-team-list">
-              {groupedTeamRunOptions.map(({ group, teams }) => (
-                <section className="tray-team-group" key={group}>
-                  <h3 className="tray-group-label">Group {group}</h3>
+              {groupedTeamRunOptions.map(({ phase, group, teams }) => (
+                <section className="tray-team-group" key={`${phase ?? "group"}-${group}`}>
+                  <h3 className="tray-group-label">{phase ? `${phase} · ` : ""}Group {group}</h3>
                   <div className="tray-team-grid">
                     {teams.map(({ teamCode, matches, record, finishLabel }) => (
                       <button

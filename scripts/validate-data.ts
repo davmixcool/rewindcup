@@ -153,7 +153,7 @@ const highlightsSchema = z
 const matchSchema = z.object({
   id: z.string().min(1),
   tournamentId: z.string().min(1),
-  stage: z.enum(["group", "r16", "qf", "sf", "third", "final"]),
+  stage: z.enum(["group", "group2", "r16", "qf", "sf", "third", "final"]),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   venueId: z.string().min(1),
   venue: z.string().min(1),
@@ -176,7 +176,8 @@ const tournamentFormatSchema = z.object({
   expectedGoalCount: z.number().int().nonnegative(),
   expectedMatchCount: z.number().int().positive(),
   expectedVenueCount: z.number().int().positive(),
-  groupMatchesPerTeam: z.number().int().min(0)
+  groupMatchesPerTeam: z.number().int().min(0),
+  secondGroupMatchesPerTeam: z.number().int().min(0).optional()
 });
 
 const tournamentSchema = z.object({
@@ -187,9 +188,10 @@ const tournamentSchema = z.object({
   hosts: z.array(teamCodeSchema).min(1),
   teams: z.array(teamCodeSchema).min(1),
   groups: z.array(tournamentGroupSchema).min(1),
+  secondGroups: z.array(tournamentGroupSchema).min(1).optional(),
   teamCoordinates: z.partialRecord(teamCodeSchema, coordinatesSchema),
   format: tournamentFormatSchema,
-  stages: z.array(z.enum(["group", "r16", "qf", "sf", "third", "final"])).min(1),
+  stages: z.array(z.enum(["group", "group2", "r16", "qf", "sf", "third", "final"])).min(1),
   status: z.enum(["complete", "partial", "locked"]),
   mapView: mapViewSchema,
   venues: z.array(venueSchema).min(1),

@@ -34,6 +34,7 @@ for (const tournament of completeTournaments) {
   const usedVenueIds = new Set(tournament.matches.map((match) => match.venueId));
   const tournamentSequence = getReplaySequenceEntries(tournament, null);
   const groupedTeams = tournament.groups.flatMap((group) => group.teams);
+  const secondGroupedTeams = tournament.secondGroups?.flatMap((group) => group.teams) ?? [];
   const playableMatches = tournament.matches.filter(
     (match) => match.highlights.status === "embeddable-video" && match.highlights.embeddable && Boolean(match.highlights.embedUrl)
   );
@@ -66,6 +67,14 @@ for (const tournament of completeTournaments) {
     `${tournamentPrefix}: groups must contain each tournament team exactly once.`
   );
   check(
+    secondGroupedTeams.every((teamCode) => tournament.teams.includes(teamCode)) && new Set(secondGroupedTeams).size === secondGroupedTeams.length,
+    `${tournamentPrefix}: second-round groups must contain unique tournament teams.`
+  );
+  check(
+    Boolean(tournament.secondGroups?.length) === (tournament.format.secondGroupMatchesPerTeam !== undefined),
+    `${tournamentPrefix}: second-round groups and their expected match count must be configured together.`
+  );
+  check(
     tournamentSequence.length === tournament.format.expectedMatchCount,
     `${tournamentPrefix}: tournament replay sequence must contain all ${tournament.format.expectedMatchCount} fixtures.`
   );
@@ -80,6 +89,8 @@ for (const tournament of completeTournaments) {
     const run = getTeamRunEntries(tournament, teamCode);
     const replaySequence = getReplaySequenceEntries(tournament, teamCode);
     const groupMatches = run.filter(({ match }) => match.stage === "group");
+    const secondGroupMatches = run.filter(({ match }) => match.stage === "group2");
+    const secondGroupAssignments = tournament.secondGroups?.filter((group) => group.teams.includes(teamCode)) ?? [];
     const teamPrefix = `${tournamentPrefix}/${teamCode}`;
 
     check(Boolean(teamFlags[teamCode]), `${teamPrefix}: globe marker is missing a flag.`);
@@ -93,6 +104,14 @@ for (const tournament of completeTournaments) {
     check(
       groupMatches.length === tournament.format.groupMatchesPerTeam,
       `${teamPrefix}: expected ${tournament.format.groupMatchesPerTeam} group-stage fixtures, found ${groupMatches.length}.`
+    );
+    check(
+      secondGroupAssignments.length <= 1,
+      `${teamPrefix}: expected at most one second-round group assignment, found ${secondGroupAssignments.length}.`
+    );
+    check(
+      secondGroupMatches.length === (secondGroupAssignments.length > 0 ? tournament.format.secondGroupMatchesPerTeam ?? 0 : 0),
+      `${teamPrefix}: second-group-stage fixture count does not match its assignment.`
     );
     check(
       run.length >= tournament.format.groupMatchesPerTeam,
