@@ -52,3 +52,25 @@ test("the keyboard-focusable map keeps a visible focus indicator", async ({ page
   expect(outline.style).not.toBe("none");
   expect(outline.width).toBeGreaterThanOrEqual(3);
 });
+
+test("tournament menus expose scroll range and reach their final option", async ({ page }) => {
+  await page.goto("/");
+
+  await page.locator(".app-identity").click();
+  const dropdown = page.locator(".nav-dropdown");
+  await expect(dropdown).toBeVisible();
+  await expect(dropdown).toHaveCSS("overflow-y", "auto");
+  await expect.poll(() => dropdown.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+  await dropdown.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+  await expect.poll(() => dropdown.evaluate((element) => element.scrollTop > 0)).toBe(true);
+  await expect(dropdown.getByRole("button", { name: /Russia 2018/i })).toBeVisible();
+
+  await page.locator(".app-identity").click();
+  await page.getByRole("button", { name: "Tournament selection", exact: true }).click();
+  const bottomMenu = page.getByRole("region", { name: "Tournament selection", exact: true });
+  await expect(bottomMenu).toHaveCSS("overflow-y", "auto");
+  await expect.poll(() => bottomMenu.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+  await bottomMenu.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+  await expect.poll(() => bottomMenu.evaluate((element) => element.scrollTop > 0)).toBe(true);
+  await expect(bottomMenu.getByRole("button", { name: /Russia 2018/i })).toBeVisible();
+});

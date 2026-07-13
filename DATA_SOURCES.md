@@ -464,3 +464,38 @@ alternatives are used while every fixture retains its official FIFA match link:
 - FIFA Brazil 2014 playlist: https://www.youtube.com/playlist?list=PLCGIzmTE4d0i4BvAgy-hShwPB3R6az-wL
 
 Re-run the live check with `npm run audit:youtube-embeds -- wc-2014`.
+
+## Russia 2018
+
+Tournament structure, official match numbers, dates, venues, results, and
+knockout decisions were checked against FIFA's current calendar API and
+tournament archive. FIFA's schedule numbering is retained where multiple
+fixtures on the same day differ from simple kickoff chronology:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=254645&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/2018russia
+
+Scorers, event minutes, own goals, penalties, and stadium records were
+cross-checked with the Fjelstul World Cup Database. Its chronological records
+were joined to FIFA's final schedule by date and exact team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 64 matches, 169 match goals excluding shootout kicks, 32
+teams, and 12 stadiums. It preserves all four penalty shootouts and Croatia's
+extra-time semi-final. Public tournament stadium names are used where FIFA's
+API exposes legacy or sponsor names; stadium and team coordinates are
+approximate map anchors.
+
+Every fixture has an exact-match YouTube highlight. On July 13, 2026, all 64
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. Ten initially selected uploads
+were blocked or unavailable and were replaced with verified alternatives,
+while every fixture retains its official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-2018`.

@@ -294,7 +294,12 @@ button {
   left: 44px;
   display: grid;
   width: min(330px, calc(100vw - 48px));
-  overflow: hidden;
+  max-height: calc(100svh - 82px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.92);
@@ -485,8 +490,13 @@ button {
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  min-height: 0;
   max-height: min(48svh, 420px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 22px;
   padding: 10px;
