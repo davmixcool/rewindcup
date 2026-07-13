@@ -1,5 +1,45 @@
 # Tournament data sources
 
+## Mexico 1986
+
+Tournament structure, official match numbers, dates, venues, results, and
+knockout decisions were checked against FIFA's current calendar API, archived
+technical reports, and tournament archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=68&count=100&language=en
+- FIFA Technical Report Part 1: https://web.archive.org/web/20111220061752/http://www.fifa.com/mm/document/afdeveloping/technicaldevp/50/09/08/fwc%5Fmexico%5F1986%5Fen%5Fpart1%5F283.pdf
+- FIFA Technical Report Part 2: https://web.archive.org/web/20111220052347/http://www.fifa.com/mm/document/afdeveloping/technicaldevp/50/09/06/fwc%5Fmexico%5F1986%5Fen%5Fpart2%5F281.pdf
+- FIFA Technical Report Part 3: https://web.archive.org/web/20111220070301/http://www.fifa.com/mm/document/afdeveloping/technicaldevp/50/09/03/fwc%5Fmexico%5F1986%5Fen%5Fpart3%5F280.pdf
+- FIFA Technical Report Part 4: https://web.archive.org/web/20100614213621/http://www.fifa.com/mm/document/afdeveloping/technicaldevp/50/09/00/fwc%5Fmexico%5F1986%5Fen%5Fpart4%5F279.pdf
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1986mexico
+
+The app preserves FIFA's published match numbers rather than simple kickoff
+chronology. That changes the ordering of 2–3, 14–15, 27–28, 31–34, 39–40,
+47–48, and 49–50 compared with chronological databases.
+
+Scorers, event minutes, and stadium records were cross-checked with the Fjelstul
+World Cup Database. Its records were joined to FIFA's schedule by date and exact
+team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 52 matches, 132 match goals excluding shootout kicks, 24
+teams, and 12 stadiums. It includes both quarter-final shootouts and every
+extra-time decision. Stadium and team coordinates are approximate map anchors.
+
+Every fixture has an exact-match YouTube highlight. On July 13, 2026, all 52
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. Verified independent uploads are
+used because FIFA-owned candidates may block third-party iframe playback, while
+every fixture retains its official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1986`.
+
 ## Italy 1990
 
 Tournament structure, original match numbers, dates, venues, results, and
