@@ -1,4 +1,5 @@
 import { teamColors, teamFlags, teamNames } from "@/data/teamMetadata";
+import { worldCup1978 } from "@/data/worldCup1978";
 import { worldCup1982 } from "@/data/worldCup1982";
 import { worldCup1986 } from "@/data/worldCup1986";
 import { worldCup1990 } from "@/data/worldCup1990";
@@ -10,6 +11,6 @@ import { worldCup2010 } from "@/data/worldCup2010";
 import { worldCup2014 } from "@/data/worldCup2014";
 import type { Tournament } from "@/lib/types";
 
-export const tournaments: Tournament[] = [worldCup1982, worldCup1986, worldCup1990, worldCup1994, worldCup1998, worldCup2002, worldCup2006, worldCup2010, worldCup2014];
+export const tournaments: Tournament[] = [worldCup1978, worldCup1982, worldCup1986, worldCup1990, worldCup1994, worldCup1998, worldCup2002, worldCup2006, worldCup2010, worldCup2014];
 
 export { teamColors, teamFlags, teamNames };
