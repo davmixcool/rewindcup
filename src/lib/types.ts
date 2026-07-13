@@ -28,9 +28,11 @@ export const TEAM_CODES = [
   "ENG",
   "ESP",
   "FRA",
+  "GDR",
   "GER",
   "GHA",
   "GRE",
+  "HAI",
   "HON",
   "HUN",
   "IRL",
@@ -76,7 +78,8 @@ export const TEAM_CODES = [
   "URU",
   "URS",
   "USA",
-  "YUG"
+  "YUG",
+  "ZAI"
 ] as const;
 
 export type TeamCode = (typeof TEAM_CODES)[number];

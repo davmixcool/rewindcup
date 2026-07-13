@@ -27,9 +27,11 @@ export const teamNames: Record<TeamCode, string> = {
   ENG: "England",
   ESP: "Spain",
   FRA: "France",
+  GDR: "East Germany",
   GER: "Germany",
   GHA: "Ghana",
   GRE: "Greece",
+  HAI: "Haiti",
   HON: "Honduras",
   HUN: "Hungary",
   IRL: "Republic of Ireland",
@@ -75,7 +77,8 @@ export const teamNames: Record<TeamCode, string> = {
   URU: "Uruguay",
   URS: "Soviet Union",
   USA: "United States",
-  YUG: "Yugoslavia"
+  YUG: "Yugoslavia",
+  ZAI: "Zaire"
 };
 
 export const teamFlags: Record<TeamCode, string> = Object.fromEntries(
@@ -108,9 +111,11 @@ export const teamColors: Record<TeamCode, string> = {
   ENG: "#ffffff",
   ESP: "#aa151b",
   FRA: "#0055a4",
+  GDR: "#dd0000",
   GER: "#dd0000",
   GHA: "#ce1126",
   GRE: "#0d5eaf",
+  HAI: "#00209f",
   HON: "#0073cf",
   HUN: "#477050",
   IRL: "#169b62",
@@ -156,5 +161,6 @@ export const teamColors: Record<TeamCode, string> = {
   URU: "#0038a8",
   URS: "#cc0000",
   USA: "#3c3b6e",
-  YUG: "#003893"
+  YUG: "#003893",
+  ZAI: "#5ab532"
 };

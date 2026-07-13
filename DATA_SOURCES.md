@@ -1,5 +1,38 @@
 # Tournament data sources
 
+## West Germany 1974
+
+Tournament structure, official match numbers, dates, venues, results, and the
+two group phases were checked against FIFA's current calendar API and tournament
+archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=39&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1974germany
+
+Scorers, event minutes, own goals, penalties, and stadium records were
+cross-checked with the Fjelstul World Cup Database. Its chronological records
+were joined to FIFA's match sequence by date and exact team pairing, with
+historical identities retained for East Germany, Haiti, and Zaire:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 38 matches, 97 goals, 16 teams, and nine stadiums. It
+preserves the four first-round groups and two four-team second-round groups,
+whose winners advanced directly to the final. Stadium and team coordinates are
+approximate map anchors.
+
+Every fixture has an exact-match YouTube highlight. On July 13, 2026, all 38
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. One unavailable candidate was
+replaced, while every fixture retains its official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1974`.
+
 ## Argentina 1978
 
 Tournament structure, official match numbers, dates, venues, results, and the
