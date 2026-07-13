@@ -1,5 +1,41 @@
 # Tournament data sources
 
+## England 1966
+
+Tournament structure, official match numbers, dates, venues, results, and
+knockout decisions were checked against FIFA's current calendar API and
+tournament archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=26&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1966england
+
+FIFA's published numbering is retained, including its ordering of the four
+matches on July 16 and the quarter-finals. West Germany's FIFA API code `FRG`
+is normalized to the app's established historical `GER` identity.
+
+Scorers, event minutes, own goals, penalties, and stadium records were
+cross-checked with the Fjelstul World Cup Database. Its chronological records
+were joined to FIFA's match sequence by date and exact team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 32 matches, 89 goals, 16 teams, and eight stadiums. It
+preserves the four first-round groups, the complete knockout bracket, and the
+120-minute final. Stadium and team coordinates are approximate map anchors.
+
+Every fixture has an exact-match YouTube highlight. On July 13, 2026, all 32
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. One blocked FIFA candidate was
+replaced with a verified independent upload, while every fixture retains its
+official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1966`.
+
 ## Mexico 1970
 
 Tournament structure, official match numbers, dates, venues, results, and
