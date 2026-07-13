@@ -5,10 +5,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Clapperboard,
+  Clock3,
   Globe2,
+  Heart,
   Pause,
   Play,
   RotateCcw,
+  Search,
   Settings,
   SkipForward,
   Trophy,
@@ -16,9 +19,25 @@ import {
   X
 } from "lucide-react";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { CommandPalette, type CommandItem, type CommandTarget } from "@/components/CommandPalette";
 import { teamColors, teamFlags, teamNames, tournaments } from "@/data/tournaments";
 import { HostMap } from "@/components/HostMap";
 import { initialReplayState, replayReducer } from "@/lib/replay";
+import {
+  getMatchPath,
+  getTeamPath,
+  getTournamentPath,
+  parseExperiencePath
+} from "@/lib/experienceNavigation";
+import {
+  emptyPreferences,
+  getTeamFavoriteKey,
+  getTournamentFavoriteKey,
+  readPreferences,
+  writePreferences,
+  type RecentReference,
+  type UserPreferences
+} from "@/lib/preferences";
 import {
   getReplayNavigation,
   getReplaySequenceEntries,
@@ -189,6 +208,9 @@ export function ReplayApp() {
   const [mapMode, setMapMode] = useState<MapMode>("world");
   const [isMatchOpen, setIsMatchOpen] = useState(false);
   const [isTournamentMenuOpen, setIsTournamentMenuOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [preferences, setPreferences] = useState<UserPreferences>(emptyPreferences);
+  const [preferencesReady, setPreferencesReady] = useState(false);
   const [activeTrayMenu, setActiveTrayMenu] = useState<TrayMenu>(null);
   const [fixtureStageFilter, setFixtureStageFilter] = useState<FixtureStageFilter>("all");
   const [fixtureMediaFilter, setFixtureMediaFilter] = useState<FixtureMediaFilter>("all");
@@ -207,6 +229,7 @@ export function ReplayApp() {
   const previousTrayMenuRef = useRef<TrayMenu>(null);
   const trayRestoreFocusRef = useRef<HTMLElement | null>(null);
   const tournamentMenuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const commandButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const currentEvent = match?.events[state.cursor];
   const isFixtureTraveling = pendingFixtureArrival !== null;
@@ -373,6 +396,163 @@ export function ReplayApp() {
       ? `Arrived at ${matchVenue?.name ?? matchVenue?.city ?? match.venue}. Replay controls are ready.`
       : "";
 
+  const commandItems = useMemo<CommandItem[]>(() => {
+    const items: CommandItem[] = [];
+
+    for (const [tournamentIndex, archiveTournament] of tournaments.entries()) {
+      items.push({
+        id: `tournament:${archiveTournament.id}`,
+        kind: "tournament",
+        label: archiveTournament.name,
+        description: `${archiveTournament.matches.length} fixtures · ${archiveTournament.teams.length} teams`,
+        keywords: `${archiveTournament.year} ${archiveTournament.hosts.map((code) => teamNames[code]).join(" ")}`,
+        target: { type: "tournament", tournamentIndex }
+      });
+
+      for (const teamCode of archiveTournament.teams) {
+        const group = archiveTournament.groups.find((entry) => entry.teams.includes(teamCode))?.id;
+        const matchCount = archiveTournament.matches.filter((entry) => entry.home === teamCode || entry.away === teamCode).length;
+        items.push({
+          id: `team:${archiveTournament.id}:${teamCode}`,
+          kind: "team",
+          label: teamNames[teamCode],
+          description: `${archiveTournament.name}${group ? ` · Group ${group}` : ""} · ${matchCount} fixtures`,
+          keywords: `${teamCode} ${archiveTournament.year} ${archiveTournament.name}`,
+          target: { type: "team", teamCode, tournamentIndex }
+        });
+      }
+
+      const seenPlayers = new Set<string>();
+      for (const [matchIndex, archiveMatch] of archiveTournament.matches.entries()) {
+        const archiveVenue = archiveTournament.venues.find((venue) => venue.id === archiveMatch.venueId);
+        items.push({
+          id: `match:${archiveMatch.id}`,
+          kind: "match",
+          label: `${teamNames[archiveMatch.home]} vs ${teamNames[archiveMatch.away]}`,
+          description: `${archiveTournament.name} · ${getStageLabel(archiveMatch.stage)} · ${archiveMatch.date}`,
+          keywords: `${archiveMatch.home} ${archiveMatch.away} ${formatFinalScore(archiveMatch)} ${archiveVenue?.name ?? archiveMatch.venue} ${archiveVenue?.city ?? ""}`,
+          target: { type: "match", matchIndex, tournamentIndex }
+        });
+
+        for (const event of archiveMatch.events) {
+          if (event.type !== "goal") continue;
+          const playerKey = event.player.toLocaleLowerCase();
+          if (seenPlayers.has(playerKey)) continue;
+          seenPlayers.add(playerKey);
+          items.push({
+            id: `player:${archiveTournament.id}:${playerKey}`,
+            kind: "player",
+            label: event.player,
+            description: `${archiveTournament.name} · goal scorer`,
+            keywords: `${event.team ? teamNames[event.team] : ""} ${event.team ?? ""} ${teamNames[archiveMatch.home]} ${teamNames[archiveMatch.away]}`,
+            target: { type: "match", matchIndex, tournamentIndex }
+          });
+        }
+      }
+
+      for (const venue of archiveTournament.venues) {
+        items.push({
+          id: `venue:${archiveTournament.id}:${venue.id}`,
+          kind: "venue",
+          label: venue.name,
+          description: `${venue.city} · ${archiveTournament.name}`,
+          keywords: `${venue.city} ${teamNames[venue.country]} ${archiveTournament.year}`,
+          target: { type: "venue", tournamentIndex, venueId: venue.id }
+        });
+      }
+    }
+
+    return items;
+  }, []);
+
+  const featuredCommandItems = useMemo<CommandItem[]>(() => {
+    const featured: CommandItem[] = [];
+    const seen = new Set<string>();
+
+    if (preferences.resume) {
+      const resumeMatch = commandItems.find((item) => item.id === `match:${preferences.resume?.matchId}`);
+      if (resumeMatch) {
+        featured.push({ ...resumeMatch, id: `resume:${resumeMatch.id}`, kind: "resume", featuredLabel: "Continue" });
+        seen.add(resumeMatch.id);
+      }
+    }
+
+    for (const favorite of preferences.favorites) {
+      const item = commandItems.find((candidate) => candidate.id === favorite.key);
+      if (!item || seen.has(item.id)) continue;
+      featured.push({ ...item, id: `favorite:${item.id}`, kind: "favorite", featuredLabel: "Favorite" });
+      seen.add(item.id);
+    }
+
+    for (const recent of preferences.recent) {
+      const id = recent.type === "match"
+        ? `match:${recent.matchId}`
+        : recent.type === "team"
+          ? `team:${recent.tournamentId}:${recent.teamCode}`
+          : `tournament:${recent.tournamentId}`;
+      const item = commandItems.find((candidate) => candidate.id === id);
+      if (!item || seen.has(item.id)) continue;
+      featured.push({ ...item, id: `recent:${item.id}`, kind: "recent", featuredLabel: "Recent" });
+      seen.add(item.id);
+    }
+
+    return featured;
+  }, [commandItems, preferences]);
+
+  const resumeDetails = useMemo(() => {
+    if (!preferences.resume) return null;
+    const resumeTournamentIndex = tournaments.findIndex((entry) => entry.id === preferences.resume?.tournamentId);
+    const resumeTournament = tournaments[resumeTournamentIndex];
+    const resumeMatchIndex = resumeTournament?.matches.findIndex((entry) => entry.id === preferences.resume?.matchId) ?? -1;
+    const resumeMatch = resumeTournament?.matches[resumeMatchIndex];
+    if (!resumeTournament || !resumeMatch || resumeMatchIndex < 0) return null;
+    return { match: resumeMatch, matchIndex: resumeMatchIndex, tournament: resumeTournament, tournamentIndex: resumeTournamentIndex };
+  }, [preferences.resume]);
+
+  useEffect(() => {
+    setPreferences(readPreferences());
+    setPreferencesReady(true);
+  }, []);
+
+  useEffect(() => {
+    function handleLocationChange() {
+      applyExperienceLocation(window.location.pathname);
+    }
+
+    handleLocationChange();
+    window.addEventListener("popstate", handleLocationChange);
+    return () => window.removeEventListener("popstate", handleLocationChange);
+  }, []);
+
+  useEffect(() => {
+    function handleCommandShortcut(event: KeyboardEvent) {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "k") return;
+      event.preventDefault();
+      setIsTournamentMenuOpen(false);
+      setActiveTrayMenu(null);
+      setIsCommandPaletteOpen((isOpen) => !isOpen);
+    }
+
+    window.addEventListener("keydown", handleCommandShortcut);
+    return () => window.removeEventListener("keydown", handleCommandShortcut);
+  }, []);
+
+  useEffect(() => {
+    if (!preferencesReady || !tournament || !match || state.cursor < 0) return;
+
+    updateStoredPreferences((current) => ({
+      ...current,
+      resume: {
+        cursor: state.cursor,
+        matchId: match.id,
+        mode: state.mode,
+        teamCode: selectedTeam ?? undefined,
+        tournamentId: tournament.id,
+        updatedAt: new Date().toISOString()
+      }
+    }));
+  }, [match, preferencesReady, selectedTeam, state.cursor, state.mode, tournament]);
+
   useEffect(() => {
     if (!match) return;
     if (!state.isAutoplaying || isFinished) return;
@@ -527,6 +707,103 @@ export function ReplayApp() {
     countrySelectionTimerRef.current = null;
   }
 
+  function updateStoredPreferences(update: (current: UserPreferences) => UserPreferences) {
+    setPreferences((current) => {
+      const next = update(current);
+      writePreferences(next);
+      return next;
+    });
+  }
+
+  function addRecent(reference: Omit<RecentReference, "openedAt">) {
+    updateStoredPreferences((current) => ({
+      ...current,
+      recent: [
+        { ...reference, openedAt: new Date().toISOString() },
+        ...current.recent.filter((entry) => {
+          if (entry.type !== reference.type || entry.tournamentId !== reference.tournamentId) return true;
+          if (reference.type === "match") return entry.matchId !== reference.matchId;
+          if (reference.type === "team") return entry.teamCode !== reference.teamCode;
+          return false;
+        })
+      ].slice(0, 12)
+    }));
+  }
+
+  function updateBrowserPath(path: string, replace = false) {
+    if (window.location.pathname === path) return;
+    window.history[replace ? "replaceState" : "pushState"]({}, "", path);
+  }
+
+  function applyExperienceLocation(pathname: string) {
+    const location = parseExperiencePath(pathname);
+    if (!location) {
+      if (pathname !== "/") return;
+      resetReplayPlayback();
+      clearPendingFixtureArrival();
+      setSelectedTournamentIndex(null);
+      setSelectedTeam(null);
+      setSelectedMatchIndex(null);
+      setSelectedVenueId(undefined);
+      setRailMode("library");
+      setMapMode("world");
+      setActiveTrayMenu(null);
+      setIsMatchOpen(false);
+      resetRouteTravel();
+      return;
+    }
+
+    const nextTournament = tournaments[location.tournamentIndex];
+    if (!nextTournament) return;
+
+    resetReplayPlayback();
+    clearPendingFixtureArrival();
+    clearCountrySelectionTimer();
+    setSelectedTournamentIndex(location.tournamentIndex);
+    setIsTournamentMenuOpen(false);
+    setFixtureStageFilter("all");
+    setFixtureMediaFilter("all");
+    setShowCountryFlags(true);
+    setShowLandingConfetti(false);
+    resetRouteTravel();
+
+    if (location.matchIndex !== null) {
+      const nextMatch = nextTournament.matches[location.matchIndex];
+      if (!nextMatch) return;
+      setRailMode("run");
+      setSelectedTeam(null);
+      setSelectedMatchIndex(location.matchIndex);
+      setSelectedVenueId(nextMatch.venueId);
+      setMapMode("stadium");
+      setIsMatchOpen(true);
+      setActiveTrayMenu("replay");
+      return;
+    }
+
+    if (location.teamCode) {
+      const firstEntryIndex = nextTournament.matches.findIndex(
+        (entry) => entry.home === location.teamCode || entry.away === location.teamCode
+      );
+      const firstMatch = nextTournament.matches[firstEntryIndex];
+      setRailMode("tournamentSetup");
+      setSelectedTeam(location.teamCode);
+      setSelectedMatchIndex(firstEntryIndex >= 0 ? firstEntryIndex : null);
+      setSelectedVenueId(firstMatch?.venueId);
+      setMapMode("world");
+      setIsMatchOpen(false);
+      setActiveTrayMenu(firstMatch ? "fixtures" : null);
+      return;
+    }
+
+    setRailMode("tournamentSetup");
+    setSelectedTeam(null);
+    setSelectedMatchIndex(null);
+    setSelectedVenueId(undefined);
+    setMapMode("world");
+    setIsMatchOpen(false);
+    setActiveTrayMenu(null);
+  }
+
   function clearPendingFixtureArrival() {
     setPendingFixtureArrival(null);
   }
@@ -566,6 +843,8 @@ export function ReplayApp() {
     setSelectedVenueId(nextMatch.venueId);
     setMapMode(nextMode);
     setIsMatchOpen(openMatch);
+    updateBrowserPath(getMatchPath(tournament, nextMatch));
+    addRecent({ type: "match", tournamentId: tournament.id, matchId: nextMatch.id });
   }
 
   function travelToFixture(index: number) {
@@ -586,6 +865,8 @@ export function ReplayApp() {
     setShowLandingConfetti(false);
     setIsMatchOpen(false);
     setMapMode(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "stadium" : "flight");
+    updateBrowserPath(getMatchPath(tournament, nextMatch));
+    addRecent({ type: "match", tournamentId: tournament.id, matchId: nextMatch.id });
   }
 
   function selectTeamRun(teamCode: TeamCode) {
@@ -607,6 +888,8 @@ export function ReplayApp() {
     if (mapMode !== "world" && mapMode !== "flight") {
       setMapMode("host");
     }
+    updateBrowserPath(getTeamPath(tournament, teamCode));
+    addRecent({ type: "team", tournamentId: tournament.id, teamCode });
   }
 
   function resetSelectedTournamentExperience() {
@@ -629,10 +912,13 @@ export function ReplayApp() {
   }
 
   function selectTournament(index: number) {
-    if (!tournaments[index]) return;
+    const nextTournament = tournaments[index];
+    if (!nextTournament) return;
 
     setSelectedTournamentIndex(index);
     resetSelectedTournamentExperience();
+    updateBrowserPath(getTournamentPath(nextTournament));
+    addRecent({ type: "tournament", tournamentId: nextTournament.id });
   }
 
   function openTournamentSetup() {
@@ -661,6 +947,107 @@ export function ReplayApp() {
     setShowCountryFlags(true);
     setShowLandingConfetti(false);
     resetRouteTravel();
+    if (tournament) updateBrowserPath(getTournamentPath(tournament));
+  }
+
+  function closeCommandPalette() {
+    setIsCommandPaletteOpen(false);
+    window.requestAnimationFrame(() => commandButtonRef.current?.focus({ preventScroll: true }));
+  }
+
+  function openCommandTarget(target: CommandTarget) {
+    const nextTournament = tournaments[target.tournamentIndex];
+    if (!nextTournament) return;
+
+    if (target.type === "tournament") {
+      const path = getTournamentPath(nextTournament);
+      updateBrowserPath(path);
+      applyExperienceLocation(path);
+      addRecent({ type: "tournament", tournamentId: nextTournament.id });
+      return;
+    }
+
+    if (target.type === "team") {
+      const path = getTeamPath(nextTournament, target.teamCode);
+      updateBrowserPath(path);
+      applyExperienceLocation(path);
+      addRecent({ type: "team", tournamentId: nextTournament.id, teamCode: target.teamCode });
+      return;
+    }
+
+    if (target.type === "match") {
+      const nextMatch = nextTournament.matches[target.matchIndex];
+      if (!nextMatch) return;
+      const path = getMatchPath(nextTournament, nextMatch);
+      updateBrowserPath(path);
+      applyExperienceLocation(path);
+      addRecent({ type: "match", tournamentId: nextTournament.id, matchId: nextMatch.id });
+      return;
+    }
+
+    const venue = nextTournament.venues.find((entry) => entry.id === target.venueId);
+    if (!venue) return;
+    const path = getTournamentPath(nextTournament);
+    updateBrowserPath(path);
+    applyExperienceLocation(path);
+    setSelectedVenueId(venue.id);
+    setMapMode("stadium");
+    setIsMatchOpen(true);
+  }
+
+  function handleCommandSelect(item: CommandItem) {
+    setIsCommandPaletteOpen(false);
+    if (item.kind === "resume") {
+      continueSavedReplay();
+      return;
+    }
+    openCommandTarget(item.target);
+  }
+
+  function continueSavedReplay() {
+    if (!resumeDetails || !preferences.resume) return;
+    const path = getMatchPath(resumeDetails.tournament, resumeDetails.match);
+    updateBrowserPath(path);
+    applyExperienceLocation(path);
+    dispatch({
+      type: "RESTORE",
+      cursor: preferences.resume.cursor,
+      match: resumeDetails.match,
+      mode: preferences.resume.mode
+    });
+    addRecent({
+      type: "match",
+      tournamentId: resumeDetails.tournament.id,
+      matchId: resumeDetails.match.id
+    });
+  }
+
+  function toggleCurrentFavorite() {
+    if (!tournament) return;
+    const key = selectedTeam
+      ? getTeamFavoriteKey(tournament.id, selectedTeam)
+      : getTournamentFavoriteKey(tournament.id);
+
+    updateStoredPreferences((current) => {
+      const exists = current.favorites.some((favorite) => favorite.key === key);
+      if (exists) {
+        return { ...current, favorites: current.favorites.filter((favorite) => favorite.key !== key) };
+      }
+
+      return {
+        ...current,
+        favorites: [
+          {
+            key,
+            savedAt: new Date().toISOString(),
+            teamCode: selectedTeam ?? undefined,
+            tournamentId: tournament.id,
+            type: selectedTeam ? "team" : "tournament"
+          },
+          ...current.favorites
+        ]
+      };
+    });
   }
 
   function openReplayFromDock() {
@@ -859,6 +1246,14 @@ export function ReplayApp() {
     { label: "All", value: "all" },
     ...(tournament?.stages ?? []).map((stage) => ({ label: stageFilterLabels[stage], value: stage }))
   ];
+  const currentFavoriteKey = tournament
+    ? selectedTeam
+      ? getTeamFavoriteKey(tournament.id, selectedTeam)
+      : getTournamentFavoriteKey(tournament.id)
+    : null;
+  const isCurrentFavorite = Boolean(
+    currentFavoriteKey && preferences.favorites.some((favorite) => favorite.key === currentFavoriteKey)
+  );
 
   return (
     <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"} ${isFixtureTraveling ? "fixture-traveling" : ""}`}>
@@ -866,6 +1261,13 @@ export function ReplayApp() {
       <p aria-atomic="true" aria-live="polite" className="sr-only" role="status">
         {experienceStatus}
       </p>
+      <CommandPalette
+        featuredItems={featuredCommandItems}
+        isOpen={isCommandPaletteOpen}
+        items={commandItems}
+        onClose={closeCommandPalette}
+        onSelect={handleCommandSelect}
+      />
       <section className="map-stage" aria-busy={isFixtureTraveling} aria-label="Map stage">
         <HostMap
           countryMarkers={!tournament || !showCountryFlags ? [] : countryMarkers}
@@ -910,6 +1312,15 @@ export function ReplayApp() {
           tournamentName={tournament?.name ?? ""}
           venues={tournament?.venues ?? []}
         />
+
+        {!tournament && resumeDetails ? (
+          <section aria-label="Continue watching" className="continue-card">
+            <span><Clock3 aria-hidden="true" size={16} /> Continue watching</span>
+            <strong>{teamNames[resumeDetails.match.home]} vs {teamNames[resumeDetails.match.away]}</strong>
+            <small>{resumeDetails.tournament.name} · Moment {(preferences.resume?.cursor ?? -1) + 1} of {resumeDetails.match.events.length}</small>
+            <button onClick={continueSavedReplay} type="button">Resume replay</button>
+          </section>
+        ) : null}
 
         <header className="tour-topbar">
           <div className="nav-project">
@@ -959,11 +1370,33 @@ export function ReplayApp() {
             ) : null}
           </div>
           <div className="topbar-actions">
-            {/* <div className="map-chip">
-              <MapPin size={16} />
-              {isMapIntro ? "World view" : `${matchVenue?.city ?? "Host map"}`}
-            </div>
-            <span className="user-avatar" aria-hidden="true">{selectedTeam ? <img alt="" src={teamFlags[selectedTeam]} /> : "R"}</span> */}
+            {tournament ? (
+              <button
+                aria-label={`${isCurrentFavorite ? "Remove" : "Add"} ${selectedTeam ? teamNames[selectedTeam] : tournament.name} ${isCurrentFavorite ? "from" : "to"} favorites`}
+                aria-pressed={isCurrentFavorite}
+                className={`topbar-tool-button ${isCurrentFavorite ? "active" : ""}`}
+                onClick={toggleCurrentFavorite}
+                title={isCurrentFavorite ? "Remove favorite" : "Add favorite"}
+                type="button"
+              >
+                <Heart fill={isCurrentFavorite ? "currentColor" : "none"} size={18} />
+              </button>
+            ) : null}
+            <button
+              aria-label="Search the World Cup archive"
+              className="topbar-search-button"
+              onClick={() => {
+                setIsTournamentMenuOpen(false);
+                setActiveTrayMenu(null);
+                setIsCommandPaletteOpen(true);
+              }}
+              ref={commandButtonRef}
+              type="button"
+            >
+              <Search aria-hidden="true" size={18} />
+              <span>Search</span>
+              <kbd>⌘K</kbd>
+            </button>
           </div>
         </header>
 

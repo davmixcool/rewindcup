@@ -11,6 +11,7 @@ export type ReplayState = {
 export type ReplayAction =
   | { type: "NEXT"; match: Match }
   | { type: "RESET" }
+  | { type: "RESTORE"; cursor: number; match: Match; mode: ReplayMode }
   | { type: "TOGGLE_MODE"; match: Match }
   | { type: "TOGGLE_AUTOPLAY" };
 
@@ -52,6 +53,19 @@ export function replayReducer(state: ReplayState, action: ReplayAction): ReplayS
     }
     case "RESET":
       return initialReplayState;
+    case "RESTORE": {
+      const cursor = Math.max(-1, Math.min(action.cursor, action.match.events.length - 1));
+      const event = action.match.events[cursor];
+      const status = getStatusForEvent(event);
+      const eventScore = getScoreForEvent(event);
+      return {
+        cursor,
+        status,
+        visibleScore: action.mode === "blackout" && status !== "full_time" ? null : eventScore,
+        mode: action.mode,
+        isAutoplaying: false
+      };
+    }
     case "TOGGLE_MODE": {
       const mode = state.mode === "live-score" ? "blackout" : "live-score";
       const eventScore = getScoreForEvent(action.match.events[state.cursor]);
