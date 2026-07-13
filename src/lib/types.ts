@@ -23,6 +23,7 @@ export const TEAM_CODES = [
   "CZE",
   "DEN",
   "ECU",
+  "EGY",
   "ENG",
   "ESP",
   "FRA",
@@ -58,12 +59,15 @@ export const TEAM_CODES = [
   "SVK",
   "SVN",
   "SWE",
+  "TCH",
   "TOG",
   "TRI",
   "TUN",
   "TUR",
+  "UAE",
   "UKR",
   "URU",
+  "URS",
   "USA",
   "YUG"
 ] as const;

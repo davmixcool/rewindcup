@@ -1,5 +1,43 @@
 # Tournament data sources
 
+## Italy 1990
+
+Tournament structure, original match numbers, dates, venues, results, and
+knockout decisions were checked against FIFA's technical report, the printed
+match sheets in Part 6, and the current FIFA match-centre archive:
+
+- FIFA technical report mirror: https://www.ussoccerhistory.org/wp-content/uploads/2025/01/brkz1xag78acwvd3tbww-compressed.pdf
+- FIFA Technical Report Part 6 match sheets: https://web.archive.org/web/20091128075446/http://www.fifa.com/mm/document/afdeveloping/technicaldevp/50/08/69/fwc%5Fitaly%5F1990%5Fa%5Fpart6%5F273.pdf
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1990italy
+
+The numbers printed by FIFA are used instead of chronological database IDs.
+This remaps chronological fixtures 3–4, 14–16, and 29–30; for example, FIFA
+match 3 is Italy–Austria and match 29 is Italy–Czechoslovakia.
+
+Scorers, event minutes, and stadium records were cross-checked with the Fjelstul
+World Cup Database. Its records were joined by match ID and then remapped to
+the printed FIFA schedule by exact date and teams:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 52 matches, 115 match goals excluding shootout kicks, 24
+teams, and 12 stadiums. It represents all four shootouts and every extra-time
+decision. Stoppage-time events use their regulation minute, and stadium/team
+coordinates are approximate map anchors.
+
+Every fixture has an exact-match YouTube highlight. On July 12, 2026, all 52
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. FIFA-owned candidates that
+blocked third-party playback were replaced with verified exact-match videos,
+while every fixture retains its official FIFA report link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1990`.
+
 ## USA 1994
 
 Tournament structure, FIFA match numbers, dates, venues, results, and knockout

@@ -146,7 +146,7 @@ test("2006, 2010, and 2014 journeys and tournament switching reset stale state",
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await expectInsideViewport(tournamentTray, page);
-  await expect(tournamentTray.getByText("6 World Cups", { exact: true })).toBeVisible();
+  await expect(tournamentTray.getByText("7 World Cups", { exact: true })).toBeVisible();
   await tournamentTray.getByRole("button", { name: /Germany 2006/i }).click();
   await expect(tournamentTray).toBeHidden();
 
@@ -276,7 +276,7 @@ test("2006, 2010, and 2014 journeys and tournament switching reset stale state",
   expect(mapIssues).toEqual([]);
 });
 
-test("1994 and 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
+test("1990, 1994, and 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The historical-edition regression only needs one browser viewport.");
   test.slow();
 
@@ -286,20 +286,22 @@ test("1994 and 1998 journeys preserve historical formats and reset tournament st
 
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
-  await tournamentTray.getByRole("button", { name: /USA 1994/i }).click();
+  await tournamentTray.getByRole("button", { name: /Italy 1990/i }).click();
   await expect(tournamentTray).toBeHidden();
   await expect(page.locator(".country-flag-marker")).toHaveCount(24);
-  await expect(page.getByRole("button", { name: "Bolivia tournament team", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Romania tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Czechoslovakia tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Egypt tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Soviet Union tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "United Arab Emirates tournament team", exact: true })).toBeVisible();
 
   await page.getByTitle("Group stages").click();
   const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
   await expect(teamTray.locator(".tray-team-group")).toHaveCount(6);
   await expect(teamTray.locator(".tray-team-row")).toHaveCount(24);
-  await teamTray.getByRole("button", { name: /Brazil/i }).click();
+  await teamTray.getByRole("button", { name: /Germany/i }).click();
 
   const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
-  await expect(fixtureTray.getByText("Brazil fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.getByText("Germany fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
   await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
@@ -307,6 +309,38 @@ test("1994 and 1998 journeys preserve historical formats and reset tournament st
   await fixtureTray.locator(".tray-fixture-row").click();
 
   const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Germany vs Argentina", exact: true })).toBeVisible();
+  await expect(replayTray.locator("iframe[title='Germany vs Argentina highlights']")).toHaveAttribute(
+    "src",
+    /youtube\.com\/embed\/RG7SaUhHJ8E/
+  );
+  await expect(replayTray.getByRole("link", { name: "Open Football Flashback 6 highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=RG7SaUhHJ8E"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  await page.getByTitle("Tournament selection").click();
+  await tournamentTray.getByRole("button", { name: /USA 1994/i }).click();
+  await expect(tournamentTray).toBeHidden();
+  await expect(replayTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(24);
+  await expect(page.getByRole("button", { name: "Bolivia tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Romania tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(6);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(24);
+  await teamTray.getByRole("button", { name: /Brazil/i }).click();
+
+  await expect(fixtureTray.getByText("Brazil fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
+  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
   await expect(replayTray).toBeVisible({ timeout: 20_000 });
   await expect(replayTray.getByRole("heading", { name: "Brazil vs Italy", exact: true })).toBeVisible();
   await expect(replayTray.locator("iframe[title='Brazil vs Italy highlights']")).toHaveAttribute(
