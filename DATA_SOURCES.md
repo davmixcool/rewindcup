@@ -499,3 +499,36 @@ were blocked or unavailable and were replaced with verified alternatives,
 while every fixture retains its official FIFA match-centre link.
 
 Re-run the live check with `npm run audit:youtube-embeds -- wc-2018`.
+
+## Qatar 2022
+
+Tournament structure, official match numbers, dates, venues, results, and
+knockout decisions were checked against FIFA's current calendar API and
+tournament archive. FIFA's published numbering is retained where it differs
+from simple kickoff chronology:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=255711&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/2022qatar
+
+Scorers, event minutes, own goals, penalties, and stadium records were
+cross-checked with the Fjelstul World Cup Database. Its chronological records
+were joined to FIFA's final schedule by date and exact team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 64 matches, 172 match goals excluding shootout kicks, 32
+teams, and eight stadiums. It preserves all five penalty shootouts, including
+the final, and uses approximate map anchors for teams and stadiums.
+
+Every fixture has an exact-match YouTube highlight. On July 13, 2026, all 64
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. Two blocked initial candidates
+were replaced with verified alternatives, while every fixture retains its
+official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-2022`.

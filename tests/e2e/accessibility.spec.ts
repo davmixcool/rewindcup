@@ -63,7 +63,7 @@ test("tournament menus expose scroll range and reach their final option", async 
   await expect.poll(() => dropdown.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   await dropdown.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
   await expect.poll(() => dropdown.evaluate((element) => element.scrollTop > 0)).toBe(true);
-  await expect(dropdown.getByRole("button", { name: /Russia 2018/i })).toBeVisible();
+  await expect(dropdown.getByRole("button", { name: /Qatar 2022/i })).toBeVisible();
 
   await page.locator(".app-identity").click();
   await page.getByRole("button", { name: "Tournament selection", exact: true }).click();
@@ -72,5 +72,5 @@ test("tournament menus expose scroll range and reach their final option", async 
   await expect.poll(() => bottomMenu.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   await bottomMenu.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
   await expect.poll(() => bottomMenu.evaluate((element) => element.scrollTop > 0)).toBe(true);
-  await expect(bottomMenu.getByRole("button", { name: /Russia 2018/i })).toBeVisible();
+  await expect(bottomMenu.getByRole("button", { name: /Qatar 2022/i })).toBeVisible();
 });

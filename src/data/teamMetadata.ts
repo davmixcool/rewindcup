@@ -58,6 +58,7 @@ export const teamNames: Record<TeamCode, string> = {
   POL: "Poland",
   POR: "Portugal",
   PRK: "North Korea",
+  QAT: "Qatar",
   ROU: "Romania",
   RSA: "South Africa",
   RUS: "Russia",
@@ -80,6 +81,7 @@ export const teamNames: Record<TeamCode, string> = {
   URU: "Uruguay",
   URS: "Soviet Union",
   USA: "United States",
+  WAL: "Wales",
   YUG: "Yugoslavia",
   ZAI: "Zaire"
 };
@@ -145,6 +147,7 @@ export const teamColors: Record<TeamCode, string> = {
   POL: "#dc143c",
   POR: "#006600",
   PRK: "#ed1c27",
+  QAT: "#8a1538",
   ROU: "#002b7f",
   RSA: "#007a4d",
   RUS: "#0039a6",
@@ -167,6 +170,7 @@ export const teamColors: Record<TeamCode, string> = {
   URU: "#0038a8",
   URS: "#cc0000",
   USA: "#3c3b6e",
+  WAL: "#d30731",
   YUG: "#003893",
   ZAI: "#5ab532"
 };

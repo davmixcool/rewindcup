@@ -59,6 +59,7 @@ export const TEAM_CODES = [
   "POL",
   "POR",
   "PRK",
+  "QAT",
   "ROU",
   "RSA",
   "RUS",
@@ -81,6 +82,7 @@ export const TEAM_CODES = [
   "URU",
   "URS",
   "USA",
+  "WAL",
   "YUG",
   "ZAI"
 ] as const;
