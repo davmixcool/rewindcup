@@ -23,6 +23,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { CommandPalette, type CommandItem, type CommandTarget } from "@/components/CommandPalette";
 import { teamColors, teamFlags, teamNames, tournaments } from "@/data/tournaments";
 import { HostMap } from "@/components/HostMap";
+import { TeamJourney } from "@/components/TeamJourney";
 import { initialReplayState, replayReducer } from "@/lib/replay";
 import {
   getMatchPath,
@@ -272,6 +273,10 @@ export function ReplayApp() {
       return getTeamRunEntries(tournament, selectedTeam);
     },
     [selectedTeam, tournament]
+  );
+  const selectedTeamRunOption = useMemo(
+    () => teamRunOptions.find((option) => option.teamCode === selectedTeam),
+    [selectedTeam, teamRunOptions]
   );
   const fixtureBaseEntries = useMemo(
     () =>
@@ -556,6 +561,18 @@ export function ReplayApp() {
   }, [match, preferencesReady, selectedTeam, state.cursor, state.mode, tournament]);
 
   useEffect(() => {
+    if (!preferencesReady || !match || state.status !== "full_time") return;
+    if (preferences.completedMatchIds.includes(match.id)) return;
+
+    updateStoredPreferences((current) => ({
+      ...current,
+      completedMatchIds: current.completedMatchIds.includes(match.id)
+        ? current.completedMatchIds
+        : [match.id, ...current.completedMatchIds]
+    }));
+  }, [match, preferences.completedMatchIds, preferencesReady, state.status]);
+
+  useEffect(() => {
     if (!match) return;
     if (!state.isAutoplaying || isFinished) return;
 
@@ -797,7 +814,7 @@ export function ReplayApp() {
       setSelectedTeam(location.teamCode);
       setSelectedMatchIndex(firstEntryIndex >= 0 ? firstEntryIndex : null);
       setSelectedVenueId(firstMatch?.venueId);
-      setMapMode("world");
+      setMapMode("host");
       setIsMatchOpen(false);
       setActiveTrayMenu(firstMatch ? "fixtures" : null);
       return;
@@ -893,9 +910,7 @@ export function ReplayApp() {
     setSelectedVenueId(firstEntry.match.venueId);
     resetRouteTravel();
     setIsMatchOpen(false);
-    if (mapMode !== "world" && mapMode !== "flight") {
-      setMapMode("host");
-    }
+    setMapMode("host");
     updateBrowserPath(getTeamPath(tournament, teamCode));
     addRecent({ type: "team", tournamentId: tournament.id, teamCode });
   }
@@ -1127,6 +1142,17 @@ export function ReplayApp() {
 
   function openReplayFixture(index: number) {
     travelToFixture(index);
+  }
+
+  function previewJourneyFixture(index: number) {
+    if (!tournament || isFixtureTraveling) return;
+    const nextMatch = tournament.matches[index];
+    if (!nextMatch) return;
+
+    setSelectedMatchIndex(index);
+    setSelectedVenueId(nextMatch.venueId);
+    setMapMode("host");
+    setIsMatchOpen(false);
   }
 
   function handleFixtureFlightArrival(venueId: string) {
@@ -1465,7 +1491,7 @@ export function ReplayApp() {
         {showLandingConfetti ? <div className="confetti-burst" aria-hidden="true" /> : null}
       </section>
 
-      <div className={`bottom-tray ${activeTrayMenu ? "is-open" : ""}`} ref={bottomTrayRef}>
+      <div className={`bottom-tray ${activeTrayMenu ? "is-open" : ""} ${activeTrayMenu === "fixtures" && selectedTeam ? "has-team-journey" : ""}`} ref={bottomTrayRef}>
         {activeTrayMenu === "tournaments" ? (
           <section aria-label="Tournament selection" className="tray-popover tray-tournament-popover" id="active-tray-panel">
             <div className="tray-header">
@@ -1546,7 +1572,21 @@ export function ReplayApp() {
                   </button>
                 </div>
               ) : null}
-              {visibleFixtureEntries.map(({ match: routeMatch, index }, runIndex) => {
+              {selectedTeam && selectedTeamRunOption ? (
+                <TeamJourney
+                  allEntries={selectedRunEntries}
+                  completedMatchIds={preferences.completedMatchIds}
+                  finishLabel={selectedTeamRunOption.finishLabel}
+                  group={selectedTeamRunOption.group}
+                  onOpenMatch={selectFixtureFromTray}
+                  onPreviewMatch={previewJourneyFixture}
+                  resume={preferences.resume}
+                  selectedMatchIndex={selectedMatchIndex}
+                  teamCode={selectedTeam}
+                  tournament={tournament}
+                  visibleEntries={visibleFixtureEntries}
+                />
+              ) : visibleFixtureEntries.map(({ match: routeMatch, index }, runIndex) => {
                   const routeMatchVenue = tournament.venues.find((venue) => venue.id === routeMatch.venueId);
 
                   return (

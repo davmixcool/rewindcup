@@ -28,12 +28,14 @@ export type ReplayResume = {
 };
 
 export type UserPreferences = {
+  completedMatchIds: string[];
   favorites: FavoriteReference[];
   recent: RecentReference[];
   resume: ReplayResume | null;
 };
 
 export const emptyPreferences: UserPreferences = {
+  completedMatchIds: [],
   favorites: [],
   recent: [],
   resume: null
@@ -47,6 +49,7 @@ export function readPreferences(): UserPreferences {
     if (!stored) return emptyPreferences;
     const parsed = JSON.parse(stored) as Partial<UserPreferences>;
     return {
+      completedMatchIds: Array.isArray(parsed.completedMatchIds) ? parsed.completedMatchIds : [],
       favorites: Array.isArray(parsed.favorites) ? parsed.favorites : [],
       recent: Array.isArray(parsed.recent) ? parsed.recent.slice(0, 12) : [],
       resume: parsed.resume ?? null
