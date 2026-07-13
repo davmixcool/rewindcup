@@ -13,6 +13,7 @@ import {
   RotateCcw,
   Search,
   Settings,
+  Share2,
   SkipForward,
   Trophy,
   Users,
@@ -209,6 +210,7 @@ export function ReplayApp() {
   const [isMatchOpen, setIsMatchOpen] = useState(false);
   const [isTournamentMenuOpen, setIsTournamentMenuOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [shareStatus, setShareStatus] = useState("");
   const [preferences, setPreferences] = useState<UserPreferences>(emptyPreferences);
   const [preferencesReady, setPreferencesReady] = useState(false);
   const [activeTrayMenu, setActiveTrayMenu] = useState<TrayMenu>(null);
@@ -394,7 +396,7 @@ export function ReplayApp() {
     ? `Traveling to ${pendingVenue?.name ?? pendingVenue?.city ?? pendingMatch.venue} for ${teamNames[pendingMatch.home]} versus ${teamNames[pendingMatch.away]}.`
     : activeTrayMenu === "replay" && match && isMatchOpen
       ? `Arrived at ${matchVenue?.name ?? matchVenue?.city ?? match.venue}. Replay controls are ready.`
-      : "";
+      : shareStatus;
 
   const commandItems = useMemo<CommandItem[]>(() => {
     const items: CommandItem[] = [];
@@ -624,6 +626,12 @@ export function ReplayApp() {
 
     return () => window.clearTimeout(timer);
   }, [showLandingConfetti]);
+
+  useEffect(() => {
+    if (!shareStatus) return;
+    const timer = window.setTimeout(() => setShareStatus(""), 2600);
+    return () => window.clearTimeout(timer);
+  }, [shareStatus]);
 
   useEffect(() => {
     if (!pendingFixtureArrival || !match || pendingFixtureArrival.matchId !== match.id) return;
@@ -1050,6 +1058,47 @@ export function ReplayApp() {
     });
   }
 
+  async function shareCurrentExperience() {
+    if (!tournament) return;
+
+    const isMatchPath = window.location.pathname.includes("/matches/");
+    const subject = isMatchPath && match
+      ? `${teamNames[match.home]} vs ${teamNames[match.away]} at ${tournament.name}`
+      : selectedTeam
+        ? `${teamNames[selectedTeam]} at ${tournament.name}`
+        : tournament.name;
+    const shareData = {
+      title: `${subject} · Rewind Cup`,
+      text: `Explore ${subject} on Rewind Cup.`,
+      url: window.location.href
+    };
+
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share(shareData);
+        setShareStatus("Shared successfully.");
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareData.url);
+      setShareStatus("Link copied to clipboard.");
+    } catch {
+      const textArea = document.createElement("textarea");
+      textArea.value = shareData.url;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.append(textArea);
+      textArea.select();
+      const copied = document.execCommand("copy");
+      textArea.remove();
+      setShareStatus(copied ? "Link copied to clipboard." : "Copy the link from your address bar.");
+    }
+  }
+
   function openReplayFromDock() {
     if (!tournament) {
       setActiveTrayMenu("tournaments");
@@ -1372,6 +1421,17 @@ export function ReplayApp() {
           <div className="topbar-actions">
             {tournament ? (
               <button
+                aria-label="Share current experience"
+                className="topbar-tool-button"
+                onClick={shareCurrentExperience}
+                title="Share"
+                type="button"
+              >
+                <Share2 size={18} />
+              </button>
+            ) : null}
+            {tournament ? (
+              <button
                 aria-label={`${isCurrentFavorite ? "Remove" : "Add"} ${selectedTeam ? teamNames[selectedTeam] : tournament.name} ${isCurrentFavorite ? "from" : "to"} favorites`}
                 aria-pressed={isCurrentFavorite}
                 className={`topbar-tool-button ${isCurrentFavorite ? "active" : ""}`}
@@ -1400,7 +1460,7 @@ export function ReplayApp() {
           </div>
         </header>
 
-     
+        {shareStatus ? <div aria-hidden="true" className="share-toast">{shareStatus}</div> : null}
 
         {showLandingConfetti ? <div className="confetti-burst" aria-hidden="true" /> : null}
       </section>

@@ -93,3 +93,29 @@ test("favorites persist and continue watching restores the replay cursor", async
     /2 of \d+ moments/
   );
 });
+
+test("share control sends the current permanent URL to the native share sheet", async ({ page }) => {
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "share", {
+      configurable: true,
+      value: async (data: ShareData) => {
+        window.localStorage.setItem("rewindcup:test-share", JSON.stringify(data));
+      }
+    });
+  });
+
+  await page.getByTitle("Tournament selection").click();
+  const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
+  await tournamentTray.getByRole("button", { name: /Qatar 2022/i }).click();
+  await expect(page).toHaveURL(/\/world-cups\/2022$/);
+
+  await page.getByRole("button", { name: "Share current experience", exact: true }).click();
+  await expect(page.locator(".share-toast")).toHaveText("Shared successfully.");
+  await expect.poll(() => page.evaluate(() => {
+    const stored = window.localStorage.getItem("rewindcup:test-share");
+    return stored ? JSON.parse(stored) : null;
+  })).toMatchObject({
+    title: "Qatar 2022 · Rewind Cup",
+    url: "http://localhost:3001/world-cups/2022"
+  });
+});

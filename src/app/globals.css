@@ -494,6 +494,22 @@ button {
   font-weight: 900;
 }
 
+.share-toast {
+  position: absolute;
+  top: 72px;
+  right: max(24px, calc((100vw - 1120px) / 2));
+  z-index: 12;
+  border: 1px solid rgba(50, 196, 91, 0.28);
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: rgba(239, 253, 243, 0.96);
+  box-shadow: 0 14px 38px rgba(17, 17, 29, 0.12);
+  color: #176b31;
+  font-size: 0.72rem;
+  font-weight: 850;
+  backdrop-filter: blur(14px);
+}
+
 .command-palette-backdrop {
   position: fixed;
   inset: 0;
@@ -1933,6 +1949,11 @@ button {
     top: 68px;
     left: 10px;
     width: min(300px, calc(100vw - 20px));
+  }
+
+  .share-toast {
+    top: 60px;
+    right: 10px;
   }
 
   .command-palette-backdrop {
