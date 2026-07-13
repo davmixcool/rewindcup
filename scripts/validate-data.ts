@@ -153,7 +153,7 @@ const highlightsSchema = z
 const matchSchema = z.object({
   id: z.string().min(1),
   tournamentId: z.string().min(1),
-  stage: z.enum(["group", "group2", "r16", "qf", "sf", "third", "final"]),
+  stage: z.enum(["group", "group2", "r32", "r16", "qf", "sf", "third", "final"]),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   venueId: z.string().min(1),
   venue: z.string().min(1),
@@ -173,7 +173,7 @@ const tournamentGroupSchema = z.object({
 });
 
 const tournamentFormatSchema = z.object({
-  expectedGoalCount: z.number().int().nonnegative(),
+  expectedGoalCount: z.number().int().nonnegative().nullable(),
   expectedMatchCount: z.number().int().positive(),
   expectedVenueCount: z.number().int().positive(),
   groupMatchesPerTeam: z.number().int().min(0),
@@ -191,7 +191,7 @@ const tournamentSchema = z.object({
   secondGroups: z.array(tournamentGroupSchema).min(1).optional(),
   teamCoordinates: z.partialRecord(teamCodeSchema, coordinatesSchema),
   format: tournamentFormatSchema,
-  stages: z.array(z.enum(["group", "group2", "r16", "qf", "sf", "third", "final"])).min(1),
+  stages: z.array(z.enum(["group", "group2", "r32", "r16", "qf", "sf", "third", "final"])).min(1),
   status: z.enum(["complete", "partial", "locked"]),
   mapView: mapViewSchema,
   venues: z.array(venueSchema).min(1),
@@ -454,7 +454,9 @@ function validateTournamentConsistency(tournament: Tournament) {
       0
     );
 
-    if (goalCount !== tournament.format.expectedGoalCount) {
+    if (tournament.format.expectedGoalCount === null) {
+      errors.push(`${tournament.id}: complete datasets must declare expectedGoalCount.`);
+    } else if (goalCount !== tournament.format.expectedGoalCount) {
       errors.push(
         `${tournament.id}: complete dataset must include ${tournament.format.expectedGoalCount} goals, found ${goalCount}.`
       );

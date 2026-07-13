@@ -135,7 +135,7 @@ test("tournament, country, fixture, stadium, and replay journey", async ({ page 
   expect(mapIssues).toEqual([]);
 });
 
-test("2006 through 2022 journeys and tournament switching reset stale state", async ({ page }, testInfo) => {
+test("2006 through 2026 journeys and tournament switching reset stale state", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The cross-tournament regression only needs one browser viewport.");
   test.slow();
 
@@ -146,7 +146,7 @@ test("2006 through 2022 journeys and tournament switching reset stale state", as
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await expectInsideViewport(tournamentTray, page);
-  await expect(tournamentTray.getByText("16 World Cups", { exact: true })).toBeVisible();
+  await expect(tournamentTray.getByText("17 World Cups", { exact: true })).toBeVisible();
   await tournamentTray.getByRole("button", { name: /Germany 2006/i }).click();
   await expect(tournamentTray).toBeHidden();
 
@@ -330,6 +330,38 @@ test("2006 through 2022 journeys and tournament switching reset stale state", as
   await expect(replayTray.getByRole("link", { name: "Open ITV Sport highlights", exact: true })).toHaveAttribute(
     "href",
     "https://www.youtube.com/watch?v=xX_dwqVzc4c"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  await page.getByTitle("Tournament selection").click();
+  await tournamentTray.getByRole("button", { name: /Canada, Mexico & USA 2026/i }).click();
+  await expect(tournamentTray).toBeHidden();
+  await expect(replayTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(48);
+  await expect(page.getByRole("button", { name: "Cabo Verde tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Curaçao tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Uzbekistan tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(12);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(48);
+  await teamTray.getByRole("button", { name: /Argentina/i }).click();
+  await expect(fixtureTray.getByText("Argentina fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(6);
+  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(6);
+  await expect(fixtureTray.getByRole("button", { name: "R32", exact: true })).toBeVisible();
+
+  await fixtureTray.getByRole("button", { name: "QF", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Argentina vs Switzerland", exact: true })).toBeVisible();
+  const northAmericaQuarterFinalFrame = replayTray.locator("iframe[title='Argentina vs Switzerland highlights']");
+  await expect(northAmericaQuarterFinalFrame).toHaveAttribute("src", /youtube\.com\/embed\/JZmfJSUROsg/);
+  await expect(replayTray.getByRole("link", { name: "Open SuperSport highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=JZmfJSUROsg"
   );
   await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
 

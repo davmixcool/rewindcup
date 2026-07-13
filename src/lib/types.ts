@@ -1,6 +1,6 @@
 export type Competition = "WORLD_CUP" | "EURO" | "AFCON" | "COPA_AMERICA" | "ASIAN_CUP";
 
-export type Stage = "group" | "group2" | "r16" | "qf" | "sf" | "third" | "final";
+export type Stage = "group" | "group2" | "r32" | "r16" | "qf" | "sf" | "third" | "final";
 
 export const TEAM_CODES = [
   "ALG",
@@ -14,6 +14,8 @@ export const TEAM_CODES = [
   "BRA",
   "BUL",
   "CAN",
+  "COD",
+  "CPV",
   "CIV",
   "CMR",
   "COL",
@@ -22,6 +24,7 @@ export const TEAM_CODES = [
   "CRC",
   "CRO",
   "CZE",
+  "CUW",
   "DEN",
   "ECU",
   "EGY",
@@ -43,6 +46,7 @@ export const TEAM_CODES = [
   "ITA",
   "JAM",
   "JPN",
+  "JOR",
   "KOR",
   "KSA",
   "KUW",
@@ -82,6 +86,7 @@ export const TEAM_CODES = [
   "URU",
   "URS",
   "USA",
+  "UZB",
   "WAL",
   "YUG",
   "ZAI"
@@ -172,7 +177,7 @@ export type TournamentGroup = {
 };
 
 export type TournamentFormat = {
-  expectedGoalCount: number;
+  expectedGoalCount: number | null;
   expectedMatchCount: number;
   expectedVenueCount: number;
   groupMatchesPerTeam: number;

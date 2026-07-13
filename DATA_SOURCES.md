@@ -532,3 +532,41 @@ were replaced with verified alternatives, while every fixture retains its
 official FIFA match-centre link.
 
 Re-run the live check with `npm run audit:youtube-embeds -- wc-2022`.
+
+## Canada, Mexico & USA 2026
+
+This is an in-progress snapshot captured on July 13, 2026. It includes the
+100 completed matches through the quarter-finals and deliberately omits the
+two semi-finals, third-place match, and final, which had not yet been played.
+The tournament remains marked `partial`; its known final totals are 104
+matches and 16 venues, while the goal total stays unset until the tournament
+is complete.
+
+Groups, teams, official match numbers, dates, venues, results, knockout
+decisions, and pending fixtures were checked against FIFA's current calendar
+API and published schedule:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=285023&count=200&language=en
+- FIFA schedule: https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/articles/match-schedule-fixtures-results-teams-stadiums/
+
+Scorers, event minutes, own goals, penalties, and extra-time results were
+cross-checked against ESPN's public live event feeds. Records were matched to
+FIFA by date and exact team pairing, and every match's reconstructed goal
+events were reconciled with its final score:
+
+- ESPN scoreboard: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260713&limit=200
+- ESPN match summary pattern: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=760415
+
+The snapshot contains 100 matches, 292 match goals excluding shootout kicks,
+48 teams across 12 groups, and 16 venues. It preserves four penalty shootouts
+and four extra-time decisions. Stadium and team coordinates are approximate
+map anchors.
+
+Every completed fixture has an exact-match YouTube highlight. On July 13,
+2026, all 100 selected videos matched both teams and the competition and
+returned both `previewPlayabilityStatus: OK` and `playableInEmbed: true` from
+YouTube's real embedded-player response with the app origin. Blocked official
+FIFA uploads were replaced with verified broadcaster alternatives, while
+every fixture retains its official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-2026`.

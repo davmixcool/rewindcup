@@ -46,16 +46,18 @@ type PendingFixtureArrival = {
 const stageRank: Record<Match["stage"], number> = {
   group: 0,
   group2: 1,
-  r16: 2,
-  qf: 3,
-  sf: 4,
-  third: 5,
-  final: 6
+  r32: 2,
+  r16: 3,
+  qf: 4,
+  sf: 5,
+  third: 6,
+  final: 7
 };
 
 const stageFilterLabels: Record<Match["stage"], string> = {
   group: "Group",
   group2: "Group 2",
+  r32: "R32",
   r16: "R16",
   qf: "QF",
   sf: "SF",
@@ -105,6 +107,7 @@ function getStageLabel(stage: Match["stage"]) {
   const labels: Record<Match["stage"], string> = {
     group: "Group stage",
     group2: "Second group stage",
+    r32: "Round of 32",
     r16: "Round of 16",
     qf: "Quarter-final",
     sf: "Semi-final",
