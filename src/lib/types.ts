@@ -38,6 +38,7 @@ export const TEAM_CODES = [
   "IRL",
   "IRN",
   "IRQ",
+  "ISR",
   "ITA",
   "JAM",
   "JPN",

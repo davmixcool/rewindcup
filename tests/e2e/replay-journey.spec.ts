@@ -146,7 +146,7 @@ test("2006, 2010, and 2014 journeys and tournament switching reset stale state",
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await expectInsideViewport(tournamentTray, page);
-  await expect(tournamentTray.getByText("11 World Cups", { exact: true })).toBeVisible();
+  await expect(tournamentTray.getByText("12 World Cups", { exact: true })).toBeVisible();
   await tournamentTray.getByRole("button", { name: /Germany 2006/i }).click();
   await expect(tournamentTray).toBeHidden();
 
@@ -276,7 +276,7 @@ test("2006, 2010, and 2014 journeys and tournament switching reset stale state",
   expect(mapIssues).toEqual([]);
 });
 
-test("1974 through 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
+test("1970 through 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The historical-edition regression only needs one browser viewport.");
   test.slow();
 
@@ -286,6 +286,41 @@ test("1974 through 1998 journeys preserve historical formats and reset tournamen
 
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
+  await tournamentTray.getByRole("button", { name: /Mexico 1970/i }).click();
+  await expect(tournamentTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(16);
+  await expect(page.getByRole("button", { name: "Israel tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(4);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(16);
+  await teamTray.getByRole("button", { name: /Brazil/i }).first().click();
+
+  const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
+  await expect(fixtureTray.getByText("Brazil fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(6);
+  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(6);
+  await fixtureTray.getByRole("button", { name: "QF", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Brazil vs Italy", exact: true })).toBeVisible();
+  await expect(replayTray.locator("iframe[title='Brazil vs Italy highlights']")).toHaveAttribute(
+    "src",
+    /youtube\.com\/embed\/QMe3uoUbhkA/
+  );
+  await expect(replayTray.getByRole("link", { name: "Open Southstandred highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=QMe3uoUbhkA"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  await page.getByTitle("Tournament selection").click();
   await tournamentTray.getByRole("button", { name: /West Germany 1974/i }).click();
   await expect(tournamentTray).toBeHidden();
   await expect(page.locator(".country-flag-marker")).toHaveCount(16);
@@ -294,13 +329,11 @@ test("1974 through 1998 journeys preserve historical formats and reset tournamen
   await expect(page.getByRole("button", { name: "Zaire tournament team", exact: true })).toBeVisible();
 
   await page.getByTitle("Group stages").click();
-  const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
   await expect(teamTray.locator(".tray-team-group")).toHaveCount(6);
   await expect(teamTray.locator(".tray-team-row")).toHaveCount(24);
   await expect(teamTray.getByText("Second group stage · Group B", { exact: true })).toBeVisible();
   await teamTray.getByRole("button", { name: /Netherlands/i }).first().click();
 
-  const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
   await expect(fixtureTray.getByText("Netherlands fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
   await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
@@ -310,7 +343,6 @@ test("1974 through 1998 journeys preserve historical formats and reset tournamen
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.locator(".tray-fixture-row").click();
 
-  const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
   await expect(replayTray).toBeVisible({ timeout: 20_000 });
   await expect(replayTray.getByRole("heading", { name: "Netherlands vs Germany", exact: true })).toBeVisible();
   await expect(replayTray.locator("iframe[title='Netherlands vs Germany highlights']")).toHaveAttribute(
