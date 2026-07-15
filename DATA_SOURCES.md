@@ -1,5 +1,44 @@
 # Tournament data sources
 
+## Sweden 1958
+
+Tournament structure, official match numbers, dates, venues, results, and
+knockout decisions were checked against FIFA's current calendar API and
+tournament archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=15&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1958sweden
+
+FIFA's published numbering is retained. The three tied-group deciders are
+represented explicitly as group play-offs, including Northern Ireland's
+120-minute win over Czechoslovakia. FIFA's `FRG` code is normalized to `GER`,
+while the app retains the historical Soviet Union, Czechoslovakia, and
+Yugoslavia identities.
+
+Scorers, event minutes, penalties, and stadium records were cross-checked with
+the Fjelstul World Cup Database. Its chronological records were joined to
+FIFA's match sequence by date and exact team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 35 matches, 126 goals, 16 teams, and 12 stadiums. It
+preserves the four first-round groups, all three group play-offs, and the
+complete knockout bracket. Stadium and team coordinates are approximate map
+anchors.
+
+Every fixture has exact-match YouTube footage. On July 15, 2026, all 35
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. Two blocked FIFA candidates were
+replaced with verified exact-match uploads, while every fixture retains its
+official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1958`.
+
 ## Chile 1962
 
 Tournament structure, official match numbers, dates, venues, results, and

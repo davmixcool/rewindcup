@@ -1,6 +1,6 @@
 export type Competition = "WORLD_CUP" | "EURO" | "AFCON" | "COPA_AMERICA" | "ASIAN_CUP";
 
-export type Stage = "group" | "group2" | "r32" | "r16" | "qf" | "sf" | "third" | "final";
+export type Stage = "group" | "playoff" | "group2" | "r32" | "r16" | "qf" | "sf" | "third" | "final";
 
 export const TEAM_CODES = [
   "ALG",

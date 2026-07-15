@@ -66,17 +66,19 @@ type PendingFixtureArrival = {
 
 const stageRank: Record<Match["stage"], number> = {
   group: 0,
-  group2: 1,
-  r32: 2,
-  r16: 3,
-  qf: 4,
-  sf: 5,
-  third: 6,
-  final: 7
+  playoff: 1,
+  group2: 2,
+  r32: 3,
+  r16: 4,
+  qf: 5,
+  sf: 6,
+  third: 7,
+  final: 8
 };
 
 const stageFilterLabels: Record<Match["stage"], string> = {
   group: "Group",
+  playoff: "Play-off",
   group2: "Group 2",
   r32: "R32",
   r16: "R16",
@@ -127,6 +129,7 @@ function formatClock(event: ReplayEvent | undefined, status: string) {
 function getStageLabel(stage: Match["stage"]) {
   const labels: Record<Match["stage"], string> = {
     group: "Group stage",
+    playoff: "Group play-off",
     group2: "Second group stage",
     r32: "Round of 32",
     r16: "Round of 16",

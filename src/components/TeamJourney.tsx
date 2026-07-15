@@ -20,6 +20,7 @@ type TeamJourneyProps = {
 
 const stageLabels: Record<Match["stage"], string> = {
   group: "Group stage",
+  playoff: "Group play-off",
   group2: "Second group stage",
   r32: "Round of 32",
   r16: "Round of 16",

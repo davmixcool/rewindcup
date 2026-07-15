@@ -462,6 +462,7 @@ const fifaMatchIdsByFixture: Record<number, string> = {
 
 const fifaStageIds: Record<Match["stage"], string> = {
   group: "289273",
+  playoff: "",
   group2: "",
   r32: "289287",
   r16: "289288",
