@@ -1,4 +1,6 @@
 import { tournaments } from "../src/data/tournaments";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 type VideoCheck = {
   matchId: string;
@@ -12,7 +14,14 @@ type CheckResult = VideoCheck & {
   status: string | null;
 };
 
-const origin = process.env.YOUTUBE_EMBED_ORIGIN ?? "http://localhost:3001";
+const recordedDevUrl = (() => {
+  try {
+    return readFileSync(resolve(process.cwd(), ".dev-url"), "utf8").trim();
+  } catch {
+    return "";
+  }
+})();
+const origin = process.env.YOUTUBE_EMBED_ORIGIN || recordedDevUrl || "http://localhost:3001";
 const requestedTournamentIds = process.argv.slice(2);
 const selectedTournaments = requestedTournamentIds.length > 0
   ? tournaments.filter((tournament) => requestedTournamentIds.includes(tournament.id))

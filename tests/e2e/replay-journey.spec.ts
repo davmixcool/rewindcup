@@ -146,7 +146,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await expectInsideViewport(tournamentTray, page);
-  await expect(tournamentTray.getByText("18 World Cups", { exact: true })).toBeVisible();
+  await expect(tournamentTray.getByText("19 World Cups", { exact: true })).toBeVisible();
   await tournamentTray.getByRole("button", { name: /Germany 2006/i }).click();
   await expect(tournamentTray).toBeHidden();
 
@@ -368,7 +368,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   expect(mapIssues).toEqual([]);
 });
 
-test("1958 through 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
+test("1954 through 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The historical-edition regression only needs one browser viewport.");
   test.slow();
 
@@ -378,6 +378,40 @@ test("1958 through 1998 journeys preserve historical formats and reset tournamen
 
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
+  await tournamentTray.getByRole("button", { name: /Switzerland 1954/i }).click();
+  await expect(tournamentTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(16);
+  await expect(page.getByRole("button", { name: "South Korea tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Turkey tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(4);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(16);
+  await teamTray.getByRole("button", { name: /Switzerland/i }).first().click();
+
+  const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
+  await expect(fixtureTray.getByText("Switzerland fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(4);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(4);
+  await fixtureTray.getByRole("button", { name: "Play-off", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Switzerland vs Italy", exact: true })).toBeVisible();
+  await expect(replayTray.locator("iframe[title='Switzerland vs Italy highlights']")).toHaveAttribute(
+    "src",
+    /youtube\.com\/embed\/S11lGSZj_yE/
+  );
+  await expect(replayTray.getByRole("link", { name: "Open World cup History highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=S11lGSZj_yE"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  await page.getByTitle("Tournament selection").click();
   await tournamentTray.getByRole("button", { name: /Sweden 1958/i }).click();
   await expect(tournamentTray).toBeHidden();
   await expect(page.locator(".country-flag-marker")).toHaveCount(16);
@@ -385,12 +419,10 @@ test("1958 through 1998 journeys preserve historical formats and reset tournamen
   await expect(page.getByRole("button", { name: "Soviet Union tournament team", exact: true })).toBeVisible();
 
   await page.getByTitle("Group stages").click();
-  const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
   await expect(teamTray.locator(".tray-team-group")).toHaveCount(4);
   await expect(teamTray.locator(".tray-team-row")).toHaveCount(16);
   await teamTray.getByRole("button", { name: /Northern Ireland/i }).first().click();
 
-  const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
   await expect(fixtureTray.getByText("Northern Ireland fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(5);
   await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(5);
@@ -398,7 +430,6 @@ test("1958 through 1998 journeys preserve historical formats and reset tournamen
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.locator(".tray-fixture-row").click();
 
-  const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
   await expect(replayTray).toBeVisible({ timeout: 20_000 });
   await expect(replayTray.getByRole("heading", { name: "Northern Ireland vs Czechoslovakia", exact: true })).toBeVisible();
   await expect(replayTray.locator("iframe[title='Northern Ireland vs Czechoslovakia highlights']")).toHaveAttribute(

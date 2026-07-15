@@ -108,6 +108,7 @@ test("share control sends the current permanent URL to the native share sheet", 
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await tournamentTray.getByRole("button", { name: /Qatar 2022/i }).click();
   await expect(page).toHaveURL(/\/world-cups\/2022$/);
+  const expectedShareUrl = page.url();
 
   await page.getByRole("button", { name: "Share current experience", exact: true }).click();
   await expect(page.locator(".share-toast")).toHaveText("Shared successfully.");
@@ -116,6 +117,6 @@ test("share control sends the current permanent URL to the native share sheet", 
     return stored ? JSON.parse(stored) : null;
   })).toMatchObject({
     title: "Qatar 2022 · Rewind Cup",
-    url: "http://localhost:3001/world-cups/2022"
+    url: expectedShareUrl
   });
 });
