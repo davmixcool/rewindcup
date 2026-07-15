@@ -162,7 +162,7 @@ export function TeamJourney({
               >
                 <span className={`team-journey-result result-${result.toLowerCase()}`}>{result}</span>
                 <span className="tray-fixture-copy">
-                  <span className="team-journey-stage">Stop {journeyIndex + 1} · {stageLabels[match.stage]} · {formatDate(match.date)}</span>
+                  <span className="team-journey-stage">Stop {journeyIndex + 1} · {tournament.stageLabels?.[match.stage] ?? stageLabels[match.stage]} · {formatDate(match.date)}</span>
                   <strong>
                     <span>{teamNames[teamCode]}</span>
                     <b>{formatScore(match, teamCode)}</b>

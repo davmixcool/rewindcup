@@ -46,7 +46,7 @@ import {
   getTeamMatchResult,
   getTeamRunEntries
 } from "@/lib/tournamentJourney";
-import type { Coordinates, Match, ReplayEvent, TeamCode } from "@/lib/types";
+import type { Coordinates, Match, ReplayEvent, TeamCode, Tournament } from "@/lib/types";
 
 type MapMode = "world" | "flight" | "host" | "stadium";
 type RailMode = "library" | "tournamentSetup" | "run";
@@ -126,7 +126,7 @@ function formatClock(event: ReplayEvent | undefined, status: string) {
   return `${event.minute}'`;
 }
 
-function getStageLabel(stage: Match["stage"]) {
+function getStageLabel(stage: Match["stage"], tournament?: Tournament | null) {
   const labels: Record<Match["stage"], string> = {
     group: "Group stage",
     playoff: "Group play-off",
@@ -139,7 +139,7 @@ function getStageLabel(stage: Match["stage"]) {
     final: "Final"
   };
 
-  return labels[stage];
+  return tournament?.stageLabels?.[stage] ?? labels[stage];
 }
 
 function easeInOutCubic(progress: number) {
@@ -185,7 +185,10 @@ function matchesFixtureMediaFilter(match: Match, filter: FixtureMediaFilter) {
   return true;
 }
 
-function getTeamFinishLabel(teamCode: TeamCode, matches: Match[]) {
+function getTeamFinishLabel(teamCode: TeamCode, matches: Match[], tournament: Tournament) {
+  const recordedFinish = tournament.teamFinishes?.[teamCode];
+  if (recordedFinish) return recordedFinish;
+
   const lastMatch = matches.at(-1);
   if (!lastMatch) return "No run";
 
@@ -198,7 +201,7 @@ function getTeamFinishLabel(teamCode: TeamCode, matches: Match[]) {
   }
 
   const bestStage = matches.reduce((best, match) => (stageRank[match.stage] > stageRank[best] ? match.stage : best), matches[0].stage);
-  return getStageLabel(bestStage);
+  return getStageLabel(bestStage, tournament);
 }
 
 export function ReplayApp() {
@@ -256,7 +259,7 @@ export function ReplayApp() {
           },
           { wins: 0, draws: 0, losses: 0 }
         );
-        const finishLabel = getTeamFinishLabel(teamCode, matches.map(({ match: runMatch }) => runMatch));
+        const finishLabel = getTeamFinishLabel(teamCode, matches.map(({ match: runMatch }) => runMatch), tournament);
 
         return {
           teamCode,
@@ -346,12 +349,12 @@ export function ReplayApp() {
 
     const hasSecondGroupStage = Boolean(tournament.secondGroups?.length);
     const firstGroups = tournament.groups.map((group) => ({
-      phase: hasSecondGroupStage ? "First group stage" : null,
+      phase: hasSecondGroupStage ? (tournament.stageLabels?.group ?? "First group stage") : null,
       group: group.id,
       teams: teamRunOptions.filter((option) => group.teams.includes(option.teamCode))
     }));
     const secondGroups = (tournament.secondGroups ?? []).map((group) => ({
-      phase: "Second group stage",
+      phase: tournament.stageLabels?.group2 ?? "Second group stage",
       group: group.id,
       teams: teamRunOptions.filter((option) => group.teams.includes(option.teamCode))
     }));
@@ -439,7 +442,7 @@ export function ReplayApp() {
           id: `match:${archiveMatch.id}`,
           kind: "match",
           label: `${teamNames[archiveMatch.home]} vs ${teamNames[archiveMatch.away]}`,
-          description: `${archiveTournament.name} · ${getStageLabel(archiveMatch.stage)} · ${archiveMatch.date}`,
+          description: `${archiveTournament.name} · ${getStageLabel(archiveMatch.stage, archiveTournament)} · ${archiveMatch.date}`,
           keywords: `${archiveMatch.home} ${archiveMatch.away} ${formatFinalScore(archiveMatch)} ${archiveVenue?.name ?? archiveMatch.venue} ${archiveVenue?.city ?? ""}`,
           target: { type: "match", matchIndex, tournamentIndex }
         });
@@ -1322,7 +1325,7 @@ export function ReplayApp() {
   const isRun = railMode === "run";
   const fixtureStageFilters: { label: string; value: FixtureStageFilter }[] = [
     { label: "All", value: "all" },
-    ...(tournament?.stages ?? []).map((stage) => ({ label: stageFilterLabels[stage], value: stage }))
+    ...(tournament?.stages ?? []).map((stage) => ({ label: tournament?.stageLabels?.[stage] ?? stageFilterLabels[stage], value: stage }))
   ];
   const currentFavoriteKey = tournament
     ? selectedTeam
@@ -1610,7 +1613,7 @@ export function ReplayApp() {
                           {teamNames[routeMatch.away]}
                         </strong>
                         <small className="fixture-meta">
-                          <span>{getStageLabel(routeMatch.stage)} · {routeMatchVenue?.city ?? routeMatch.venue}</span>
+                          <span>{getStageLabel(routeMatch.stage, tournament)} · {routeMatchVenue?.city ?? routeMatch.venue}</span>
                           <em className={`fixture-highlight-status status-${routeMatch.highlights.status}`}>
                             {getHighlightStatusLabel(routeMatch.highlights.status)}
                           </em>
@@ -1664,7 +1667,7 @@ export function ReplayApp() {
           <section aria-label="Match replay and highlights" className="tray-popover tray-replay-popover" id="active-tray-panel">
             <div className="tray-header">
               <h2 id="replay-tray-title">{teamNames[match.home]} vs {teamNames[match.away]}</h2>
-              <small>{getStageLabel(match.stage)} · {matchVenue?.city ?? match.venue}</small>
+              <small>{getStageLabel(match.stage, tournament)} · {matchVenue?.city ?? match.venue}</small>
               <button aria-label="Close match replay" className="tray-close-button" onClick={closeBottomTray} title="Close tray" type="button">
                 <X size={16} />
               </button>

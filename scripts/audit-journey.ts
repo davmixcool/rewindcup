@@ -92,6 +92,8 @@ for (const tournament of completeTournaments) {
     const secondGroupMatches = run.filter(({ match }) => match.stage === "group2");
     const secondGroupAssignments = tournament.secondGroups?.filter((group) => group.teams.includes(teamCode)) ?? [];
     const teamPrefix = `${tournamentPrefix}/${teamCode}`;
+    const expectedGroupMatches = tournament.format.groupMatchesPerTeamOverrides?.[teamCode]
+      ?? tournament.format.groupMatchesPerTeam;
 
     check(Boolean(teamFlags[teamCode]), `${teamPrefix}: globe marker is missing a flag.`);
     check(Boolean(coordinates), `${teamPrefix}: globe marker is missing coordinates.`);
@@ -102,8 +104,8 @@ for (const tournament of completeTournaments) {
 
     check(assignedGroups.length === 1, `${teamPrefix}: expected exactly one group assignment, found ${assignedGroups.length}.`);
     check(
-      groupMatches.length === tournament.format.groupMatchesPerTeam,
-      `${teamPrefix}: expected ${tournament.format.groupMatchesPerTeam} group-stage fixtures, found ${groupMatches.length}.`
+      groupMatches.length === expectedGroupMatches,
+      `${teamPrefix}: expected ${expectedGroupMatches} group-stage fixtures, found ${groupMatches.length}.`
     );
     check(
       secondGroupAssignments.length <= 1,
@@ -114,7 +116,7 @@ for (const tournament of completeTournaments) {
       `${teamPrefix}: second-group-stage fixture count does not match its assignment.`
     );
     check(
-      run.length >= tournament.format.groupMatchesPerTeam,
+      run.length >= expectedGroupMatches,
       `${teamPrefix}: team run is shorter than its group-stage schedule.`
     );
     check(

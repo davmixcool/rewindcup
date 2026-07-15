@@ -177,6 +177,7 @@ const tournamentFormatSchema = z.object({
   expectedMatchCount: z.number().int().positive(),
   expectedVenueCount: z.number().int().positive(),
   groupMatchesPerTeam: z.number().int().min(0),
+  groupMatchesPerTeamOverrides: z.partialRecord(teamCodeSchema, z.number().int().min(0)).optional(),
   secondGroupMatchesPerTeam: z.number().int().min(0).optional()
 });
 
@@ -192,6 +193,8 @@ const tournamentSchema = z.object({
   teamCoordinates: z.partialRecord(teamCodeSchema, coordinatesSchema),
   format: tournamentFormatSchema,
   stages: z.array(z.enum(["group", "playoff", "group2", "r32", "r16", "qf", "sf", "third", "final"])).min(1),
+  stageLabels: z.partialRecord(z.enum(["group", "playoff", "group2", "r32", "r16", "qf", "sf", "third", "final"]), z.string().min(1)).optional(),
+  teamFinishes: z.partialRecord(teamCodeSchema, z.string().min(1)).optional(),
   status: z.enum(["complete", "partial", "locked"]),
   mapView: mapViewSchema,
   venues: z.array(venueSchema).min(1),
@@ -477,13 +480,25 @@ function validateTournamentConsistency(tournament: Tournament) {
     for (const team of tournament.teams) {
       const teamMatches = tournament.matches.filter((match) => match.home === team || match.away === team);
       const groupMatches = teamMatches.filter((match) => match.stage === "group");
+      const expectedGroupMatches = tournament.format.groupMatchesPerTeamOverrides?.[team]
+        ?? tournament.format.groupMatchesPerTeam;
       if (teamMatches.length === 0) {
         errors.push(`${tournament.id}: complete datasets must include at least one match for ${team}.`);
       }
-      if (groupMatches.length !== tournament.format.groupMatchesPerTeam) {
+      if (groupMatches.length !== expectedGroupMatches) {
         errors.push(
-          `${tournament.id}: ${team} must have ${tournament.format.groupMatchesPerTeam} group matches, found ${groupMatches.length}.`
+          `${tournament.id}: ${team} must have ${expectedGroupMatches} group matches, found ${groupMatches.length}.`
         );
+      }
+
+      const belongsToSecondGroup = tournament.secondGroups?.some((group) => group.teams.includes(team));
+      if (belongsToSecondGroup && tournament.format.secondGroupMatchesPerTeam !== undefined) {
+        const secondGroupMatches = teamMatches.filter((match) => match.stage === "group2");
+        if (secondGroupMatches.length !== tournament.format.secondGroupMatchesPerTeam) {
+          errors.push(
+            `${tournament.id}: ${team} must have ${tournament.format.secondGroupMatchesPerTeam} second-group matches, found ${secondGroupMatches.length}.`
+          );
+        }
       }
     }
 

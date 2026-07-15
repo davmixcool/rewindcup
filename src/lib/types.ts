@@ -181,6 +181,7 @@ export type TournamentFormat = {
   expectedMatchCount: number;
   expectedVenueCount: number;
   groupMatchesPerTeam: number;
+  groupMatchesPerTeamOverrides?: Partial<Record<TeamCode, number>>;
   secondGroupMatchesPerTeam?: number;
 };
 
@@ -196,6 +197,8 @@ export type Tournament = {
   teamCoordinates: Partial<Record<TeamCode, Coordinates>>;
   format: TournamentFormat;
   stages: Stage[];
+  stageLabels?: Partial<Record<Stage, string>>;
+  teamFinishes?: Partial<Record<TeamCode, string>>;
   status: "complete" | "partial" | "locked";
   mapView: MapView;
   venues: Venue[];

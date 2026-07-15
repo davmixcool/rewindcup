@@ -8,7 +8,7 @@ let selectedUrl = null;
 rmSync(urlFile, { force: true });
 
 const child = spawn(process.execPath, [nextBin.pathname, "dev", "--hostname", "localhost", "--port", "0"], {
-  env: process.env,
+  env: { ...process.env, NEXT_DIST_DIR: ".next-dev" },
   stdio: ["inherit", "pipe", "pipe"]
 });
 

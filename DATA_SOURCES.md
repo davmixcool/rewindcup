@@ -1,5 +1,44 @@
 # Tournament data sources
 
+## Brazil 1950
+
+Tournament structure, official match numbers, dates, venues, results, and the
+final-round classification were checked against FIFA's current calendar API
+and tournament archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=7&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1950brazil
+
+The edition used four uneven opening groups because three qualified teams
+withdrew, followed by a four-team round-robin final phase. The app therefore
+represents Uruguay-Brazil as the decisive match of the final round rather than
+inventing a knockout final. The historical Yugoslavia identity is retained,
+and FIFA's `SUI`, `CHI`, `PAR`, and `URU` codes are normalized where the
+secondary dataset uses different abbreviations.
+
+Scorers, event minutes, penalties, and stadium records were cross-checked with
+the Fjelstul World Cup Database. Its chronological records were joined to
+FIFA's match sequence by date and exact team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 22 matches, 88 goals, 13 teams, and six stadiums. It
+preserves all four opening groups, all six final-round fixtures, and Uruguay's
+championship classification. Stadium and team coordinates are approximate map
+anchors.
+
+Every fixture has exact-match YouTube footage. On July 15, 2026, all 22
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. Every fixture also retains its
+official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1950`.
+
 ## Switzerland 1954
 
 Tournament structure, official match numbers, dates, venues, results, and
