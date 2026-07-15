@@ -168,7 +168,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(4);
 
   const roundOf16Filter = fixtureTray.getByRole("button", { name: "R16", exact: true });
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(4);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(4);
   await expect(fixtureTray.getByRole("button", { name: /Reports/i })).toHaveCount(0);
   await roundOf16Filter.click();
   await expect(roundOf16Filter).toHaveAttribute("aria-pressed", "true");
@@ -222,7 +222,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await teamTray.getByRole("button", { name: /Spain/i }).click();
   await expect(fixtureTray.getByText("Spain fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
 
   const finalFilter = fixtureTray.getByRole("button", { name: "Final", exact: true });
   await finalFilter.click();
@@ -256,7 +256,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await teamTray.getByRole("button", { name: /Germany/i }).click();
   await expect(fixtureTray.getByText("Germany fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
 
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
@@ -287,7 +287,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await teamTray.getByRole("button", { name: /France/i }).click();
   await expect(fixtureTray.getByText("France fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
 
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
@@ -317,7 +317,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await teamTray.getByRole("button", { name: /Argentina/i }).click();
   await expect(fixtureTray.getByText("Argentina fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
 
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
@@ -345,23 +345,23 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await page.getByTitle("Group stages").click();
   await expect(teamTray.locator(".tray-team-group")).toHaveCount(12);
   await expect(teamTray.locator(".tray-team-row")).toHaveCount(48);
-  await teamTray.getByRole("button", { name: /Argentina/i }).click();
-  await expect(fixtureTray.getByText("Argentina fixtures", { exact: true })).toBeVisible();
-  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(6);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(6);
+  await teamTray.getByRole("button", { name: /France/i }).click();
+  await expect(fixtureTray.getByText("France fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
   await expect(fixtureTray.getByRole("button", { name: "R32", exact: true })).toBeVisible();
 
-  await fixtureTray.getByRole("button", { name: "QF", exact: true }).click();
+  await fixtureTray.getByRole("button", { name: "SF", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.locator(".tray-fixture-row").click();
 
   await expect(replayTray).toBeVisible({ timeout: 20_000 });
-  await expect(replayTray.getByRole("heading", { name: "Argentina vs Switzerland", exact: true })).toBeVisible();
-  const northAmericaQuarterFinalFrame = replayTray.locator("iframe[title='Argentina vs Switzerland highlights']");
-  await expect(northAmericaQuarterFinalFrame).toHaveAttribute("src", /youtube\.com\/embed\/JZmfJSUROsg/);
+  await expect(replayTray.getByRole("heading", { name: "France vs Spain", exact: true })).toBeVisible();
+  const northAmericaSemiFinalFrame = replayTray.locator("iframe[title='France vs Spain highlights']");
+  await expect(northAmericaSemiFinalFrame).toHaveAttribute("src", /youtube\.com\/embed\/kKTLkp6iMLo/);
   await expect(replayTray.getByRole("link", { name: "Open SuperSport highlights", exact: true })).toHaveAttribute(
     "href",
-    "https://www.youtube.com/watch?v=JZmfJSUROsg"
+    "https://www.youtube.com/watch?v=kKTLkp6iMLo"
   );
   await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
 
@@ -393,7 +393,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
   const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
   await expect(fixtureTray.getByText("Chile fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(6);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(6);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(6);
   await fixtureTray.getByRole("button", { name: "QF", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.getByRole("button", { name: "3rd", exact: true }).click();
@@ -426,7 +426,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
 
   await expect(fixtureTray.getByText("England fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(6);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(6);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(6);
   await fixtureTray.getByRole("button", { name: "QF", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
@@ -458,7 +458,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
 
   await expect(fixtureTray.getByText("Brazil fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(6);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(6);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(6);
   await fixtureTray.getByRole("button", { name: "QF", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
@@ -493,7 +493,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
 
   await expect(fixtureTray.getByText("Netherlands fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
   await fixtureTray.getByRole("button", { name: "Group 2", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(3);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
@@ -527,7 +527,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
 
   await expect(fixtureTray.getByText("Argentina fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
   await fixtureTray.getByRole("button", { name: "Group 2", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(3);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
@@ -562,7 +562,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
 
   await expect(fixtureTray.getByText("Italy fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
   await fixtureTray.getByRole("button", { name: "Group 2", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(2);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
@@ -597,7 +597,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
 
   await expect(fixtureTray.getByText("Argentina fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.locator(".tray-fixture-row").click();
@@ -630,7 +630,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
 
   await expect(fixtureTray.getByText("Germany fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.locator(".tray-fixture-row").click();
@@ -662,7 +662,7 @@ test("1962 through 1998 journeys preserve historical formats and reset tournamen
 
   await expect(fixtureTray.getByText("Brazil fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
-  await expect(fixtureTray.locator(".fixture-highlight-status.status-embeddable-video")).toHaveCount(7);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
   await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
   await fixtureTray.locator(".tray-fixture-row").click();

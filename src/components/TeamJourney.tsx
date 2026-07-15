@@ -29,9 +29,17 @@ const stageLabels: Record<Match["stage"], string> = {
   final: "Final"
 };
 
-function formatScore(match: Match) {
-  const score = `${match.score.home}-${match.score.away}`;
-  return match.shootout ? `${score} (${match.shootout.home}-${match.shootout.away} pens)` : score;
+function formatScore(match: Match, teamCode: TeamCode) {
+  const isHome = match.home === teamCode;
+  const teamScore = isHome ? match.score.home : match.score.away;
+  const opponentScore = isHome ? match.score.away : match.score.home;
+  const score = `${teamScore}-${opponentScore}`;
+
+  if (!match.shootout) return score;
+
+  const teamShootoutScore = isHome ? match.shootout.home : match.shootout.away;
+  const opponentShootoutScore = isHome ? match.shootout.away : match.shootout.home;
+  return `${score} (${teamShootoutScore}-${opponentShootoutScore} pens)`;
 }
 
 function formatDate(date: string) {
@@ -156,7 +164,7 @@ export function TeamJourney({
                   <span className="team-journey-stage">Stop {journeyIndex + 1} · {stageLabels[match.stage]} · {formatDate(match.date)}</span>
                   <strong>
                     <span>{teamNames[teamCode]}</span>
-                    <b>{formatScore(match)}</b>
+                    <b>{formatScore(match, teamCode)}</b>
                     <span>{teamNames[opponent]}</span>
                   </strong>
                   <small className="fixture-meta">

@@ -18,10 +18,13 @@ test("team URL opens a route summary and chronological highlight journey", async
   await expect(summary.getByText("Team journey", { exact: true })).toBeVisible();
   await expect(summary).toContainText("Group C · Champion");
   await expect(summary).toContainText("6W 0D 1L");
-  await expect(summary).toContainText("16-8");
+  await expect(summary).toContainText("15-8");
   await expect(summary).toContainText("0 of 7 replays completed");
   await expect(journey.locator(".team-journey-stop")).toHaveCount(7);
   await expect(journey.getByText("Watch highlights", { exact: true }).first()).toBeVisible();
+
+  const awayStop = journey.locator(".tray-fixture-row").filter({ hasText: "Poland" });
+  await expect(awayStop.getByText("2-0", { exact: true })).toBeVisible();
 
   const finalStop = journey.locator(".tray-fixture-row").last();
   await finalStop.focus();

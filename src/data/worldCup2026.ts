@@ -46,7 +46,7 @@ const venues: Venue[] = venueSeeds.map((venue) => ({
   stadiumView: { center: venue.coordinates, zoom: 16.35, bearing: venue.bearing ?? -12, pitch: 64 }
 }));
 
-// This partial snapshot includes only matches completed by 13 July 2026.
+// This partial snapshot includes only matches completed by 14 July 2026.
 const fixtureSeeds: FixtureSeed[] = [
   {no: 1,stage: "group",date: "2026-06-11",venueId: "mexico-city-stadium",home: "MEX",away: "RSA",score: {home: 2,away: 0}},
   {no: 2,stage: "group",date: "2026-06-11",venueId: "guadalajara-stadium",home: "KOR",away: "CZE",score: {home: 2,away: 1}},
@@ -147,7 +147,8 @@ const fixtureSeeds: FixtureSeed[] = [
   {no: 97,stage: "qf",date: "2026-07-09",venueId: "boston-stadium",home: "FRA",away: "MAR",score: {home: 2,away: 0}},
   {no: 98,stage: "qf",date: "2026-07-10",venueId: "los-angeles-stadium",home: "ESP",away: "BEL",score: {home: 2,away: 1}},
   {no: 99,stage: "qf",date: "2026-07-11",venueId: "miami-stadium",home: "NOR",away: "ENG",score: {home: 1,away: 2},durationMinutes: 120,note: "ENG won after extra time"},
-  {no: 100,stage: "qf",date: "2026-07-11",venueId: "kansas-city-stadium",home: "ARG",away: "SUI",score: {home: 3,away: 1},durationMinutes: 120,note: "ARG won after extra time"}
+  {no: 100,stage: "qf",date: "2026-07-11",venueId: "kansas-city-stadium",home: "ARG",away: "SUI",score: {home: 3,away: 1},durationMinutes: 120,note: "ARG won after extra time"},
+  {no: 101,stage: "sf",date: "2026-07-14",venueId: "dallas-stadium",home: "FRA",away: "ESP",score: {home: 0,away: 2}}
 ];
 
 // Scorers were reconciled against FIFA's final scores and ESPN's event feed.
@@ -243,7 +244,8 @@ const goalsByFixture: Partial<Record<number, GoalSeed[]>> = {
   97: [[60,"FRA","Kylian Mbappé"],[66,"FRA","Ousmane Dembélé"]],
   98: [[30,"ESP","Fabián Ruiz"],[41,"BEL","Charles De Ketelaere"],[88,"ESP","Mikel Merino"]],
   99: [[36,"NOR","Andreas Schjelderup"],[45,"ENG","Jude Bellingham","Jude Bellingham scores in first-half stoppage time."],[93,"ENG","Jude Bellingham"]],
-  100: [[10,"ARG","Alexis Mac Allister"],[67,"SUI","Dan Ndoye"],[112,"ARG","Julián Álvarez"],[120,"ARG","Lautaro Martínez","Lautaro Martínez scores in extra-time stoppage time."]]
+  100: [[10,"ARG","Alexis Mac Allister"],[67,"SUI","Dan Ndoye"],[112,"ARG","Julián Álvarez"],[120,"ARG","Lautaro Martínez","Lautaro Martínez scores in extra-time stoppage time."]],
+  101: [[22,"ESP","Mikel Oyarzabal","Mikel Oyarzabal scores from the penalty spot."],[58,"ESP","Pedro Porro","Pedro Porro scores with Dani Olmo assisting."]]
 };
 
 type YouTubeHighlightSeed = { videoId: string; sourceName: string };
@@ -351,6 +353,7 @@ const youtubeHighlightsByFixture: Partial<Record<number, YouTubeHighlightSeed>> 
   98: { videoId: "K2nfTNF8S8U", sourceName: "SportyTV highlights" },
   99: { videoId: "wUVdLLxKwN0", sourceName: "SportyTV highlights" },
   100: { videoId: "JZmfJSUROsg", sourceName: "SuperSport highlights" },
+  101: { videoId: "kKTLkp6iMLo", sourceName: "SuperSport highlights" },
 };
 
 const fifaMatchIdsByFixture: Record<number, string> = {
@@ -453,7 +456,8 @@ const fifaMatchIdsByFixture: Record<number, string> = {
   97: "400021536",
   98: "400021538",
   99: "400021539",
-  100: "400021537"
+  100: "400021537",
+  101: "400021541"
 };
 
 const fifaStageIds: Record<Match["stage"], string> = {
@@ -556,7 +560,7 @@ export const worldCup2026: Tournament = {
   groups: worldCup2026Groups,
   teamCoordinates: worldCup2026TeamCoordinates,
   format: worldCup2026Format,
-  stages: ["group", "r32", "r16", "qf"],
+  stages: ["group", "r32", "r16", "qf", "sf"],
   status: "partial",
   mapView: { center: [-100, 38], zoom: 2.45, bearing: 0, pitch: 28 },
   venues,
