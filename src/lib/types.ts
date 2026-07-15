@@ -23,8 +23,10 @@ export const TEAM_CODES = [
   "CHN",
   "CRC",
   "CRO",
+  "CUB",
   "CZE",
   "CUW",
+  "DEI",
   "DEN",
   "ECU",
   "EGY",
@@ -166,6 +168,7 @@ export type Match = {
   score: Score;
   shootout: Score | null;
   events: ReplayEvent[];
+  stageLabel?: string;
   highlights: MatchHighlights;
   highlightUrl?: string;
   highlightEmbeddable: boolean;
@@ -173,6 +176,7 @@ export type Match = {
 
 export type TournamentGroup = {
   id: string;
+  label?: string;
   teams: TeamCode[];
 };
 

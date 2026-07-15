@@ -1,5 +1,46 @@
 # Tournament data sources
 
+## France 1938
+
+Tournament structure, official match numbers, dates, venues, results, replay
+ties, and knockout decisions were checked against FIFA's current calendar API
+and tournament archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=5&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1938france
+
+The edition was a straight knockout tournament. Austria withdrew after the
+Anschluss, leaving a 15-team field and giving Sweden a first-round bye. Drawn
+ties were replayed in full: Cuba-Romania and Switzerland-Germany in the first
+round, then Brazil-Czechoslovakia in the quarter-finals. The app retains the
+historical Dutch East Indies and Czechoslovakia identities. FIFA and secondary
+codes including `INH`/`IDN`, `CHE`, `DEU`, `CSK`, and `NLD` are normalized to
+the app's historical team codes.
+
+Scorers, event minutes, penalties, own goals, extra time, and stadium records
+were cross-checked with the Fjelstul World Cup Database. Its chronological
+records were joined to FIFA's match sequence by date and exact team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 18 matches, 84 goals, 15 participating teams, and 10
+stadiums. It preserves all three replays, six extra-time fixtures, Sweden's
+bye, and the complete knockout bracket. Stadium and team coordinates are
+approximate map anchors.
+
+Every fixture has exact-match YouTube footage. On July 15, 2026, all 18
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. FIFA's blocked final upload was
+replaced with a verified exact-match upload, while every fixture retains its
+official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1938`.
+
 ## Brazil 1950
 
 Tournament structure, official match numbers, dates, venues, results, and the

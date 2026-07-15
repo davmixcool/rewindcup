@@ -162,6 +162,7 @@ const matchSchema = z.object({
   score: scoreSchema,
   shootout: scoreSchema.nullable(),
   events: z.array(eventSchema).min(1),
+  stageLabel: z.string().min(1).optional(),
   highlights: highlightsSchema,
   highlightUrl: z.string().url().optional(),
   highlightEmbeddable: z.boolean()
@@ -169,6 +170,7 @@ const matchSchema = z.object({
 
 const tournamentGroupSchema = z.object({
   id: z.string().min(1),
+  label: z.string().min(1).optional(),
   teams: z.array(teamCodeSchema).min(1)
 });
 
