@@ -56,6 +56,9 @@ const WORLD_VIEW: MapView = {
   pitch: 0
 };
 
+const HOST_MAP_ACCENT = "#67c6fd";
+const HOST_MAP_ACCENT_STRONG = "#0f73a8";
+
 function clampLatitude(latitude: number) {
   return Math.max(-68, Math.min(72, latitude));
 }
@@ -377,7 +380,7 @@ export function HostMap({
           type: "circle",
           source: "host",
           paint: {
-            "circle-color": "#ef9f27",
+            "circle-color": HOST_MAP_ACCENT,
             "circle-radius": 28,
             "circle-blur": 0.7,
             "circle-opacity": showHostMarker && modeRef.current === "world" ? 0.85 : 0
@@ -389,9 +392,9 @@ export function HostMap({
           type: "circle",
           source: "host",
           paint: {
-            "circle-color": "#ffbd55",
+            "circle-color": HOST_MAP_ACCENT,
             "circle-radius": 11,
-            "circle-stroke-color": "#f4f0e7",
+            "circle-stroke-color": HOST_MAP_ACCENT_STRONG,
             "circle-stroke-width": 3,
             "circle-opacity": showHostMarker && modeRef.current === "world" ? 1 : 0,
             "circle-stroke-opacity": showHostMarker && modeRef.current === "world" ? 1 : 0
@@ -469,9 +472,9 @@ export function HostMap({
           type: "circle",
           source: "venues",
           paint: {
-            "circle-color": "#10100e",
+            "circle-color": HOST_MAP_ACCENT,
             "circle-radius": 10,
-            "circle-stroke-color": "#ffbd55",
+            "circle-stroke-color": HOST_MAP_ACCENT_STRONG,
             "circle-stroke-width": 3,
             "circle-opacity": modeRef.current === "host" ? 1 : 0,
             "circle-stroke-opacity": modeRef.current === "host" ? 1 : 0

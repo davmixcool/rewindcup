@@ -1,0 +1,48 @@
+[Script Info]
+Title: Rewind Cup launch video
+ScriptType: v4.00+
+PlayResX: 1280
+PlayResY: 720
+ScaledBorderAndShadow: yes
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Kicker,Helvetica Neue,19,&H00FDC667,&H00FDC667,&H001C1107,&H00000000,-1,0,0,0,100,100,4,0,1,1,0,7,80,80,62,1
+Style: Hero,Helvetica Neue,67,&H00FFFFFF,&H00FFFFFF,&H001C1107,&H7A000000,-1,0,0,0,100,100,-1,0,1,2,1,7,80,80,80,1
+Style: HeroCenter,Helvetica Neue,57,&H00FFFFFF,&H00FFFFFF,&H001C1107,&H7A000000,-1,0,0,0,100,100,-1,0,1,2,1,8,70,70,70,1
+Style: Body,Helvetica Neue,27,&H00E9E7DF,&H00E9E7DF,&H001C1107,&H65000000,0,0,0,0,100,100,0,0,1,1.5,1,7,80,80,80,1
+Style: BodyCenter,Helvetica Neue,25,&H00E9E7DF,&H00E9E7DF,&H001C1107,&H65000000,0,0,0,0,100,100,0,0,1,1.5,1,8,70,70,70,1
+Style: Timeline,Helvetica Neue,23,&H00FDC667,&H00FDC667,&H001C1107,&H65000000,-1,0,0,0,100,100,5,0,1,1,0,8,40,40,40,1
+Style: Feature,Helvetica Neue,29,&H00FFFFFF,&H00FFFFFF,&H001C1107,&H82000000,-1,0,0,0,100,100,1,0,1,2,1,7,80,80,80,1
+Style: Brand,Helvetica Neue,61,&H00FFFFFF,&H00FFFFFF,&H001C1107,&H75000000,-1,0,0,0,100,100,1,0,1,2,1,8,60,60,60,1
+Style: CTA,Helvetica Neue,25,&H001C1107,&H001C1107,&H00FDC667,&H00FDC667,-1,0,0,0,100,100,1,0,3,15,0,8,80,80,80,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.15,0:00:04.25,Kicker,,0,0,0,,{\fad(260,260)\move(80,76,80,64,450,3650)}THE WORLD CUP ARCHIVE
+Dialogue: 0,0:00:00.30,0:00:04.30,Hero,,0,0,0,,{\fad(300,280)\move(80,215,80,195,500,3700)}96 YEARS.\N23 WORLD CUPS.
+Dialogue: 0,0:00:01.05,0:00:04.18,Body,,0,0,0,,{\fad(300,250)\pos(82,404)}Every tournament. Every host. Every story.
+Dialogue: 0,0:00:00.40,0:00:04.20,Body,,0,0,0,,{\fad(250,250)\an7\pos(81,165)\bord0\shad0\1c&H00FDC667\p1}m 0 0 l 126 0 l 126 7 l 0 7{\p0}
+
+Dialogue: 0,0:00:04.55,0:00:08.85,Kicker,,0,0,0,,{\fad(260,260)\an8\pos(640,68)}ONE INTERACTIVE ARCHIVE
+Dialogue: 0,0:00:04.70,0:00:08.90,HeroCenter,,0,0,0,,{\fad(320,280)\move(640,190,640,174,4900,8450)}PICK A YEAR.\NRELIVE THE WORLD CUP.
+Dialogue: 0,0:00:05.60,0:00:08.75,Timeline,,0,0,0,,{\fad(300,250)\pos(640,508)}1930  •  1958  •  1970  •  1986  •  1998  •  2010  •  2022  •  2026
+Dialogue: 0,0:00:06.15,0:00:08.72,BodyCenter,,0,0,0,,{\fad(260,240)\pos(640,574)}23 editions on one globe
+
+Dialogue: 0,0:00:09.05,0:00:13.35,Kicker,,0,0,0,,{\fad(260,260)\an8\pos(640,58)}FROM COUNTRY TO COUNTRY. STADIUM TO STADIUM.
+Dialogue: 0,0:00:09.20,0:00:13.38,HeroCenter,,0,0,0,,{\fad(300,270)\move(640,144,640,130,9450,12950)}FOLLOW A COUNTRY'S\NWORLD CUP JOURNEY.
+Dialogue: 0,0:00:10.15,0:00:13.25,Timeline,,0,0,0,,{\fad(300,250)\pos(640,427)}●━━━━●━━━━●━━━━●━━━━●
+Dialogue: 0,0:00:10.55,0:00:13.22,BodyCenter,,0,0,0,,{\fad(260,230)\pos(640,480)}TEAM  ·  FIXTURE  ·  HOST CITY  ·  STADIUM  ·  FINAL
+
+Dialogue: 0,0:00:13.55,0:00:17.86,Kicker,,0,0,0,,{\fad(260,260)\pos(80,62)}MORE THAN SCORES
+Dialogue: 0,0:00:13.70,0:00:17.90,Hero,,0,0,0,,{\fad(300,280)\move(80,150,80,136,13950,17450)}REPLAY THE\NMOMENTS.
+Dialogue: 0,0:00:14.55,0:00:17.74,Feature,,0,0,0,,{\fad(260,240)\pos(82,365)}FIXTURES  •  MATCH EVENTS  •  HIGHLIGHTS
+Dialogue: 0,0:00:15.10,0:00:17.72,Body,,0,0,0,,{\fad(260,230)\pos(82,423)}Explore the stadiums, stories and turning points.
+
+Dialogue: 0,0:00:18.20,0:00:22.88,Kicker,,0,0,0,,{\fad(280,280)\an8\pos(640,78)}THE WORLD CUP, REWOUND
+Dialogue: 1,0:00:18.35,0:00:22.85,Timeline,,0,0,0,,{\fad(300,260)\an8\pos(640,174)\fs48\fsp-6}◀◀
+Dialogue: 1,0:00:18.50,0:00:22.88,Brand,,0,0,0,,{\fad(330,280)\move(640,268,640,254,18750,22400)}REWIND CUP
+Dialogue: 1,0:00:19.10,0:00:22.78,BodyCenter,,0,0,0,,{\fad(300,260)\pos(640,350)}Pick a year. Relive the World Cup.
+Dialogue: 2,0:00:19.80,0:00:22.82,CTA,,0,0,0,,{\fad(280,260)\pos(640,458)}  REWINDCUP.COM  
+Dialogue: 1,0:00:20.45,0:00:22.75,BodyCenter,,0,0,0,,{\fad(260,240)\fs18\pos(640,550)}Made with love by David Oti
