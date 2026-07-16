@@ -1,5 +1,43 @@
 # Tournament data sources
 
+## Italy 1934
+
+Tournament structure, official match numbers, dates, venues, results, the
+quarter-final replay, and knockout decisions were checked against FIFA's
+current calendar API and tournament archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=3&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1934italy
+
+The edition used a 16-team straight knockout format. Italy and Spain drew
+after extra time in their quarter-final and replayed the tie in full the next
+day. The app retains the historical Czechoslovakia identity. FIFA and
+secondary codes including `CSK`, `CHE`, `DEU`, and `NLD` are normalized to the
+app's historical team codes.
+
+Scorers, event minutes, penalties, extra time, and stadium records were
+cross-checked with the Fjelstul World Cup Database. Its chronological records
+were joined to FIFA's match sequence by date and exact team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 17 matches, 70 goals, 16 participating teams, and eight
+stadiums. It preserves the Italy-Spain replay, all three extra-time fixtures,
+and the complete knockout bracket. Stadium and team coordinates are
+approximate map anchors.
+
+Every fixture has exact-match YouTube footage. On July 15, 2026, all 17
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. Every fixture also retains its
+official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1934`.
+
 ## France 1938
 
 Tournament structure, official match numbers, dates, venues, results, replay

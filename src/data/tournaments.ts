@@ -1,4 +1,5 @@
 import { teamColors, teamFlags, teamNames } from "@/data/teamMetadata";
+import { worldCup1934 } from "@/data/worldCup1934";
 import { worldCup1938 } from "@/data/worldCup1938";
 import { worldCup1950 } from "@/data/worldCup1950";
 import { worldCup1954 } from "@/data/worldCup1954";
@@ -22,6 +23,6 @@ import { worldCup2022 } from "@/data/worldCup2022";
 import { worldCup2026 } from "@/data/worldCup2026";
 import type { Tournament } from "@/lib/types";
 
-export const tournaments: Tournament[] = [worldCup1938, worldCup1950, worldCup1954, worldCup1958, worldCup1962, worldCup1966, worldCup1970, worldCup1974, worldCup1978, worldCup1982, worldCup1986, worldCup1990, worldCup1994, worldCup1998, worldCup2002, worldCup2006, worldCup2010, worldCup2014, worldCup2018, worldCup2022, worldCup2026];
+export const tournaments: Tournament[] = [worldCup1934, worldCup1938, worldCup1950, worldCup1954, worldCup1958, worldCup1962, worldCup1966, worldCup1970, worldCup1974, worldCup1978, worldCup1982, worldCup1986, worldCup1990, worldCup1994, worldCup1998, worldCup2002, worldCup2006, worldCup2010, worldCup2014, worldCup2018, worldCup2022, worldCup2026];
 
 export { teamColors, teamFlags, teamNames };
