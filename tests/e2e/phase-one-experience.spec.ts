@@ -120,3 +120,34 @@ test("share control sends the current permanent URL to the native share sheet", 
     url: expectedShareUrl
   });
 });
+
+test("creator credit and report control include the current permanent URL", async ({ page }) => {
+  await page.goto("/world-cups/2022/matches/wc-2022-64-arg-fra");
+  const currentUrl = page.url();
+
+  const creatorCredit = page.getByRole("link", { name: "Made with love by David Oti on X", exact: true });
+  await expect(creatorCredit).toBeVisible();
+  await expect(creatorCredit).toHaveAttribute("href", "https://x.com/iamdavidoti");
+  await expect(creatorCredit).toHaveAttribute("target", "_blank");
+
+  await page.evaluate(() => {
+    Object.defineProperty(window, "open", {
+      configurable: true,
+      value: (url: string | URL | undefined) => {
+        window.localStorage.setItem("rewindcup:test-report", String(url));
+        return null;
+      }
+    });
+  });
+
+  await page.getByRole("button", { name: "Report this fixture on X", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("rewindcup:test-report"))).not.toBeNull();
+
+  const openedReportUrl = await page.evaluate(() => window.localStorage.getItem("rewindcup:test-report"));
+  expect(openedReportUrl).not.toBeNull();
+  const parsedReportUrl = new URL(openedReportUrl!);
+  expect(parsedReportUrl.origin + parsedReportUrl.pathname).toBe("https://x.com/intent/post");
+  expect(parsedReportUrl.searchParams.get("text")).toContain("@iamdavidoti");
+  expect(parsedReportUrl.searchParams.get("text")).toContain("Argentina vs France at Qatar 2022");
+  expect(parsedReportUrl.searchParams.get("text")).toContain(currentUrl);
+});

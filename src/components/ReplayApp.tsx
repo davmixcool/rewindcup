@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Clapperboard,
   Clock3,
+  Flag,
   Globe2,
   Heart,
   Pause,
@@ -1122,6 +1123,27 @@ export function ReplayApp() {
     }
   }
 
+  function reportCurrentPage() {
+    const isMatchPath = window.location.pathname.includes("/matches/");
+    const subject = tournament
+      ? isMatchPath && match
+        ? `${teamNames[match.home]} vs ${teamNames[match.away]} at ${tournament.name}`
+        : selectedTeam
+          ? `${teamNames[selectedTeam]} at ${tournament.name}`
+          : tournament.name
+      : "the Rewind Cup archive";
+    const reportText = [
+      `Hi @iamdavidoti, I found an issue with ${subject} on Rewind Cup.`,
+      "",
+      window.location.href,
+      "",
+      "Details: "
+    ].join("\n");
+    const reportUrl = new URL("https://x.com/intent/post");
+    reportUrl.searchParams.set("text", reportText);
+    window.open(reportUrl.toString(), "_blank", "noopener,noreferrer");
+  }
+
   function openReplayFromDock() {
     if (!tournament) {
       setActiveTrayMenu("tournaments");
@@ -1339,7 +1361,7 @@ export function ReplayApp() {
   );
 
   return (
-    <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"} ${isFixtureTraveling ? "fixture-traveling" : ""}`}>
+    <main className={`tour-shell mode-${mapMode} rail-${railMode} ${isMatchOpen ? "match-open" : "match-closed"} ${isFixtureTraveling ? "fixture-traveling" : ""} ${activeTrayMenu ? "tray-open" : "tray-closed"}`}>
       <h1 className="sr-only">Rewind Cup tournament replay</h1>
       <p aria-atomic="true" aria-live="polite" className="sr-only" role="status">
         {experienceStatus}
@@ -1493,6 +1515,22 @@ export function ReplayApp() {
             </button>
           </div>
         </header>
+
+        <aside aria-label="Site information" className="site-signature">
+          <a
+            aria-label="Made with love by David Oti on X"
+            href="https://x.com/iamdavidoti"
+            rel="noreferrer"
+            target="_blank"
+          >
+            Made with <span aria-hidden="true" className="site-signature-heart">♥</span> by David Oti
+          </a>
+          <span aria-hidden="true" className="site-signature-divider" />
+          <button aria-label="Report an issue with this page" onClick={reportCurrentPage} type="button">
+            <Flag aria-hidden="true" size={14} />
+            <span>Report</span>
+          </button>
+        </aside>
 
         {shareStatus ? <div aria-hidden="true" className="share-toast">{shareStatus}</div> : null}
 
@@ -1813,6 +1851,15 @@ export function ReplayApp() {
                   {match.highlights.officialSourceName ?? "Official match report"}
                 </a>
               ) : null}
+              <button
+                aria-label="Report this fixture on X"
+                className="highlight-link secondary fixture-report-button"
+                onClick={reportCurrentPage}
+                type="button"
+              >
+                <Flag aria-hidden="true" size={14} />
+                Report this fixture
+              </button>
             </div>
           </section>
         ) : null}

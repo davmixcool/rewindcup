@@ -53,6 +53,39 @@ test("the keyboard-focusable map keeps a visible focus indicator", async ({ page
   expect(outline.width).toBeGreaterThanOrEqual(3);
 });
 
+test("creator credit and report controls stay visible and keyboard reachable", async ({ page }) => {
+  await page.goto("/");
+
+  const creatorCredit = page.getByRole("link", { name: "Made with love by David Oti on X", exact: true });
+  const reportButton = page.getByRole("button", { name: "Report an issue with this page", exact: true });
+  await expect(creatorCredit).toBeVisible();
+  await expect(reportButton).toBeVisible();
+
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+  for (const control of [creatorCredit, reportButton]) {
+    const box = await control.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
+  }
+
+  await reportButton.focus();
+  await expect(reportButton).toBeFocused();
+
+  await page.goto("/world-cups/2022/matches/wc-2022-64-arg-fra");
+  const fixtureReportButton = page.getByRole("button", { name: "Report this fixture on X", exact: true });
+  await expect(fixtureReportButton).toBeVisible();
+  const fixtureReportBox = await fixtureReportButton.boundingBox();
+  expect(fixtureReportBox).not.toBeNull();
+  expect(fixtureReportBox!.x).toBeGreaterThanOrEqual(0);
+  expect(fixtureReportBox!.y).toBeGreaterThanOrEqual(0);
+  expect(fixtureReportBox!.x + fixtureReportBox!.width).toBeLessThanOrEqual(viewport!.width);
+  expect(fixtureReportBox!.y + fixtureReportBox!.height).toBeLessThanOrEqual(viewport!.height);
+});
+
 test("tournament menus expose scroll range and reach their final option", async ({ page }) => {
   await page.goto("/");
 
