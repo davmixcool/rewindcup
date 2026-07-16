@@ -146,7 +146,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await expectInsideViewport(tournamentTray, page);
-  await expect(tournamentTray.getByText("22 World Cups", { exact: true })).toBeVisible();
+  await expect(tournamentTray.getByText("23 World Cups", { exact: true })).toBeVisible();
   await tournamentTray.getByRole("button", { name: /Germany 2006/i }).click();
   await expect(tournamentTray).toBeHidden();
 
@@ -368,7 +368,7 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   expect(mapIssues).toEqual([]);
 });
 
-test("1934 through 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
+test("1930 through 1998 journeys preserve historical formats and reset tournament state", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The historical-edition regression only needs one browser viewport.");
   test.slow();
 
@@ -378,6 +378,41 @@ test("1934 through 1998 journeys preserve historical formats and reset tournamen
 
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
+  await tournamentTray.getByRole("button", { name: /Uruguay 1930/i }).click();
+  await expect(tournamentTray).toBeHidden();
+  await expect(page.locator(".country-flag-marker")).toHaveCount(13);
+  await expect(page.getByRole("button", { name: "Bolivia tournament team", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Peru tournament team", exact: true })).toBeVisible();
+
+  await page.getByTitle("Group stages").click();
+  const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
+  await expect(teamTray.locator(".tray-team-group")).toHaveCount(4);
+  await expect(teamTray.locator(".tray-team-row")).toHaveCount(13);
+  await teamTray.getByRole("button", { name: /Uruguay/i }).click();
+
+  const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
+  await expect(fixtureTray.getByText("Uruguay fixtures", { exact: true })).toBeVisible();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(4);
+  await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(4);
+  await expect(fixtureTray.getByRole("button", { name: "Third place", exact: true })).toHaveCount(0);
+  await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
+  await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(1);
+  await fixtureTray.locator(".tray-fixture-row").click();
+
+  const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Uruguay vs Argentina", exact: true })).toBeVisible();
+  await expect(replayTray.locator("iframe[title='Uruguay vs Argentina highlights']")).toHaveAttribute(
+    "src",
+    /youtube\.com\/embed\/Ku2o7tC6GVY/
+  );
+  await expect(replayTray.getByRole("link", { name: "Open Joefa's World Cup History highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=Ku2o7tC6GVY"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
+
+  await page.getByTitle("Tournament selection").click();
   await tournamentTray.getByRole("button", { name: /Italy 1934/i }).click();
   await expect(tournamentTray).toBeHidden();
   await expect(page.locator(".country-flag-marker")).toHaveCount(16);
@@ -385,13 +420,11 @@ test("1934 through 1998 journeys preserve historical formats and reset tournamen
   await expect(page.getByRole("button", { name: "United States tournament team", exact: true })).toBeVisible();
 
   await page.getByTitle("Group stages").click();
-  const teamTray = page.getByRole("region", { name: "Group stage countries", exact: true });
   await expect(teamTray.locator(".tray-team-group")).toHaveCount(1);
   await expect(teamTray.locator(".tray-team-row")).toHaveCount(16);
   await expect(teamTray.getByText("Knockout field", { exact: true })).toBeVisible();
   await teamTray.getByRole("button", { name: /Italy/i }).click();
 
-  const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
   await expect(fixtureTray.getByText("Italy fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(5);
   await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(5);
@@ -399,7 +432,6 @@ test("1934 through 1998 journeys preserve historical formats and reset tournamen
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(2);
   await fixtureTray.locator(".tray-fixture-row").last().click();
 
-  const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
   await expect(replayTray).toBeVisible({ timeout: 20_000 });
   await expect(replayTray.getByRole("heading", { name: "Italy vs Spain", exact: true })).toBeVisible();
   await expect(replayTray.getByText("Quarter-final replay · Florence", { exact: true })).toBeVisible();

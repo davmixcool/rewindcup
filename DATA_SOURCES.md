@@ -1,5 +1,44 @@
 # Tournament data sources
 
+## Uruguay 1930
+
+Tournament structure, official match numbers, dates, venues, results, and
+knockout decisions were checked against FIFA's current calendar API and
+tournament archive:
+
+- FIFA calendar API: https://api.fifa.com/api/v3/calendar/matches?idCompetition=17&idSeason=1&count=100&language=en
+- FIFA tournament archive: https://www.fifa.com/en/tournaments/mens/worldcup/1930uruguay
+
+The inaugural edition used four uneven round-robin groups. Group 1 contained
+four teams, while Groups 2-4 each contained three; only each group winner
+advanced to the semi-finals. No third-place match was played. The app retains
+the historical Yugoslavia identity, and secondary `CHL`, `PRY`, and `URY`
+codes are normalized to the app's `CHI`, `PAR`, and `URU` codes.
+
+Scorers, event minutes, the penalty, the own goal, and stadium records were
+cross-checked with the Fjelstul World Cup Database. Its chronological records
+were joined to FIFA's match sequence by date and exact team pairing:
+
+- Database: https://github.com/jfjelstul/worldcup
+- Matches: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/matches.csv
+- Goals: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/goals.csv
+- Stadiums: https://raw.githubusercontent.com/jfjelstul/worldcup/master/data-csv/stadiums.csv
+- License: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+The dataset contains 18 matches, 70 goals, 13 participating teams, and three
+stadiums, all in Montevideo. It preserves all four groups, both semi-finals,
+the final, and the absence of a third-place fixture. Stadium and team
+coordinates are approximate map anchors.
+
+Every fixture has exact-match YouTube footage. On July 16, 2026, all 18
+selected videos matched the teams and score and returned both
+`previewPlayabilityStatus: OK` and `playableInEmbed: true` from YouTube's real
+embedded-player response with the app origin. The final uses a verified
+non-FIFA upload to avoid FIFA's blocked embed, while every fixture retains its
+official FIFA match-centre link.
+
+Re-run the live check with `npm run audit:youtube-embeds -- wc-1930`.
+
 ## Italy 1934
 
 Tournament structure, official match numbers, dates, venues, results, the
