@@ -1420,13 +1420,32 @@ export function ReplayApp() {
 
         {!tournament && !resumeDetails ? (
           <section aria-labelledby="landing-prompt-title" className="landing-prompt-card">
-            <span className="landing-prompt-kicker"><Trophy aria-hidden="true" size={16} /> Rewindcup</span>
-            <h2 id="landing-prompt-title">Choose a World Cup to rewind</h2>
-            <p>Travel from Uruguay 1930 to Canada, Mexico &amp; USA 2026, one tournament at a time.</p>
+            <img
+              alt=""
+              className="landing-prompt-banner"
+              decoding="async"
+              fetchPriority="high"
+              height={421}
+              loading="eager"
+              src="/images/world-cup-archive-banner.webp"
+              width={960}
+            />
+            <span className="landing-prompt-kicker"><Trophy aria-hidden="true" size={16} /> The World Cup archive</span>
+            <h2 id="landing-prompt-title">Pick a year. Relive the World Cup.</h2>
+            <p>Journey from Uruguay 1930 to Canada, Mexico &amp; USA 2026 through fixtures, stories and match highlights.</p>
             <button onClick={openTournamentSetup} type="button">
-              Browse tournaments
+              Explore tournaments
               <ChevronRight aria-hidden="true" size={17} />
             </button>
+            <a
+              aria-label="Made with love by David Oti on X"
+              className="landing-prompt-credit"
+              href="https://x.com/iamdavidoti"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Made with <span aria-hidden="true" className="landing-prompt-heart">♥</span> by David Oti
+            </a>
           </section>
         ) : null}
 
@@ -1456,10 +1475,15 @@ export function ReplayApp() {
               ref={tournamentMenuButtonRef}
               type="button"
             >
-              <span className="user-avatar" aria-hidden="true">{selectedTeam ? <img alt="" src={teamFlags[selectedTeam]} /> : "RW"}</span>
+              <span className="user-avatar" aria-hidden="true">{selectedTeam ? <img alt="" src={teamFlags[selectedTeam]} /> : <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+                  <rect width="64" height="64" rx="16" fill="#11111d"/>
+                  <path d="M31 20 17 32l14 12V20Zm16 0L33 32l14 12V20Z" fill="#f8f7f4"/>
+                  <circle cx="49" cy="15" r="5" fill="#ef9f27"/>
+                </svg>
+              }</span>
               {/* <span className="app-logo" aria-hidden="true">rw</span> */}
               {/* <span className="app-mode-icon"><Trophy size={16} /></span> */}
-              <strong>{tournament ? tournament.name : "Select tournament"}</strong>
+              {/* <strong>{tournament ? tournament.name : "Select tournament"}</strong> */}
               <span className="app-chevron" aria-hidden="true">
                 <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                   <path d="M4 9.5L8 13.5L12 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -1531,19 +1555,10 @@ export function ReplayApp() {
           </div>
         </header>
 
-        <aside aria-label="Site information" className="site-signature">
-          <a
-            aria-label="Made with love by David Oti on X"
-            href="https://x.com/iamdavidoti"
-            rel="noreferrer"
-            target="_blank"
-          >
-            Made with <span aria-hidden="true" className="site-signature-heart">♥</span> by David Oti
-          </a>
-          <span aria-hidden="true" className="site-signature-divider" />
+        <aside aria-label="Page feedback" className="page-report-control">
           <button aria-label="Report an issue with this page" onClick={reportCurrentPage} type="button">
             <Flag aria-hidden="true" size={14} />
-            <span>Report</span>
+            <span>Give Feedback</span>
           </button>
         </aside>
 

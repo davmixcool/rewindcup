@@ -56,10 +56,17 @@ test("the keyboard-focusable map keeps a visible focus indicator", async ({ page
 test("root onboarding clearly leads into tournament selection", async ({ page }) => {
   await page.goto("/");
 
-  const prompt = page.getByRole("region", { name: "Choose a World Cup to rewind", exact: true });
-  const browseButton = prompt.getByRole("button", { name: "Browse tournaments", exact: true });
+  const prompt = page.getByRole("region", { name: "Pick a year. Relive the World Cup.", exact: true });
+  const browseButton = prompt.getByRole("button", { name: "Explore tournaments", exact: true });
+  const banner = prompt.locator(".landing-prompt-banner");
+  const creatorCredit = prompt.getByRole("link", { name: "Made with love by David Oti on X", exact: true });
   await expect(prompt).toBeVisible();
   await expect(browseButton).toBeVisible();
+  await expect(banner).toBeVisible();
+  await expect(banner).toHaveAttribute("src", /world-cup-archive-banner\.webp/);
+  await expect(creatorCredit).toBeVisible();
+  await expect(creatorCredit).toHaveAttribute("href", "https://x.com/iamdavidoti");
+  await expect(creatorCredit).toHaveAttribute("target", "_blank");
   await expect(browseButton).toHaveCSS("background-color", "rgb(103, 198, 253)");
   await expect(browseButton).toHaveCSS("color", "rgb(13, 23, 32)");
 
@@ -84,7 +91,7 @@ test("root onboarding clearly leads into tournament selection", async ({ page })
   await expect(page).toHaveURL(/\/world-cups\/1930$/);
 });
 
-test("creator credit and report controls stay visible and keyboard reachable", async ({ page }) => {
+test("landing credit and global report control stay visible and keyboard reachable", async ({ page }) => {
   await page.goto("/");
 
   const creatorCredit = page.getByRole("link", { name: "Made with love by David Oti on X", exact: true });
@@ -107,6 +114,7 @@ test("creator credit and report controls stay visible and keyboard reachable", a
   await expect(reportButton).toBeFocused();
 
   await page.goto("/world-cups/2022/matches/wc-2022-64-arg-fra");
+  await expect(creatorCredit).toHaveCount(0);
   const fixtureReportButton = page.getByRole("button", { name: "Report this fixture on X", exact: true });
   await expect(fixtureReportButton).toBeVisible();
   const fixtureReportBox = await fixtureReportButton.boundingBox();

@@ -4,12 +4,12 @@
   --surface-strong: rgba(255, 255, 255, 0.9);
   --dock: #11111d;
   --text: #181824;
-  --muted: #676772;
+  --muted: #767681;
   --line: rgba(17, 17, 29, 0.1);
   --line-strong: rgba(17, 17, 29, 0.18);
   --accent: #67c6fd;
   --accent-solid: #67c6fd;
-  --accent-strong: #086a9d;
+  --accent-strong: #0f73a8;
   --accent-dim: rgba(103, 198, 253, 0.16);
   --accent-on-solid: #0d1720;
   --green: #32c45b;
@@ -292,7 +292,7 @@ button {
 .nav-dropdown {
   position: absolute;
   top: 52px;
-  left: 44px;
+  left: 0px;
   display: grid;
   width: min(330px, calc(100vw - 48px));
   max-height: calc(100svh - 82px);
@@ -467,23 +467,34 @@ button {
   left: 50%;
   z-index: 8;
   display: grid;
-  width: min(390px, calc(100vw - 48px));
+  width: min(360px, calc(100vw - 48px));
   justify-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(17, 17, 29, 0.64);
   border-radius: 24px;
   padding: 24px;
-  background: rgba(255, 255, 255, 0.84);
+  overflow: hidden;
+  background: rgba(17, 17, 29, 0.84);
   box-shadow: 0 24px 72px rgba(17, 17, 29, 0.14);
   text-align: center;
   transform: translate(-50%, -50%);
   backdrop-filter: blur(20px) saturate(1.12);
 }
 
+.landing-prompt-banner {
+  display: block;
+  width: calc(100% + 48px);
+  height: 132px;
+  margin: -24px -24px 20px;
+  border-bottom: 1px solid rgba(17, 17, 29, 0.12);
+  object-fit: cover;
+  object-position: center;
+}
+
 .landing-prompt-kicker {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--accent-strong);
+  color: #76bade;
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.06em;
@@ -495,6 +506,7 @@ button {
   font-size: clamp(1.35rem, 3vw, 1.8rem);
   letter-spacing: -0.035em;
   line-height: 1.05;
+  color:#fff;
 }
 
 .landing-prompt-card p {
@@ -518,7 +530,26 @@ button {
   color: var(--accent-on-solid);
   cursor: pointer;
   font-size: 0.78rem;
-  font-weight: 900;
+  font-weight: 600;
+}
+
+.landing-prompt-credit {
+  width: 100%;
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 13px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 780;
+  text-decoration: none;
+}
+
+.landing-prompt-credit:hover {
+  color: #fff;
+}
+
+.landing-prompt-heart {
+  color: #d6305b;
 }
 
 .continue-card > span {
@@ -583,7 +614,7 @@ button {
   backdrop-filter: blur(14px);
 }
 
-.site-signature {
+.page-report-control {
   position: absolute;
   bottom: 22px;
   left: max(24px, calc((100vw - 1120px) / 2));
@@ -591,10 +622,9 @@ button {
   display: inline-flex;
   min-height: 36px;
   align-items: center;
-  gap: 9px;
   border: 1px solid var(--line);
   border-radius: 13px;
-  padding: 5px 7px 5px 11px;
+  padding: 5px 7px;
   background: rgba(255, 255, 255, 0.84);
   box-shadow: 0 8px 24px rgba(17, 17, 29, 0.08);
   color: var(--muted);
@@ -604,32 +634,12 @@ button {
   transition: opacity 140ms ease;
 }
 
-.tray-open .site-signature {
+.tray-open .page-report-control {
   opacity: 0;
   pointer-events: none;
 }
 
-.site-signature a,
-.site-signature button {
-  color: inherit;
-  text-decoration: none;
-}
-
-.site-signature a:hover {
-  color: var(--text);
-}
-
-.site-signature-heart {
-  color: #d6305b;
-}
-
-.site-signature-divider {
-  width: 1px;
-  height: 18px;
-  background: var(--line);
-}
-
-.site-signature button {
+.page-report-control button {
   display: inline-flex;
   min-height: 26px;
   align-items: center;
@@ -638,12 +648,13 @@ button {
   border-radius: 9px;
   padding: 0 6px;
   background: transparent;
+  color: inherit;
   cursor: pointer;
   font-size: 0.66rem;
   font-weight: 850;
 }
 
-.site-signature button:hover {
+.page-report-control button:hover {
   background: var(--accent-dim);
   color: var(--accent-strong);
 }
@@ -2349,21 +2360,26 @@ button {
     padding: 20px 18px;
   }
 
+  .landing-prompt-banner {
+    width: calc(100% + 36px);
+    height: 112px;
+    margin: -20px -18px 18px;
+  }
+
   .share-toast {
     top: 60px;
     right: 10px;
   }
 
-  .site-signature {
+  .page-report-control {
     bottom: 72px;
     left: 10px;
     min-height: 32px;
-    gap: 7px;
-    padding: 3px 5px 3px 9px;
+    padding: 3px 5px;
     font-size: 0.62rem;
   }
 
-  .site-signature button {
+  .page-report-control button {
     min-height: 24px;
     font-size: 0.62rem;
   }
@@ -2495,7 +2511,7 @@ button {
   .country-flag-label,
   .map-keyboard-actions,
   .bottom-dock button,
-  .site-signature {
+  .page-report-control {
     transition: none;
   }
 

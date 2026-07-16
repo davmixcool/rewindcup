@@ -122,14 +122,15 @@ test("share control sends the current permanent URL to the native share sheet", 
   });
 });
 
-test("creator credit and report control include the current permanent URL", async ({ page }) => {
-  await page.goto("/world-cups/2022/matches/wc-2022-64-arg-fra");
-  const currentUrl = page.url();
-
+test("creator credit stays on the landing prompt and reports include the current permanent URL", async ({ page }) => {
   const creatorCredit = page.getByRole("link", { name: "Made with love by David Oti on X", exact: true });
   await expect(creatorCredit).toBeVisible();
   await expect(creatorCredit).toHaveAttribute("href", "https://x.com/iamdavidoti");
   await expect(creatorCredit).toHaveAttribute("target", "_blank");
+
+  await page.goto("/world-cups/2022/matches/wc-2022-64-arg-fra");
+  const currentUrl = page.url();
+  await expect(creatorCredit).toHaveCount(0);
 
   await page.evaluate(() => {
     Object.defineProperty(window, "open", {
