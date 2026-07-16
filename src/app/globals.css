@@ -89,6 +89,27 @@ button {
   z-index: 0;
 }
 
+.football-legends-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image: url("/images/football-legends-mural.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: grayscale(0.28) saturate(0.74) contrast(1.08);
+  -webkit-mask-image: radial-gradient(ellipse 38% 46% at 50% 47%, transparent 0 42%, rgba(0, 0, 0, 0.22) 58%, #000 100%);
+  mask-image: radial-gradient(ellipse 38% 46% at 50% 47%, transparent 0 42%, rgba(0, 0, 0, 0.22) 58%, #000 100%);
+  mix-blend-mode: multiply;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+.tour-shell.mode-world .football-legends-backdrop {
+  opacity: 0.2;
+}
+
 .tour-map.is-transitioning {
   pointer-events: none;
 }
@@ -196,12 +217,12 @@ button {
 }
 
 .tour-topbar::before {
-  position: absolute;
+  /* position: absolute;
   inset: -18px -24px -20px;
   z-index: -1;
   background: linear-gradient(180deg, rgba(248, 247, 244, 0.98), rgba(248, 247, 244, 0.82) 58%, transparent);
   content: "";
-  pointer-events: none;
+  pointer-events: none; */
 }
 
 .tour-topbar.is-hidden {
@@ -2311,6 +2332,16 @@ button {
 }
 
 @media (max-width: 680px) {
+  .football-legends-backdrop {
+    background-position: center top;
+    -webkit-mask-image: radial-gradient(ellipse 48% 39% at 50% 44%, transparent 0 34%, rgba(0, 0, 0, 0.2) 56%, #000 100%);
+    mask-image: radial-gradient(ellipse 48% 39% at 50% 44%, transparent 0 34%, rgba(0, 0, 0, 0.2) 56%, #000 100%);
+  }
+
+  .tour-shell.mode-world .football-legends-backdrop {
+    opacity: 0.14;
+  }
+
   .tour-topbar {
     top: 10px;
     right: 10px;
@@ -2502,6 +2533,10 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .football-legends-backdrop {
+    transition: none;
+  }
+
   .bottom-tray.is-open,
   .bottom-tray.is-open .tray-popover {
     animation: none;

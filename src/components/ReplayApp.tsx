@@ -1418,6 +1418,8 @@ export function ReplayApp() {
           venues={tournament?.venues ?? []}
         />
 
+        <div aria-hidden="true" className="football-legends-backdrop" />
+
         {!tournament && !resumeDetails ? (
           <section aria-labelledby="landing-prompt-title" className="landing-prompt-card">
             <img
