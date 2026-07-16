@@ -53,6 +53,35 @@ test("the keyboard-focusable map keeps a visible focus indicator", async ({ page
   expect(outline.width).toBeGreaterThanOrEqual(3);
 });
 
+test("root onboarding clearly leads into tournament selection", async ({ page }) => {
+  await page.goto("/");
+
+  const prompt = page.getByRole("region", { name: "Choose a World Cup to rewind", exact: true });
+  const browseButton = prompt.getByRole("button", { name: "Browse tournaments", exact: true });
+  await expect(prompt).toBeVisible();
+  await expect(browseButton).toBeVisible();
+
+  const viewport = page.viewportSize();
+  const promptBox = await prompt.boundingBox();
+  expect(viewport).not.toBeNull();
+  expect(promptBox).not.toBeNull();
+  expect(promptBox!.x).toBeGreaterThanOrEqual(0);
+  expect(promptBox!.y).toBeGreaterThanOrEqual(0);
+  expect(promptBox!.x + promptBox!.width).toBeLessThanOrEqual(viewport!.width);
+  expect(promptBox!.y + promptBox!.height).toBeLessThanOrEqual(viewport!.height);
+
+  await browseButton.focus();
+  await expect(browseButton).toBeFocused();
+  await browseButton.press("Enter");
+
+  const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
+  await expect(tournamentTray).toBeVisible();
+  await expect(tournamentTray.getByRole("button", { name: "Close tournament selection", exact: true })).toBeFocused();
+  await tournamentTray.getByRole("button", { name: /Uruguay 1930/i }).click();
+  await expect(prompt).toBeHidden();
+  await expect(page).toHaveURL(/\/world-cups\/1930$/);
+});
+
 test("creator credit and report controls stay visible and keyboard reachable", async ({ page }) => {
   await page.goto("/");
 

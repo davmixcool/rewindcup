@@ -85,6 +85,7 @@ test("favorites persist and continue watching restores the replay cursor", async
   await page.goto("/");
   const continueCard = page.getByRole("region", { name: "Continue watching", exact: true });
   await expect(continueCard.getByText("Argentina vs France", { exact: true })).toBeVisible();
+  await expect(continueCard.getByRole("button", { name: "Choose a tournament", exact: true })).toBeVisible();
   await continueCard.getByRole("button", { name: "Resume replay", exact: true }).click();
 
   await expect(page).toHaveURL(/\/world-cups\/2022\/matches\/wc-2022-64-arg-fra$/);

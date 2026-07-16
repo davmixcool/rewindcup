@@ -1418,12 +1418,27 @@ export function ReplayApp() {
           venues={tournament?.venues ?? []}
         />
 
+        {!tournament && !resumeDetails ? (
+          <section aria-labelledby="landing-prompt-title" className="landing-prompt-card">
+            <span className="landing-prompt-kicker"><Trophy aria-hidden="true" size={16} /> The complete archive</span>
+            <h2 id="landing-prompt-title">Choose a World Cup to rewind</h2>
+            <p>Travel from Uruguay 1930 to Canada, Mexico &amp; USA 2026, one tournament at a time.</p>
+            <button onClick={openTournamentSetup} type="button">
+              Browse tournaments
+              <ChevronRight aria-hidden="true" size={17} />
+            </button>
+          </section>
+        ) : null}
+
         {!tournament && resumeDetails ? (
           <section aria-label="Continue watching" className="continue-card">
             <span><Clock3 aria-hidden="true" size={16} /> Continue watching</span>
             <strong>{teamNames[resumeDetails.match.home]} vs {teamNames[resumeDetails.match.away]}</strong>
             <small>{resumeDetails.tournament.name} · Moment {(preferences.resume?.cursor ?? -1) + 1} of {resumeDetails.match.events.length}</small>
-            <button onClick={continueSavedReplay} type="button">Resume replay</button>
+            <div className="continue-card-actions">
+              <button onClick={continueSavedReplay} type="button">Resume replay</button>
+              <button className="secondary" onClick={openTournamentSetup} type="button">Choose a tournament</button>
+            </div>
           </section>
         ) : null}
 
