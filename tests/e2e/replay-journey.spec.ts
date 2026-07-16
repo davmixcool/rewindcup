@@ -345,8 +345,8 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await page.getByTitle("Group stages").click();
   await expect(teamTray.locator(".tray-team-group")).toHaveCount(12);
   await expect(teamTray.locator(".tray-team-row")).toHaveCount(48);
-  await teamTray.getByRole("button", { name: /France/i }).click();
-  await expect(fixtureTray.getByText("France fixtures", { exact: true })).toBeVisible();
+  await teamTray.getByRole("button", { name: /Argentina/i }).click();
+  await expect(fixtureTray.getByText("Argentina fixtures", { exact: true })).toBeVisible();
   await expect(fixtureTray.locator(".tray-fixture-row")).toHaveCount(7);
   await expect(fixtureTray.getByText("Watch highlights", { exact: true })).toHaveCount(7);
   await expect(fixtureTray.getByRole("button", { name: "R32", exact: true })).toBeVisible();
@@ -356,12 +356,12 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   await fixtureTray.locator(".tray-fixture-row").click();
 
   await expect(replayTray).toBeVisible({ timeout: 20_000 });
-  await expect(replayTray.getByRole("heading", { name: "France vs Spain", exact: true })).toBeVisible();
-  const northAmericaSemiFinalFrame = replayTray.locator("iframe[title='France vs Spain highlights']");
-  await expect(northAmericaSemiFinalFrame).toHaveAttribute("src", /youtube\.com\/embed\/kKTLkp6iMLo/);
+  await expect(replayTray.getByRole("heading", { name: "England vs Argentina", exact: true })).toBeVisible();
+  const northAmericaSemiFinalFrame = replayTray.locator("iframe[title='England vs Argentina highlights']");
+  await expect(northAmericaSemiFinalFrame).toHaveAttribute("src", /youtube\.com\/embed\/mxd5pdOr5iE/);
   await expect(replayTray.getByRole("link", { name: "Open SuperSport highlights", exact: true })).toHaveAttribute(
     "href",
-    "https://www.youtube.com/watch?v=kKTLkp6iMLo"
+    "https://www.youtube.com/watch?v=mxd5pdOr5iE"
   );
   await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
 

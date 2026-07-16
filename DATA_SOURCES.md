@@ -771,9 +771,9 @@ Re-run the live check with `npm run audit:youtube-embeds -- wc-2022`.
 
 ## Canada, Mexico & USA 2026
 
-This is an in-progress snapshot captured on July 14, 2026. It includes the
-101 completed matches through the first semi-final and deliberately omits the
-second semi-final, third-place match, and final, which had not yet been played.
+This is an in-progress snapshot captured on July 15, 2026. It includes the
+102 completed matches through both semi-finals and deliberately omits the
+third-place match and final, which had not yet been played.
 The tournament remains marked `partial`; its known final totals are 104
 matches and 16 venues, while the goal total stays unset until the tournament
 is complete.
@@ -790,16 +790,16 @@ cross-checked against ESPN's public live event feeds. Records were matched to
 FIFA by date and exact team pairing, and every match's reconstructed goal
 events were reconciled with its final score:
 
-- ESPN scoreboard: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260714&limit=200
-- ESPN match summary pattern: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=760415
+- ESPN scoreboard: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260715&limit=200
+- ESPN match summary pattern: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=760515
 
-The snapshot contains 101 matches, 294 match goals excluding shootout kicks,
+The snapshot contains 102 matches, 297 match goals excluding shootout kicks,
 48 teams across 12 groups, and 16 venues. It preserves four penalty shootouts
 and four extra-time decisions. Stadium and team coordinates are approximate
 map anchors.
 
-Every completed fixture has an exact-match YouTube highlight. On July 14,
-2026, all 101 selected videos matched both teams and the competition and
+Every completed fixture has an exact-match YouTube highlight. On July 16,
+2026, all 102 selected videos matched both teams and the competition and
 returned both `previewPlayabilityStatus: OK` and `playableInEmbed: true` from
 YouTube's real embedded-player response with the app origin. Blocked official
 FIFA uploads were replaced with verified broadcaster alternatives, while
