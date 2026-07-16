@@ -80,6 +80,8 @@ All map variables are optional.
 | `PLAYWRIGHT_BASE_URL` | Overrides `.dev-url` for end-to-end tests | `.dev-url`, then `http://localhost:3001` |
 | `PLAYWRIGHT_CHROMIUM_PATH` | Chromium executable used by Playwright | `/opt/homebrew/bin/chromium` |
 | `YOUTUBE_EMBED_ORIGIN` | Origin supplied while checking YouTube embed availability | `.dev-url`, then `http://localhost:3001` |
+| `NEXT_PUBLIC_SITE_URL` | Canonical production origin for metadata and shared links | `https://rewindcup.com` |
+| `NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional token for manual Cloudflare Web Analytics installation | Disabled |
 
 ## Quality checks
 
@@ -187,6 +189,14 @@ npm run deploy
 ```
 
 `npm run upload` creates a new Worker version without immediately deploying it. Incremental R2 caching is intentionally disabled because the application does not currently use ISR or Next.js data caching.
+
+### Cloudflare Web Analytics
+
+For a custom domain proxied through Cloudflare, add the hostname under **Cloudflare Dashboard → Web Analytics → Add a site**. Cloudflare enables automatic beacon injection by default, so no application token is required.
+
+If you prefer a manual installation, change the site's dashboard setup to manual, copy its site token, and set `NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN` in `.env.production.local` before building or deploying. Rewind Cup will then load the beacon only in production. Do not enable automatic injection and the manual token together, because that would count page views twice.
+
+Cloudflare Web Analytics automatically follows the application's client-side History API navigation. The dashboard reports page views, referrers, popular routes, devices, countries, and Core Web Vitals without adding analytics cookies.
 
 ## Data and media notice
 

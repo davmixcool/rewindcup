@@ -7,6 +7,35 @@ test.beforeEach(async ({ page }, testInfo) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
+test("pages expose launch-ready canonical, Open Graph, and X metadata", async ({ page }) => {
+  await page.goto("/");
+  await expect(page).toHaveTitle("Rewind Cup — Relive Every World Cup");
+  await expect(page.locator("link[rel='canonical']")).toHaveAttribute("href", "https://rewindcup.com");
+  await expect(page.locator("meta[property='og:image']")).toHaveAttribute(
+    "content",
+    "https://rewindcup.com/images/rewindcup-social-card.jpg"
+  );
+  await expect(page.locator("meta[name='twitter:card']")).toHaveAttribute("content", "summary_large_image");
+
+  await page.goto("/world-cups/2022/teams/ARG");
+  await expect(page).toHaveTitle("Argentina at Qatar 2022 | Rewind Cup");
+  await expect(page.locator("meta[property='og:title']")).toHaveAttribute(
+    "content",
+    "Argentina at Qatar 2022 | Rewind Cup"
+  );
+  await expect(page.locator("link[rel='canonical']")).toHaveAttribute(
+    "href",
+    "https://rewindcup.com/world-cups/2022/teams/ARG"
+  );
+
+  await page.goto("/world-cups/2022/matches/wc-2022-64-arg-fra");
+  await expect(page).toHaveTitle("Argentina vs France — Qatar 2022 | Rewind Cup");
+  await expect(page.locator("meta[name='twitter:title']")).toHaveAttribute(
+    "content",
+    "Argentina vs France — Qatar 2022 | Rewind Cup"
+  );
+});
+
 test("permanent tournament, team, and match URLs restore the experience", async ({ page }) => {
   await page.goto("/world-cups/2022");
   await expect(page.locator(".app-identity")).toHaveAccessibleName(
