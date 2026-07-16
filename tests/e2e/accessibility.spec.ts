@@ -60,6 +60,8 @@ test("root onboarding clearly leads into tournament selection", async ({ page })
   const browseButton = prompt.getByRole("button", { name: "Browse tournaments", exact: true });
   await expect(prompt).toBeVisible();
   await expect(browseButton).toBeVisible();
+  await expect(browseButton).toHaveCSS("background-color", "rgb(103, 198, 253)");
+  await expect(browseButton).toHaveCSS("color", "rgb(13, 23, 32)");
 
   const viewport = page.viewportSize();
   const promptBox = await prompt.boundingBox();

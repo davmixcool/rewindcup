@@ -1420,7 +1420,7 @@ export function ReplayApp() {
 
         {!tournament && !resumeDetails ? (
           <section aria-labelledby="landing-prompt-title" className="landing-prompt-card">
-            <span className="landing-prompt-kicker"><Trophy aria-hidden="true" size={16} /> The complete archive</span>
+            <span className="landing-prompt-kicker"><Trophy aria-hidden="true" size={16} /> Rewindcup</span>
             <h2 id="landing-prompt-title">Choose a World Cup to rewind</h2>
             <p>Travel from Uruguay 1930 to Canada, Mexico &amp; USA 2026, one tournament at a time.</p>
             <button onClick={openTournamentSetup} type="button">
