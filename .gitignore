@@ -5,7 +5,16 @@ out
 *.tsbuildinfo
 .env*.local
 .DS_Store
-package-lock.json
 playwright-report
 test-results
 .dev-url
+
+# OpenNext
+.open-next
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+
+!.env.example

@@ -9,7 +9,9 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 test("permanent tournament, team, and match URLs restore the experience", async ({ page }) => {
   await page.goto("/world-cups/2022");
-  await expect(page.locator(".app-identity")).toContainText("Qatar 2022");
+  await expect(page.locator(".app-identity")).toHaveAccessibleName(
+    "Tournament selection, current tournament Qatar 2022"
+  );
   await expect(page.locator(".country-flag-marker")).toHaveCount(32);
 
   await page.goto("/world-cups/2022/teams/ARG");

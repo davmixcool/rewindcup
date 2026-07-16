@@ -2,9 +2,12 @@
   "name": "rewindcup-app",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
-    "dev": "node scripts/dev-server.mjs",
     "build": "next build",
+    "dev": "node scripts/dev-server.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
@@ -12,22 +15,28 @@
     "validate:data": "tsx scripts/validate-data.ts",
     "audit:journey": "tsx scripts/audit-journey.ts",
     "audit:highlights": "tsx scripts/audit-highlights.ts",
-    "audit:youtube-embeds": "tsx scripts/audit-youtube-embeds.ts"
+    "audit:youtube-embeds": "tsx scripts/audit-youtube-embeds.ts",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv --include-runtime false cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
     "lucide-react": "^0.468.0",
     "maplibre-gl": "^5.24.0",
-    "next": "^14.2.18",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "next": "^16.2.10",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "@types/node": "^20.17.9",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "tsx": "^4.22.4",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "wrangler": "^4.111.0"
   }
 }

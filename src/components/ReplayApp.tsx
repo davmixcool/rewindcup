@@ -1464,6 +1464,7 @@ export function ReplayApp() {
         <header className="tour-topbar">
           <div className="nav-project">
             <button
+              aria-label={tournament ? `Tournament selection, current tournament ${tournament.name}` : "Select tournament"}
               aria-controls="tournament-menu"
               aria-expanded={isTournamentMenuOpen}
               className="app-identity"
