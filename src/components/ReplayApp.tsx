@@ -1486,7 +1486,7 @@ export function ReplayApp() {
               }</span>
               {/* <span className="app-logo" aria-hidden="true">rw</span> */}
               {/* <span className="app-mode-icon"><Trophy size={16} /></span> */}
-              {/* <strong>{tournament ? tournament.name : "Select tournament"}</strong> */}
+              <strong>{tournament ? tournament.name : "Select tournament"}</strong>
               <span className="app-chevron" aria-hidden="true">
                 <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                   <path d="M4 9.5L8 13.5L12 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
