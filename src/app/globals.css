@@ -1765,7 +1765,7 @@ button {
 
 .tray-fixture-nav {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -2104,8 +2104,13 @@ button {
 
 .tour-map-canvas .maplibregl-ctrl-group {
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 8px;
   box-shadow: 0 6px 20px rgba(17, 17, 29, 0.12);
+}
+
+.maplibregl-ctrl-top-right .maplibregl-ctrl {
+    float: right;
+    margin: 70px 10px 0 0;
 }
 
 .team-badge {
@@ -2221,7 +2226,7 @@ button {
 .toggle-button {
   display: inline-grid;
   place-items: center;
-  height: 42px;
+  height: 36px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.72);
@@ -2229,7 +2234,7 @@ button {
 }
 
 .icon-button {
-  width: 42px;
+  width: 36px;
 }
 
 .icon-button.primary {
@@ -2312,8 +2317,9 @@ button {
 
 .highlight-actions {
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   gap: 7px;
+  overflow: auto;
 }
 
 .highlight-link {
@@ -2326,6 +2332,7 @@ button {
   font-size: 0.78rem;
   font-weight: 800;
   text-decoration: none;
+  text-wrap-mode: nowrap;
 }
 
 .highlight-link.secondary {
@@ -2477,7 +2484,7 @@ button {
   }
 
   .bottom-tray.is-open.has-team-journey {
-    width: min(500px, calc(100vw - 18px));
+    width: min(360px, calc(100vw - 18px));
   }
 
   .country-flag-marker {
@@ -2529,32 +2536,16 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .tray-replay-grid,
-  .tray-scoreline {
-    grid-template-columns: 1fr;
-  }
-
-  .tray-scoreline .score {
-    order: -1;
-    width: 100%;
-  }
-
   .bottom-dock button,
   .dock-count {
     min-width: 36px;
     height: 36px;
     border-radius: 13px;
   }
+  
 
-  .score {
-    order: -1;
-    width: 100%;
-  }
+  
 
-  .team-badge,
-  .team-badge:last-child {
-    justify-content: center;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

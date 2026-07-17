@@ -1766,10 +1766,10 @@ export function ReplayApp() {
 
             <div className="tray-replay-grid">
               <section className="tray-highlight-card" aria-label="Highlight reel">
-                <div className="tray-card-header">
+                {/* <div className="tray-card-header">
                   <span>Highlight reel</span>
                   <small>{getHighlightStatusLabel(match.highlights.status)}</small>
-                </div>
+                </div> */}
                 {match.highlights.embeddable && highlightEmbedUrl ? (
                   <iframe
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

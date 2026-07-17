@@ -75,16 +75,16 @@ await tournamentTray.evaluate((element) => {
   element.scrollTo({ top: Math.round(element.scrollHeight * 0.42), behavior: "smooth" });
 });
 
-const koreaJapan2002 = tournamentTray.getByRole("button", { name: /Korea\/Japan 2002/i });
+const qatar2022 = tournamentTray.getByRole("button", { name: /Qatar 2022/i });
 await waitUntil(5_500);
-await koreaJapan2002.scrollIntoViewIfNeeded();
+await qatar2022.scrollIntoViewIfNeeded();
 await waitUntil(6_250);
-await koreaJapan2002.click();
+await qatar2022.click();
 
-const brazilMarker = page.getByRole("button", { name: "Brazil tournament team", exact: true });
-await brazilMarker.waitFor({ state: "visible", timeout: 15_000 });
+const argentinaMarker = page.getByRole("button", { name: "Argentina tournament team", exact: true });
+await argentinaMarker.waitFor({ state: "visible", timeout: 15_000 });
 await waitUntil(10_750);
-await brazilMarker.dispatchEvent("click");
+await argentinaMarker.dispatchEvent("click");
 
 const fixtureTray = page.getByRole("region", { name: "Fixture selection", exact: true });
 await fixtureTray.waitFor({ state: "visible", timeout: 10_000 });
@@ -118,8 +118,8 @@ await page.addStyleTag({
     }
   `
 });
-await replayTray.getByRole("heading", { name: "Germany vs Brazil", exact: true }).waitFor();
-const highlightFrame = replayTray.locator("iframe[title='Germany vs Brazil highlights']");
+await replayTray.getByRole("heading", { name: "Argentina vs France", exact: true }).waitFor();
+const highlightFrame = replayTray.locator("iframe[title='Argentina vs France highlights']");
 await highlightFrame.waitFor({ state: "visible", timeout: 10_000 });
 await highlightFrame.evaluate((element) => {
   const embedUrl = new URL(element.src);
