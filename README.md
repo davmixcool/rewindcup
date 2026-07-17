@@ -1,5 +1,9 @@
 # Rewind Cup
 
+[![CI](https://github.com/davmixcool/rewindcup/actions/workflows/ci.yml/badge.svg)](https://github.com/davmixcool/rewindcup/actions/workflows/ci.yml)
+[![Software license: MIT](https://img.shields.io/badge/software-MIT-67C6FD.svg)](LICENSE)
+[![Data license: CC BY--SA 4.0](https://img.shields.io/badge/data-CC%20BY--SA%204.0-67C6FD.svg)](LICENSES.md)
+
 ![Rewind Cup archive banner](public/images/world-cup-archive-banner.webp)
 
 Rewind Cup is an interactive archive for reliving men's FIFA World Cup tournaments through a globe, historical fixtures, stadium journeys, match events, and playable highlights.
@@ -78,7 +82,7 @@ All map variables are optional.
 | `NEXT_PUBLIC_MAP_BUILDING_SOURCE_LAYER` | Building source layer | `building` |
 | `NEXT_PUBLIC_MAP_BUILDING_MIN_ZOOM` | Minimum zoom for 3D building extrusion | `13` |
 | `PLAYWRIGHT_BASE_URL` | Overrides `.dev-url` for end-to-end tests | `.dev-url`, then `http://localhost:3001` |
-| `PLAYWRIGHT_CHROMIUM_PATH` | Chromium executable used by Playwright | `/opt/homebrew/bin/chromium` |
+| `PLAYWRIGHT_CHROMIUM_PATH` | Optional Chromium executable override used by Playwright | Bundled Playwright browser; Homebrew Chromium is auto-detected on macOS |
 | `YOUTUBE_EMBED_ORIGIN` | Origin supplied while checking YouTube embed availability | `.dev-url`, then `http://localhost:3001` |
 | `NEXT_PUBLIC_SITE_URL` | Canonical production origin for metadata and shared links | `https://rewindcup.com` |
 | `NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN` | Optional token for manual Cloudflare Web Analytics installation | Disabled |
@@ -135,6 +139,25 @@ npm run audit:youtube-embeds -- wc-2006
 ```
 
 The live embed audit makes network requests to YouTube. Source notes, historical format decisions, dataset licenses, and per-edition verification details are maintained in [DATA_SOURCES.md](DATA_SOURCES.md).
+
+## Contributing
+
+Contributions are welcome. Good starting points include accessibility fixes,
+dead-highlight replacements, well-sourced data corrections, documentation,
+tests, and responsive-interface improvements.
+
+Before opening a pull request:
+
+- read [CONTRIBUTING.md](CONTRIBUTING.md);
+- follow the [Code of Conduct](CODE_OF_CONDUCT.md);
+- review the [architecture](docs/ARCHITECTURE.md) and
+  [licensing boundaries](LICENSES.md);
+- use the repository's issue forms for bugs, data corrections, and dead
+  highlights;
+- report vulnerabilities privately according to [SECURITY.md](SECURITY.md).
+
+Project decisions and maintainer responsibilities are described in
+[GOVERNANCE.md](GOVERNANCE.md).
 
 ## Project structure
 
@@ -203,6 +226,18 @@ Cloudflare Web Analytics automatically follows the application's client-side His
 Rewind Cup is an independent archival project and is not affiliated with or endorsed by FIFA. FIFA and World Cup names and marks belong to their respective owners. Match videos are embedded from their external providers and remain subject to the providers' availability and terms.
 
 Map data and attribution are supplied in the interface by OpenFreeMap and OpenStreetMap. Historical tournament records are cross-checked against the sources documented in [DATA_SOURCES.md](DATA_SOURCES.md).
+
+## License
+
+Rewind Cup is a mixed-license repository:
+
+- software and documentation are released under the [MIT License](LICENSE);
+- adapted tournament data is released under CC BY-SA 4.0 with attribution;
+- project brand artwork and promotional videos are not included in those
+  grants.
+
+See [LICENSES.md](LICENSES.md) for the exact file boundaries, third-party
+notices, and reuse requirements.
 
 ---
 

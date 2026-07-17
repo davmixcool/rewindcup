@@ -1,8 +1,10 @@
 import { defineConfig } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const chromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_PATH || "/opt/homebrew/bin/chromium";
+const macChromiumExecutable = "/opt/homebrew/bin/chromium";
+const chromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_PATH
+  || (existsSync(macChromiumExecutable) ? macChromiumExecutable : undefined);
 const recordedDevUrl = (() => {
   try {
     return readFileSync(resolve(process.cwd(), ".dev-url"), "utf8").trim();
@@ -27,9 +29,7 @@ export default defineConfig({
     baseURL,
     browserName: "chromium",
     headless: true,
-    launchOptions: {
-      executablePath: chromiumExecutable
-    },
+    launchOptions: chromiumExecutable ? { executablePath: chromiumExecutable } : undefined,
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "off"

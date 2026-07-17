@@ -1,0 +1,63 @@
+name: Bug report
+description: Report a reproducible problem with the application.
+title: "Bug: "
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve Rewind Cup. Do not disclose security vulnerabilities here.
+  - type: input
+    id: page
+    attributes:
+      label: Affected Rewind Cup URL
+      placeholder: https://rewindcup.com/world-cups/...
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: dropdown
+    id: viewport
+    attributes:
+      label: Device or viewport
+      options:
+        - Desktop
+        - Tablet
+        - Mobile
+        - Multiple
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+      placeholder: Chrome 140 on macOS
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots, recording, or console output
+      description: Remove private information before attaching files or logs.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

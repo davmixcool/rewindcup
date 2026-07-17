@@ -1,0 +1,44 @@
+name: Dead or incorrect highlight
+description: Report an unavailable, blocked, or mismatched fixture video.
+title: "Highlight: "
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Fixture URL
+      placeholder: https://rewindcup.com/world-cups/.../matches/...
+    validations:
+      required: true
+  - type: dropdown
+    id: problem
+    attributes:
+      label: Problem
+      options:
+        - Video unavailable
+        - Embedding disabled
+        - Wrong fixture
+        - Wrong score or teams
+        - Playback error
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What does the player show?
+      description: Include the exact YouTube error or mismatch.
+    validations:
+      required: true
+  - type: input
+    id: replacement
+    attributes:
+      label: Suggested replacement URL
+      description: Optional. It must show the exact fixture and allow embedding.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I confirmed the problem on the official Rewind Cup site.
+          required: true
+        - label: Any replacement shows the exact teams and score.

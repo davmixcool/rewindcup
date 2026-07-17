@@ -1,0 +1,53 @@
+name: Tournament data correction
+description: Report an incorrect team, fixture, score, event, venue, or tournament rule.
+title: "Data: "
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Affected Rewind Cup URL
+      placeholder: https://rewindcup.com/world-cups/...
+    validations:
+      required: true
+  - type: input
+    id: tournament
+    attributes:
+      label: Tournament and fixture
+      placeholder: France 1998 — Brazil vs France final
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current data
+      description: Quote or describe the value currently shown by Rewind Cup.
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Proposed correction
+      description: State the exact value or interpretation that should replace it.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Supporting sources
+      description: Provide direct links to primary or reputable sources and explain what each confirms.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Historical or identity context
+      description: Explain code normalization, historical team identity, disputed records, or format rules if relevant.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and `DATA_SOURCES.md`.
+          required: true
+        - label: I am not relying solely on an unsourced summary.
+          required: true

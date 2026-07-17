@@ -2,6 +2,17 @@
   "name": "rewindcup-app",
   "version": "0.1.0",
   "private": true,
+  "description": "An interactive archive for reliving every men's FIFA World Cup.",
+  "license": "SEE LICENSE IN LICENSES.md",
+  "author": "David Oti",
+  "homepage": "https://rewindcup.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davmixcool/rewindcup.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davmixcool/rewindcup/issues"
+  },
   "engines": {
     "node": ">=20.9.0"
   },

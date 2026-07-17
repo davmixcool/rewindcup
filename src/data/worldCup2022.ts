@@ -186,7 +186,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   10: { videoId: "jugzlqMwD4E", sourceName: "NCF Ariyan highlights" },
   11: { videoId: "yYdr5zowYMA", sourceName: "Football King highlights" },
   12: { videoId: "xxXwimS7F3g", sourceName: "Voli Mania highlights" },
-  13: { videoId: "wx6wH7MKvVc", sourceName: "Qatar World Cup highlights" },
+  13: { videoId: "MvGk6fg8sXA", sourceName: "Qatar World Cup highlights" },
   14: { videoId: "wDfE620Z9lc", sourceName: "90+ Insight highlights" },
   15: { videoId: "DUWhb4ZJspQ", sourceName: "Fighters Official highlights" },
   16: { videoId: "ywMWUAl06AU", sourceName: "Goaldinho highlights" },
