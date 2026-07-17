@@ -1784,6 +1784,31 @@ button {
   font-weight: 900;
 }
 
+.tray-replay-fixture-nav .icon-button {
+  border-color: #67c6fd;
+  background: #67c6fd;
+  box-shadow: 0 8px 22px rgba(103, 198, 253, 0.24);
+  color: #07131c;
+}
+
+.tray-replay-fixture-nav .icon-button:hover:not(:disabled) {
+  border-color: #8bd4fd;
+  background: #8bd4fd;
+}
+
+.tray-replay-fixture-nav .icon-button:disabled {
+  border-color: rgba(103, 198, 253, 0.42);
+  background: rgba(103, 198, 253, 0.24);
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tray-replay-fixture-nav span {
+  border-color: rgba(103, 198, 253, 0.32);
+  background: rgba(103, 198, 253, 0.12);
+  color: #d9f3ff;
+}
+
 .tray-highlight-actions .highlight-link {
   border-color: rgba(103, 198, 253, 0.38);
   background: rgba(103, 198, 253, 0.2);

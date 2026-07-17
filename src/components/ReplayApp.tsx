@@ -400,6 +400,8 @@ export function ReplayApp() {
   const progress = match ? ((state.cursor + 1) / match.events.length) * 100 : 0;
   const isFinished = state.status === "full_time";
   const highlightEmbedUrl = match?.highlights.embedUrl ? getPlayableEmbedUrl(match.highlights.embedUrl) : null;
+  const hasPlayableHighlight = Boolean(match?.highlights.embeddable && highlightEmbedUrl);
+  const displayedScore = hasPlayableHighlight ? match?.score : visibleScore;
   const pendingMatch = pendingFixtureArrival && tournament
     ? tournament.matches.find((candidate) => candidate.id === pendingFixtureArrival.matchId)
     : null;
@@ -1749,11 +1751,11 @@ export function ReplayApp() {
             <div aria-atomic="true" aria-live="polite" className="tray-scoreline" role="status">
               <TeamBadge code={match.home} />
               <div className="score">
-                {visibleScore ? (
+                {displayedScore ? (
                   <>
-                    <span>{visibleScore.home}</span>
+                    <span>{displayedScore.home}</span>
                     <span className="score-divider">-</span>
-                    <span>{visibleScore.away}</span>
+                    <span>{displayedScore.away}</span>
                   </>
                 ) : (
                   <span className="versus">vs</span>
@@ -1786,91 +1788,94 @@ export function ReplayApp() {
                 )}
               </section>
 
-              <section className="tray-moment-card" aria-label="Replay controls">
-                <div className="tray-card-header">
-                  <span>{formatClock(currentEvent, state.status)}</span>
-                  <small>{highlightEmbedUrl ? "Replay + video" : state.mode === "blackout" ? "Blackout" : "Live score"}</small>
-                </div>
-                <div aria-label={`${replayScopeLabel} fixture navigation`} className="tray-fixture-nav" role="group">
-                  <button
-                    className="icon-button"
-                    disabled={!previousReplayEntry}
-                    onClick={() => openAdjacentReplayFixture(-1)}
-                    title={`Previous fixture in ${replayScopeLabel}`}
-                    type="button"
+              {!hasPlayableHighlight ? (
+                <section className="tray-moment-card" aria-label="Replay controls">
+                  <div className="tray-card-header">
+                    <span>{formatClock(currentEvent, state.status)}</span>
+                    <small>{state.mode === "blackout" ? "Blackout" : "Live score"}</small>
+                  </div>
+                  <div aria-label="Replay playback" className="controls media-control-row tray-control-row" role="group">
+                    <button
+                      className="icon-button primary replay-action-button"
+                      disabled={isFinished}
+                      onClick={handlePrimaryReplayAction}
+                      title={state.cursor === -1 ? "Start replay" : "Next replay moment"}
+                      type="button"
+                    >
+                      {state.cursor === -1 ? <Play size={20} /> : <SkipForward size={20} />}
+                      <span>{state.cursor === -1 ? "Play" : "Next"}</span>
+                    </button>
+                    <button
+                      aria-pressed={state.isAutoplaying}
+                      className="icon-button"
+                      disabled={isFinished}
+                      onClick={handleAutoplayToggle}
+                      title={state.isAutoplaying ? "Pause replay" : "Autoplay replay"}
+                      type="button"
+                    >
+                      {state.isAutoplaying ? <Pause size={20} /> : <Play size={20} />}
+                    </button>
+                    <button
+                      className="icon-button"
+                      onClick={handleReplayReset}
+                      title="Reset replay"
+                      type="button"
+                    >
+                      <RotateCcw size={20} />
+                    </button>
+                    <button aria-pressed={state.mode === "blackout"} className="toggle-button" onClick={() => dispatch({ type: "TOGGLE_MODE", match })} type="button">
+                      {state.mode === "blackout" ? "Show live score" : "Blackout score"}
+                    </button>
+                  </div>
+                  <div
+                    aria-label="Replay progress"
+                    aria-valuemax={100}
+                    aria-valuemin={0}
+                    aria-valuenow={Math.round(progress)}
+                    aria-valuetext={`${Math.max(state.cursor + 1, 0)} of ${match.events.length} moments`}
+                    className="timeline tray-timeline"
+                    role="progressbar"
                   >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <span>
-                    {replaySequenceIndex >= 0 ? replaySequenceIndex + 1 : 0}/{replaySequenceEntries.length}
-                  </span>
-                  <button
-                    className="icon-button"
-                    disabled={!nextReplayEntry}
-                    onClick={() => openAdjacentReplayFixture(1)}
-                    title={`Next fixture in ${replayScopeLabel}`}
-                    type="button"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
-                <div aria-label="Replay playback" className="controls media-control-row tray-control-row" role="group">
-                  <button
-                    className="icon-button primary replay-action-button"
-                    disabled={isFinished}
-                    onClick={handlePrimaryReplayAction}
-                    title={state.cursor === -1 ? "Start replay and highlight" : "Next replay moment"}
-                    type="button"
-                  >
-                    {state.cursor === -1 ? <Play size={20} /> : <SkipForward size={20} />}
-                    <span>{state.cursor === -1 ? "Play" : "Next"}</span>
-                  </button>
-                  <button
-                    aria-pressed={state.isAutoplaying}
-                    className="icon-button"
-                    disabled={isFinished}
-                    onClick={handleAutoplayToggle}
-                    title={state.isAutoplaying ? "Pause replay and highlight" : "Autoplay replay and highlight"}
-                    type="button"
-                  >
-                    {state.isAutoplaying ? <Pause size={20} /> : <Play size={20} />}
-                  </button>
-                  <button
-                    className="icon-button"
-                    onClick={handleReplayReset}
-                    title="Reset replay"
-                    type="button"
-                  >
-                    <RotateCcw size={20} />
-                  </button>
-                  <button aria-pressed={state.mode === "blackout"} className="toggle-button" onClick={() => dispatch({ type: "TOGGLE_MODE", match })} type="button">
-                    {state.mode === "blackout" ? "Show live score" : "Blackout score"}
-                  </button>
-                </div>
-                <div
-                  aria-label="Replay progress"
-                  aria-valuemax={100}
-                  aria-valuemin={0}
-                  aria-valuenow={Math.round(progress)}
-                  aria-valuetext={`${Math.max(state.cursor + 1, 0)} of ${match.events.length} moments`}
-                  className="timeline tray-timeline"
-                  role="progressbar"
-                >
-                  <div aria-hidden="true" className="timeline-fill" style={{ width: `${progress}%` }} />
-                  {revealedEvents.map((event) => (
-                    <span
-                      aria-hidden="true"
-                      className={`timeline-dot ${event.type === "goal" ? "goal" : ""}`}
-                      key={event.id}
-                      style={{ left: `${(match.events.indexOf(event) / Math.max(match.events.length - 1, 1)) * 100}%` }}
-                    />
-                  ))}
-                </div>
-                <article aria-atomic="true" aria-live="polite" className="tray-latest-moment">
-                  <span>Latest moment</span>
-                  <strong>{currentEvent ? currentEvent.detail : `The replay is ready in ${matchVenue?.city ?? "the host city"}.`}</strong>
-                </article>
-              </section>
+                    <div aria-hidden="true" className="timeline-fill" style={{ width: `${progress}%` }} />
+                    {revealedEvents.map((event) => (
+                      <span
+                        aria-hidden="true"
+                        className={`timeline-dot ${event.type === "goal" ? "goal" : ""}`}
+                        key={event.id}
+                        style={{ left: `${(match.events.indexOf(event) / Math.max(match.events.length - 1, 1)) * 100}%` }}
+                      />
+                    ))}
+                  </div>
+                  <article aria-atomic="true" aria-live="polite" className="tray-latest-moment">
+                    <span>Latest moment</span>
+                    <strong>{currentEvent ? currentEvent.detail : `The replay is ready in ${matchVenue?.city ?? "the host city"}.`}</strong>
+                  </article>
+                </section>
+              ) : null}
+            </div>
+
+            <div aria-label={`${replayScopeLabel} fixture navigation`} className="tray-fixture-nav tray-replay-fixture-nav" role="group">
+              <button
+                className="icon-button"
+                disabled={!previousReplayEntry}
+                onClick={() => openAdjacentReplayFixture(-1)}
+                title={`Previous fixture in ${replayScopeLabel}`}
+                type="button"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <span>
+                {replaySequenceIndex >= 0 ? replaySequenceIndex + 1 : 0}/{replaySequenceEntries.length}
+              </span>
+              <button
+                className="icon-button"
+                disabled={!nextReplayEntry}
+                onClick={() => openAdjacentReplayFixture(1)}
+                title={`Next fixture in ${replayScopeLabel}`}
+                type="button"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
 
             <div className="highlight-actions tray-highlight-actions">

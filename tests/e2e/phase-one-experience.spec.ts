@@ -86,7 +86,7 @@ test("command palette searches fixtures, players, venues, teams, and years", asy
   await expect(palette).toBeHidden();
 });
 
-test("favorites persist and continue watching restores the replay cursor", async ({ page }) => {
+test("favorites persist and playable highlights replace simulated replay controls", async ({ page }) => {
   await page.getByTitle("Tournament selection").click();
   const tournamentTray = page.getByRole("region", { name: "Tournament selection", exact: true });
   await tournamentTray.getByRole("button", { name: /Qatar 2022/i }).click();
@@ -106,24 +106,14 @@ test("favorites persist and continue watching restores the replay cursor", async
   await search.fill("Argentina France 2022");
   await palette.getByRole("option", { name: /Argentina vs France/i }).click();
   const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
-  await replayTray.getByRole("button", { name: "Play", exact: true }).click();
-  await replayTray.getByRole("button", { name: "Next", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => {
-    const stored = window.localStorage.getItem("rewindcup:preferences:v1");
-    return stored ? JSON.parse(stored).resume?.cursor : null;
-  })).toBe(1);
+  await expect(replayTray.locator("iframe[title='Argentina vs France highlights']")).toBeVisible();
+  await expect(replayTray.getByRole("group", { name: "Replay playback", exact: true })).toHaveCount(0);
+  await expect(replayTray.getByRole("progressbar", { name: "Replay progress", exact: true })).toHaveCount(0);
+  await expect(replayTray.locator(".tray-latest-moment")).toHaveCount(0);
 
-  await page.goto("/");
-  const continueCard = page.getByRole("region", { name: "Continue watching", exact: true });
-  await expect(continueCard.getByText("Argentina vs France", { exact: true })).toBeVisible();
-  await expect(continueCard.getByRole("button", { name: "Choose a tournament", exact: true })).toBeVisible();
-  await continueCard.getByRole("button", { name: "Resume replay", exact: true }).click();
-
-  await expect(page).toHaveURL(/\/world-cups\/2022\/matches\/wc-2022-64-arg-fra$/);
-  await expect(replayTray.getByRole("progressbar", { name: "Replay progress", exact: true })).toHaveAttribute(
-    "aria-valuetext",
-    /2 of \d+ moments/
-  );
+  const previousFixture = replayTray.getByTitle(/Previous fixture in/i);
+  await expect(previousFixture).toBeVisible();
+  await expect(previousFixture).toHaveCSS("background-color", "rgb(103, 198, 253)");
 });
 
 test("share control sends the current permanent URL to the native share sheet", async ({ page }) => {
