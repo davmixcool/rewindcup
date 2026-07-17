@@ -14,7 +14,7 @@ ffmpeg -hide_banner -y \
   -i "$RAW_VIDEO" \
   -vf "ass='$ROOT_DIR/scripts/rewindcup-recorded-launch.ass':fontsdir='/System/Library/Fonts',tpad=stop_mode=clone:stop_duration=0.2,format=yuv420p" \
   -r 30 \
-  -frames:v 600 \
+  -frames:v 720 \
   -c:v libx264 \
   -preset slow \
   -crf 18 \
