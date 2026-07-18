@@ -2317,9 +2317,8 @@ button {
 
 .highlight-actions {
   display: flex;
-  /* flex-wrap: wrap; */
+  flex-wrap: wrap;
   gap: 7px;
-  overflow: auto;
 }
 
 .highlight-link {
