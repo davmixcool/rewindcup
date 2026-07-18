@@ -7,6 +7,7 @@ import {
   Clapperboard,
   Clock3,
   Flag,
+  Github,
   Globe2,
   Heart,
   Pause,
@@ -1560,11 +1561,19 @@ export function ReplayApp() {
           </div>
         </header>
 
-        <aside aria-label="Page feedback" className="page-report-control">
+        <aside aria-label="Project links" className="page-report-control">
           <button aria-label="Report an issue with this page" onClick={reportCurrentPage} type="button">
             <Flag aria-hidden="true" size={14} />
             <span>Give Feedback</span>
           </button>
+          <a
+            aria-label="View Rewind Cup source code on GitHub"
+            href="https://github.com/davmixcool/rewindcup"
+            rel="noreferrer"
+            target="_blank"
+          >
+            <Github aria-hidden="true" size={14} />
+          </a>
         </aside>
 
         {shareStatus ? <div aria-hidden="true" className="share-toast">{shareStatus}</div> : null}

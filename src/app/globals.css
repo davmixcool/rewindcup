@@ -660,7 +660,8 @@ button {
   pointer-events: none;
 }
 
-.page-report-control button {
+.page-report-control button,
+.page-report-control a {
   display: inline-flex;
   min-height: 26px;
   align-items: center;
@@ -673,9 +674,18 @@ button {
   cursor: pointer;
   font-size: 0.66rem;
   font-weight: 850;
+  text-decoration: none;
 }
 
-.page-report-control button:hover {
+.page-report-control a {
+  border-left: 1px solid var(--line);
+  border-radius: 0 9px 9px 0;
+  margin-left: 2px;
+  padding-left: 9px;
+}
+
+.page-report-control button:hover,
+.page-report-control a:hover {
   background: var(--accent-dim);
   color: var(--accent-strong);
 }
@@ -2441,7 +2451,8 @@ button {
     font-size: 0.62rem;
   }
 
-  .page-report-control button {
+  .page-report-control button,
+  .page-report-control a {
     min-height: 24px;
     font-size: 0.62rem;
   }

@@ -96,12 +96,16 @@ test("landing credit and global report control stay visible and keyboard reachab
 
   const creatorCredit = page.getByRole("link", { name: "Made with love by David Oti on X", exact: true });
   const reportButton = page.getByRole("button", { name: "Report an issue with this page", exact: true });
+  const sourceLink = page.getByRole("link", { name: "View Rewind Cup source code on GitHub", exact: true });
   await expect(creatorCredit).toBeVisible();
   await expect(reportButton).toBeVisible();
+  await expect(sourceLink).toBeVisible();
+  await expect(sourceLink).toHaveAttribute("href", "https://github.com/davmixcool/rewindcup");
+  await expect(sourceLink).toHaveAttribute("target", "_blank");
 
   const viewport = page.viewportSize();
   expect(viewport).not.toBeNull();
-  for (const control of [creatorCredit, reportButton]) {
+  for (const control of [creatorCredit, reportButton, sourceLink]) {
     const box = await control.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.x).toBeGreaterThanOrEqual(0);
@@ -112,9 +116,12 @@ test("landing credit and global report control stay visible and keyboard reachab
 
   await reportButton.focus();
   await expect(reportButton).toBeFocused();
+  await sourceLink.focus();
+  await expect(sourceLink).toBeFocused();
 
   await page.goto("/world-cups/2022/matches/wc-2022-64-arg-fra");
   await expect(creatorCredit).toHaveCount(0);
+  await expect(sourceLink).toBeVisible();
   const fixtureReportButton = page.getByRole("button", { name: "Report this fixture on X", exact: true });
   await expect(fixtureReportButton).toBeVisible();
   const fixtureReportBox = await fixtureReportButton.boundingBox();
