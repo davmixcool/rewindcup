@@ -137,7 +137,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   4: { videoId: "gSZlmAdfA_8", sourceName: "Tunisia Sport Replay highlights" },
   5: { videoId: "Ctg0-qpgyKo", sourceName: "Football Flashback 6 highlights" },
   6: { videoId: "auhA2fza3Pc", sourceName: "Football Flashback 6 highlights" },
-  7: { videoId: "uVOJ0ivNLK8", sourceName: "VintageHDtv highlights" },
+  7: { videoId: "uqdSCvhHYVw", sourceName: "LND fOoTy Legend highlights" },
   8: { videoId: "8_dlVFPRPQg", sourceName: "Football Flashback 6 highlights" },
   9: { videoId: "Pgy4B1VO1jY", sourceName: "Football Flashback 6 highlights" },
   10: { videoId: "9xql3CxN-Ds", sourceName: "Football Flashback 6 highlights" },

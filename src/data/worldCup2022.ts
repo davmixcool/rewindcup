@@ -186,7 +186,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   10: { videoId: "jugzlqMwD4E", sourceName: "NCF Ariyan highlights" },
   11: { videoId: "yYdr5zowYMA", sourceName: "Football King highlights" },
   12: { videoId: "xxXwimS7F3g", sourceName: "Voli Mania highlights" },
-  13: { videoId: "MvGk6fg8sXA", sourceName: "Qatar World Cup highlights" },
+  13: { videoId: "5UbGn98gHI4", sourceName: "SPORTS CENTER highlights" },
   14: { videoId: "wDfE620Z9lc", sourceName: "90+ Insight highlights" },
   15: { videoId: "DUWhb4ZJspQ", sourceName: "Fighters Official highlights" },
   16: { videoId: "ywMWUAl06AU", sourceName: "Goaldinho highlights" },
@@ -235,7 +235,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   59: { videoId: "IN9JyNQL4rI", sourceName: "HT Football highlights" },
   60: { videoId: "Dwr8h1wyevc", sourceName: "Galaxy Koora Gool HD highlights" },
   61: { videoId: "PWfnr7zEJic", sourceName: "Football Fever highlights" },
-  62: { videoId: "EnSIgPGKf38", sourceName: "Movieya highlights" },
+  62: { videoId: "QHsyK24C0Bw", sourceName: "SELENA F69 highlights" },
   63: { videoId: "NYEL7IHzSxo", sourceName: "World Football highlights" },
   64: { videoId: "xX_dwqVzc4c", sourceName: "ITV Sport highlights" }
 };

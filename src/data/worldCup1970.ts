@@ -145,7 +145,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   23: { videoId: "s59hUXxHI2o", sourceName: "Football Flashback 6 highlights" },
   24: { videoId: "ZO2vx2ZdQKA", sourceName: "Football Flashback 6 highlights" },
   25: { videoId: "ONrLOuJAkpo", sourceName: "tdspm highlights" },
-  26: { videoId: "uwnuSrMVsYQ", sourceName: "VintageHDtv highlights" },
+  26: { videoId: "nV-YYYJzSGo", sourceName: "World cup football jersey 2018 highlights" },
   27: { videoId: "aj0Oyb4SxbA", sourceName: "videosdaselecao highlights" },
   28: { videoId: "lc50LpoJCeg", sourceName: "LND fOoTy Legend highlights" },
   29: { videoId: "HZ61obs49u4", sourceName: "David highlights" },

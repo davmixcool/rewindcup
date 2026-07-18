@@ -214,7 +214,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   40: { videoId: "mjMQj6cnIb8", sourceName: "Football Flashback 6 highlights" },
   41: { videoId: "Qrbp1zBm_Sc", sourceName: "Football Flashback 6 highlights" },
   42: { videoId: "RlJw_AT9KRM", sourceName: "HistoryFull Worldcup highlights" },
-  43: { videoId: "YuvNo8Y3GRQ", sourceName: "VintageHDtv highlights" },
+  43: { videoId: "oQCN1EZxdwc", sourceName: "AISpotter highlights" },
   44: { videoId: "5RcY-yfcQ0o", sourceName: "Football Flashback 6 highlights" },
   45: { videoId: "aQ9yiAGqfm0", sourceName: "VintageHDtv2 highlights" },
   46: { videoId: "HgwnzxrJJM4", sourceName: "Football Flashback 6 highlights" },

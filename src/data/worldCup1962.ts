@@ -131,7 +131,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   13: { videoId: "dDIqr33ANac", sourceName: "Tiburón de Curramba highlights" },
   14: { videoId: "V7o5rvfDDpQ", sourceName: "1986soccerman highlights" },
   15: { videoId: "9ggjfP3lav0", sourceName: "sp1873 highlights" },
-  16: { videoId: "fW7fiU6DXm4", sourceName: "Joefa's World Cup History highlights" },
+  16: { videoId: "-8jUo5L_Dyo", sourceName: "Archive Rewind highlights" },
   17: { videoId: "qe-ua8d4oL4", sourceName: "1986soccerman highlights" },
   18: { videoId: "5pFo_gasHZg", sourceName: "The Free Football Library highlights" },
   19: { videoId: "_j90ppP2GBw", sourceName: "bapqapmoc highlights" },
@@ -144,7 +144,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   26: { videoId: "ojZXxRXLrjQ", sourceName: "sp1873 highlights" },
   27: { videoId: "5YCELVWtBAY", sourceName: "Tom Baleya HD highlights" },
   28: { videoId: "fxK5nYk35eA", sourceName: "sp1873 highlights" },
-  29: { videoId: "mWlpba4i5Mw", sourceName: "Ruda TV highlights" },
+  29: { videoId: "VQUXBrSq8G0", sourceName: "bapqapmoc highlights" },
   30: { videoId: "yQEvyRkX72I", sourceName: "The Free Football Library highlights" },
   31: { videoId: "po7_zQ7cMq8", sourceName: "sp1873 highlights" },
   32: { videoId: "n3R9no0Gjdo", sourceName: "bapqapmoc highlights" }

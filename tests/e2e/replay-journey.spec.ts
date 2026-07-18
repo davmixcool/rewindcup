@@ -117,10 +117,10 @@ test("tournament, country, fixture, stadium, and replay journey", async ({ page 
   await expect(replayTray).toBeVisible({ timeout: 20_000 });
   const highlightsFrame = replayTray.locator("iframe[title='Germany vs Saudi Arabia highlights']");
   await expect(highlightsFrame).toBeVisible();
-  await expect(highlightsFrame).toHaveAttribute("src", /youtube\.com\/embed\/FC_0MHwyhuk/);
-  await expect(replayTray.getByRole("link", { name: "Open World Cup Goals highlights", exact: true })).toHaveAttribute(
+  await expect(highlightsFrame).toHaveAttribute("src", /youtube\.com\/embed\/ztQkaB6WJN8/);
+  await expect(replayTray.getByRole("link", { name: "Open UEFA EURO Match 2 highlights", exact: true })).toHaveAttribute(
     "href",
-    "https://www.youtube.com/watch?v=FC_0MHwyhuk"
+    "https://www.youtube.com/watch?v=ztQkaB6WJN8"
   );
   await expectInsideViewport(page.locator(".bottom-tray.is-open"), page);
   await expectNoHorizontalOverflow(page);
@@ -633,11 +633,11 @@ test("1930 through 1998 journeys preserve historical formats and reset tournamen
   await expect(replayTray.getByRole("heading", { name: "England vs Germany", exact: true })).toBeVisible();
   await expect(replayTray.locator("iframe[title='England vs Germany highlights']")).toHaveAttribute(
     "src",
-    /youtube\.com\/embed\/tZHo-rw1fjg/
+    /youtube\.com\/embed\/v55OBRpuPuw/
   );
-  await expect(replayTray.getByRole("link", { name: "Open Football Flashback 6 highlights", exact: true })).toHaveAttribute(
+  await expect(replayTray.getByRole("link", { name: "Open ClassicEngland highlights", exact: true })).toHaveAttribute(
     "href",
-    "https://www.youtube.com/watch?v=tZHo-rw1fjg"
+    "https://www.youtube.com/watch?v=v55OBRpuPuw"
   );
   await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
 
@@ -897,11 +897,11 @@ test("1930 through 1998 journeys preserve historical formats and reset tournamen
   await expect(replayTray.getByRole("heading", { name: "Brazil vs France", exact: true })).toBeVisible();
   await expect(replayTray.locator("iframe[title='Brazil vs France highlights']")).toHaveAttribute(
     "src",
-    /youtube\.com\/embed\/xgWQmliYf2M/
+    /youtube\.com\/embed\/N7w61fxYYxc/
   );
-  await expect(replayTray.getByRole("link", { name: "Open World Cup Goals highlights", exact: true })).toHaveAttribute(
+  await expect(replayTray.getByRole("link", { name: "Open Football107 highlights", exact: true })).toHaveAttribute(
     "href",
-    "https://www.youtube.com/watch?v=xgWQmliYf2M"
+    "https://www.youtube.com/watch?v=N7w61fxYYxc"
   );
   await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
 

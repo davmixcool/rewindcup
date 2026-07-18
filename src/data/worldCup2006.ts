@@ -240,7 +240,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   43: { videoId: "hdtSxgbB4Fk", sourceName: "FGMH TV highlights" },
   44: { videoId: "NmHQ1msxt9Y", sourceName: "sp1873 highlights" },
   45: { videoId: "_n1SL8pg3Y8", sourceName: "J2foot highlights" },
-  46: { videoId: "LUW4C8Jqqbs", sourceName: "camperJOe highlights" },
+  46: { videoId: "5k8ZnLCb8vk", sourceName: "sp1873 highlights" },
   47: { videoId: "XscL1SzSPNo", sourceName: "camperJOe highlights" },
   48: { videoId: "G7hbwmaLfC4", sourceName: "UKRAINIAN FOOTBALL highlights" },
   49: { videoId: "vN18ggf8GAE", sourceName: "SOCCER HOUSE highlights" },

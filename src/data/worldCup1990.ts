@@ -173,7 +173,7 @@ type YouTubeHighlightSeed = {
 // matches the teams and score and passed YouTube's real embed response with
 // status OK and playableInEmbed=true.
 const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
-  1: { videoId: "T46HbbFvpa4", sourceName: "VintageHDtv highlights" },
+  1: { videoId: "Y5LWD79d17k", sourceName: "SOCCER HOUSE highlights" },
   2: { videoId: "LcXsADVnwRI", sourceName: "Tikitaka.ro highlights" },
   3: { videoId: "noJ-U-vF-No", sourceName: "Mr Soccer highlights" },
   4: { videoId: "M_wwnETMdHU", sourceName: "RosenTV highlights" },
@@ -193,7 +193,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   18: { videoId: "FhmihHDAptE", sourceName: "greensterRox highlights" },
   19: { videoId: "Ox8sfocvl0k", sourceName: "Football Flashback 6 highlights" },
   20: { videoId: "QGHoLG3UMEA", sourceName: "Football Flashback 6 highlights" },
-  21: { videoId: "zY7BpvTwCp4", sourceName: "VintageHDtv highlights" },
+  21: { videoId: "70ix815NT74", sourceName: "WELLINGTON 51 highlights" },
   22: { videoId: "X3GeTQ21nxE", sourceName: "CuChoileain highlights" },
   23: { videoId: "qtILBG9sYkc", sourceName: "RosenTV highlights" },
   24: { videoId: "E5FfcNDi_Ow", sourceName: "Football Flashback 6 highlights" },
@@ -212,7 +212,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   37: { videoId: "x16llCQfpF8", sourceName: "wwwallworldcupgoals highlights" },
   38: { videoId: "N9MFM3RC9l0", sourceName: "Football Flashback 6 highlights" },
   39: { videoId: "BmWPolw_P_8", sourceName: "Football Flashback 6 highlights" },
-  40: { videoId: "kekUAM0FkI8", sourceName: "VintageHDtv highlights" },
+  40: { videoId: "j9XWHhrksaU", sourceName: "THE SOCCER UEFA highlights" },
   41: { videoId: "eN54GFv-y8c", sourceName: "Football Flashback 6 highlights" },
   42: { videoId: "iuvbJ6f4J_U", sourceName: "Football Flashback 6 highlights" },
   43: { videoId: "k3EK4JLImm0", sourceName: "Football Flashback 6 highlights" },

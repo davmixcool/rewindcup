@@ -128,8 +128,8 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   3: { videoId: "TPlHdo5mDHM", sourceName: "sp1873 highlights" },
   4: { videoId: "dB5ck3jmEr0", sourceName: "sp1873 highlights" },
   5: { videoId: "M-_kJWujJLI", sourceName: "sp1873 highlights" },
-  6: { videoId: "TjUAOF2wN8s", sourceName: "sp1873 highlights" },
-  7: { videoId: "Vg3RIqjxT68", sourceName: "World Cup Goals highlights" },
+  6: { videoId: "t7N1uZrcXrw", sourceName: "MatchMomentZ highlights" },
+  7: { videoId: "PJSlT-WU8Sg", sourceName: "Fútbol Total highlights" },
   8: { videoId: "iOFYIOeFzTo", sourceName: "sp1873 highlights" },
   9: { videoId: "znlgsnOE2-Q", sourceName: "sp1873 highlights" },
   10: { videoId: "Uxhi2NT62hs", sourceName: "sp1873 highlights" },
@@ -154,7 +154,7 @@ const youtubeHighlightsByFixture: Record<number, YouTubeHighlightSeed> = {
   29: { videoId: "hEbCSqFsu9w", sourceName: "World Cup History highlights" },
   30: { videoId: "s0lNNXzxiT0", sourceName: "ClassicEngland highlights" },
   31: { videoId: "xMmlh-V7hC8", sourceName: "sp1873 highlights" },
-  32: { videoId: "tZHo-rw1fjg", sourceName: "Football Flashback 6 highlights" }
+  32: { videoId: "v55OBRpuPuw", sourceName: "ClassicEngland highlights" }
 };
 
 const fifaMatchIdsByFixture: Record<number, string> = {
