@@ -69,15 +69,6 @@ David Oti. You may reference the Rewind Cup name to describe the project or
 your contribution, but forks should replace the brand assets and must not
 imply that they are the official Rewind Cup deployment.
 
-The soundtrack incorporated into `public/videos/rewindcup-launch-recorded.mp4`
-is **“Sports Highlights” by Ahjay Stelino**, used under the Mixkit Stock Music
-Free License. The track remains subject to Mixkit's license and is not covered
-by the reserved-rights notice above.
-
-- Track source: https://assets.mixkit.co/music/51/51.mp3
-- Catalog and attribution: https://mixkit.co/free-stock-music/tag/sports/
-- License: https://mixkit.co/license/#musicFree
-
 ## External match media
 
 Rewind Cup does not redistribute match footage. YouTube videos and FIFA match

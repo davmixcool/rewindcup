@@ -3,8 +3,11 @@ import { resolve } from "node:path";
 import { chromium } from "playwright";
 
 const rootDir = resolve(import.meta.dirname, "..");
-const recordingDir = "/private/tmp/rewindcup-launch-recording";
-const timingFile = "/private/tmp/rewindcup-launch-recording-start.txt";
+const recordingMode = process.env.REWINDCUP_RECORDING_MODE === "mobile" ? "mobile" : "desktop";
+const isMobile = recordingMode === "mobile";
+const viewport = isMobile ? { width: 432, height: 768 } : { width: 1280, height: 720 };
+const recordingDir = `/private/tmp/rewindcup-launch-recording-${recordingMode}`;
+const timingFile = `/private/tmp/rewindcup-launch-recording-${recordingMode}-start.txt`;
 const browserExecutable = process.env.PLAYWRIGHT_CHROMIUM_PATH || "/opt/homebrew/bin/chromium";
 const productionUrl = process.env.REWINDCUP_URL || "https://rewindcup.com/";
 
@@ -29,11 +32,13 @@ const browser = await chromium.launch({
 const context = await browser.newContext({
   colorScheme: "dark",
   deviceScaleFactor: 1,
+  hasTouch: isMobile,
+  isMobile,
   recordVideo: {
     dir: recordingDir,
-    size: { width: 1280, height: 720 }
+    size: viewport
   },
-  viewport: { width: 1280, height: 720 }
+  viewport
 });
 
 await context.addInitScript(() => {
@@ -94,30 +99,51 @@ await waitUntil(14_000);
 await fixtureTray.getByRole("button", { name: "Final", exact: true }).click();
 
 await waitUntil(15_300);
-await fixtureTray.locator(".tray-fixture-row").click();
+const finalFixture = fixtureTray.locator(".tray-fixture-row").first();
+await finalFixture.waitFor({ state: "visible", timeout: 10_000 });
+await finalFixture.dispatchEvent("click");
 
 const replayTray = page.getByRole("region", { name: "Match replay and highlights", exact: true });
-await replayTray.waitFor({ state: "visible", timeout: 10_000 });
-await page.addStyleTag({
-  content: `
-    .bottom-tray.is-open:has(.tray-replay-popover) {
-      width: min(760px, calc(100vw - 48px)) !important;
-    }
-    .tray-replay-popover {
-      max-height: min(76svh, 680px) !important;
-    }
-    .tray-replay-grid {
-      grid-template-columns: minmax(0, 1fr) 280px !important;
-      overflow-y: visible !important;
-    }
-    .tray-highlight-card {
-      min-height: 280px !important;
-    }
-    .tray-highlight-embed {
-      min-height: 225px !important;
-    }
-  `
-});
+await replayTray.waitFor({ state: "visible", timeout: 15_000 });
+if (!isMobile) {
+  await page.addStyleTag({
+    content: `
+      .bottom-tray.is-open:has(.tray-replay-popover) {
+        width: min(760px, calc(100vw - 48px)) !important;
+      }
+      .tray-replay-popover {
+        max-height: min(76svh, 680px) !important;
+      }
+      .tray-replay-grid {
+        grid-template-columns: minmax(0, 1fr) 280px !important;
+        overflow-y: visible !important;
+      }
+      .tray-highlight-card {
+        min-height: 280px !important;
+      }
+      .tray-highlight-embed {
+        min-height: 225px !important;
+      }
+    `
+  });
+} else {
+  await page.addStyleTag({
+    content: `
+      .bottom-tray.is-open:has(.tray-replay-popover) {
+        width: calc(100vw - 12px) !important;
+      }
+      .tray-replay-popover {
+        max-height: min(78svh, 620px) !important;
+      }
+      .tray-scoreline {
+        display: none !important;
+      }
+      .tray-highlight-embed {
+        min-height: 220px !important;
+      }
+    `
+  });
+}
 await replayTray.getByRole("heading", { name: "Argentina vs France", exact: true }).waitFor();
 const highlightFrame = replayTray.locator("iframe[title='Argentina vs France highlights']");
 await highlightFrame.waitFor({ state: "visible", timeout: 10_000 });
@@ -125,10 +151,11 @@ await highlightFrame.evaluate((element) => {
   const embedUrl = new URL(element.src);
   embedUrl.searchParams.set("autoplay", "1");
   embedUrl.searchParams.set("mute", "1");
+  embedUrl.searchParams.set("start", "8");
   element.src = embedUrl.toString();
 });
 
-await waitUntil(18_900);
+await waitUntil(17_200);
 const playButton = replayTray.getByRole("button", { name: "Play", exact: true });
 if (await playButton.isVisible()) await playButton.click();
 
@@ -139,10 +166,20 @@ if (await nativePlayButton.isVisible()) await nativePlayButton.click();
 
 const highlightVideo = highlightPlayer.locator("video.html5-main-video");
 await highlightVideo.waitFor({ state: "attached", timeout: 5_000 }).catch(() => {});
+const playbackStartSeconds = 8;
+await highlightVideo.evaluate(async (element, startSeconds) => {
+  element.muted = true;
+  if (element.currentTime < startSeconds) element.currentTime = startSeconds;
+  await element.play();
+}, playbackStartSeconds, { timeout: 5_000 }).catch(() => {});
 let highlightPlaybackStarted = false;
 for (let attempt = 0; attempt < 12; attempt += 1) {
-  const currentTime = await highlightVideo.evaluate((element) => element.currentTime).catch(() => 0);
-  if (currentTime > 0.25) {
+  const currentTime = await highlightVideo.evaluate(
+    (element) => element.currentTime,
+    undefined,
+    { timeout: 1_000 }
+  ).catch(() => 0);
+  if (currentTime > playbackStartSeconds + 0.25) {
     highlightPlaybackStarted = true;
     break;
   }
@@ -169,4 +206,4 @@ await context.close();
 const rawVideoPath = await video.path();
 await browser.close();
 
-process.stdout.write(JSON.stringify({ highlightPlaybackStarted, rawVideoPath, timingFile, trimStartSeconds, rootDir }, null, 2));
+process.stdout.write(JSON.stringify({ highlightPlaybackStarted, rawVideoPath, timingFile, trimStartSeconds, recordingMode, rootDir, viewport }, null, 2));
