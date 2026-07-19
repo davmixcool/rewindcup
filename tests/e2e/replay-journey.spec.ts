@@ -365,6 +365,20 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
   );
   await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toBeVisible();
 
+  await page.goto("/world-cups/2026/matches/wc-2026-103-fra-eng");
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "France vs England", exact: true })).toBeVisible();
+  const bronzeFinalFrame = replayTray.locator("iframe[title='France vs England highlights']");
+  await expect(bronzeFinalFrame).toHaveAttribute("src", /youtube\.com\/embed\/4GX1bYGqnfw/);
+  await expect(replayTray.getByRole("link", { name: "Open SuperSport highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=4GX1bYGqnfw"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.fifa.com/en/match-centre/match/17/285023/289291/400021542?date=2026-07-18"
+  );
+
   expect(mapIssues).toEqual([]);
 });
 

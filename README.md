@@ -8,7 +8,7 @@
 
 Rewind Cup is an interactive archive for reliving men's FIFA World Cup tournaments through a globe, historical fixtures, stadium journeys, match events, and playable highlights.
 
-The archive currently covers 23 editions from Uruguay 1930 through Canada, Mexico & USA 2026. The 2026 edition is an in-progress snapshot through both semi-finals; completed historical editions contain their full tournament journeys.
+The archive currently covers 23 editions from Uruguay 1930 through Canada, Mexico & USA 2026. The 2026 edition is an in-progress snapshot through the bronze final; completed historical editions contain their full tournament journeys.
 
 ## What you can do
 
