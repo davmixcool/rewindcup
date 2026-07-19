@@ -1573,6 +1573,7 @@ export function ReplayApp() {
             target="_blank"
           >
             <Github aria-hidden="true" size={14} />
+            <span>View source</span>
           </a>
         </aside>
 
