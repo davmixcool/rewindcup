@@ -771,12 +771,9 @@ Re-run the live check with `npm run audit:youtube-embeds -- wc-2022`.
 
 ## Canada, Mexico & USA 2026
 
-This is an in-progress snapshot captured on July 18, 2026. It includes the
-103 completed matches through the bronze final and deliberately omits the
-final, which had not yet been played.
-The tournament remains marked `partial`; its known final totals are 104
-matches and 16 venues, while the goal total stays unset until the tournament
-is complete.
+This completed snapshot was captured on July 20, 2026. It includes all 104
+matches through Spain's 1-0 extra-time victory over Argentina in the final.
+The tournament is marked `complete`, with 308 match goals and 16 venues.
 
 Groups, teams, official match numbers, dates, venues, results, knockout
 decisions, and pending fixtures were checked against FIFA's current calendar
@@ -791,16 +788,17 @@ FIFA by date and exact team pairing, and every match's reconstructed goal
 events were reconciled with its final score:
 
 - FIFA bronze-final event feed: https://api.fifa.com/api/v3/live/football/17/285023/289291/400021542?language=en
-- ESPN scoreboard: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260718&limit=200
+- FIFA final event feed: https://api.fifa.com/api/v3/live/football/17/285023/289292/400021543?language=en
+- ESPN scoreboard: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=200
 - ESPN match summary pattern: https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=760515
 
-The snapshot contains 103 matches, 307 match goals excluding shootout kicks,
+The snapshot contains 104 matches, 308 match goals excluding shootout kicks,
 48 teams across 12 groups, and 16 venues. It preserves four penalty shootouts
-and four extra-time decisions. Stadium and team coordinates are approximate
+and five extra-time decisions. Stadium and team coordinates are approximate
 map anchors.
 
-Every completed fixture has an exact-match YouTube highlight. On July 19,
-2026, all 103 selected videos matched both teams and the competition and
+Every fixture has an exact-match YouTube highlight. On July 20, 2026, all 104
+selected videos matched both teams and the competition and
 returned both `previewPlayabilityStatus: OK` and `playableInEmbed: true` from
 YouTube's real embedded-player response with the app origin. Blocked official
 FIFA uploads were replaced with verified broadcaster alternatives, while

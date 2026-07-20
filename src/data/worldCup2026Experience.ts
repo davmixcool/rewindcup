@@ -35,7 +35,7 @@ export const worldCup2026TeamCoordinates: Partial<Record<TeamCode, Coordinates>>
 };
 
 export const worldCup2026Format = {
-  expectedGoalCount: null,
+  expectedGoalCount: 308,
   expectedMatchCount: 104,
   expectedVenueCount: 16,
   groupMatchesPerTeam: 3

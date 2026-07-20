@@ -46,7 +46,7 @@ const venues: Venue[] = venueSeeds.map((venue) => ({
   stadiumView: { center: venue.coordinates, zoom: 16.35, bearing: venue.bearing ?? -12, pitch: 64 }
 }));
 
-// This partial snapshot includes only matches completed by 18 July 2026.
+// This snapshot includes the complete tournament through the 19 July final.
 const fixtureSeeds: FixtureSeed[] = [
   {no: 1,stage: "group",date: "2026-06-11",venueId: "mexico-city-stadium",home: "MEX",away: "RSA",score: {home: 2,away: 0}},
   {no: 2,stage: "group",date: "2026-06-11",venueId: "guadalajara-stadium",home: "KOR",away: "CZE",score: {home: 2,away: 1}},
@@ -150,7 +150,8 @@ const fixtureSeeds: FixtureSeed[] = [
   {no: 100,stage: "qf",date: "2026-07-11",venueId: "kansas-city-stadium",home: "ARG",away: "SUI",score: {home: 3,away: 1},durationMinutes: 120,note: "ARG won after extra time"},
   {no: 101,stage: "sf",date: "2026-07-14",venueId: "dallas-stadium",home: "FRA",away: "ESP",score: {home: 0,away: 2}},
   {no: 102,stage: "sf",date: "2026-07-15",venueId: "atlanta-stadium",home: "ENG",away: "ARG",score: {home: 1,away: 2}},
-  {no: 103,stage: "third",date: "2026-07-18",venueId: "miami-stadium",home: "FRA",away: "ENG",score: {home: 4,away: 6}}
+  {no: 103,stage: "third",date: "2026-07-18",venueId: "miami-stadium",home: "FRA",away: "ENG",score: {home: 4,away: 6}},
+  {no: 104,stage: "final",date: "2026-07-19",venueId: "new-york-new-jersey-stadium",home: "ESP",away: "ARG",score: {home: 1,away: 0},durationMinutes: 120,note: "ESP won after extra time"}
 ];
 
 // Scorers were reconciled against FIFA's final scores and ESPN's event feed.
@@ -249,7 +250,8 @@ const goalsByFixture: Partial<Record<number, GoalSeed[]>> = {
   100: [[10,"ARG","Alexis Mac Allister"],[67,"SUI","Dan Ndoye"],[112,"ARG","Julián Álvarez"],[120,"ARG","Lautaro Martínez","Lautaro Martínez scores in extra-time stoppage time."]],
   101: [[22,"ESP","Mikel Oyarzabal","Mikel Oyarzabal scores from the penalty spot."],[58,"ESP","Pedro Porro","Pedro Porro scores with Dani Olmo assisting."]],
   102: [[55,"ENG","Anthony Gordon","Anthony Gordon scores with Morgan Rogers assisting."],[85,"ARG","Enzo Fernández","Enzo Fernández scores with Lionel Messi assisting."],[90,"ARG","Lautaro Martínez","Lautaro Martínez scores in second-half stoppage time with Lionel Messi assisting."]],
-  103: [[3,"ENG","Declan Rice"],[18,"ENG","Ezri Konsa"],[37,"ENG","Bukayo Saka"],[45,"ENG","Bukayo Saka","Bukayo Saka scores in first-half stoppage time."],[48,"FRA","Kylian Mbappé"],[54,"FRA","Bradley Barcola"],[66,"FRA","Kylian Mbappé"],[87,"ENG","Bukayo Saka","Bukayo Saka scores from the penalty spot."],[90,"FRA","Ousmane Dembélé","Ousmane Dembélé scores in second-half stoppage time."],[90,"ENG","Jude Bellingham","Jude Bellingham scores in second-half stoppage time."]]
+  103: [[3,"ENG","Declan Rice"],[18,"ENG","Ezri Konsa"],[37,"ENG","Bukayo Saka"],[45,"ENG","Bukayo Saka","Bukayo Saka scores in first-half stoppage time."],[48,"FRA","Kylian Mbappé"],[54,"FRA","Bradley Barcola"],[66,"FRA","Kylian Mbappé"],[87,"ENG","Bukayo Saka","Bukayo Saka scores from the penalty spot."],[90,"FRA","Ousmane Dembélé","Ousmane Dembélé scores in second-half stoppage time."],[90,"ENG","Jude Bellingham","Jude Bellingham scores in second-half stoppage time."]],
+  104: [[106,"ESP","Ferran Torres","Ferran Torres scores the World Cup-winning goal in extra time."]]
 };
 
 type YouTubeHighlightSeed = { videoId: string; sourceName: string };
@@ -359,7 +361,8 @@ const youtubeHighlightsByFixture: Partial<Record<number, YouTubeHighlightSeed>> 
   100: { videoId: "JZmfJSUROsg", sourceName: "SuperSport highlights" },
   101: { videoId: "kKTLkp6iMLo", sourceName: "SuperSport highlights" },
   102: { videoId: "mxd5pdOr5iE", sourceName: "SuperSport highlights" },
-  103: { videoId: "4GX1bYGqnfw", sourceName: "SuperSport highlights" }
+  103: { videoId: "4GX1bYGqnfw", sourceName: "SuperSport highlights" },
+  104: { videoId: "IB--1yzW9KM", sourceName: "SuperSport highlights" }
 };
 
 const fifaMatchIdsByFixture: Record<number, string> = {
@@ -465,7 +468,8 @@ const fifaMatchIdsByFixture: Record<number, string> = {
   100: "400021537",
   101: "400021541",
   102: "400021540",
-  103: "400021542"
+  103: "400021542",
+  104: "400021543"
 };
 
 const fifaStageIds: Record<Match["stage"], string> = {
@@ -569,8 +573,8 @@ export const worldCup2026: Tournament = {
   groups: worldCup2026Groups,
   teamCoordinates: worldCup2026TeamCoordinates,
   format: worldCup2026Format,
-  stages: ["group", "r32", "r16", "qf", "sf", "third"],
-  status: "partial",
+  stages: ["group", "r32", "r16", "qf", "sf", "third", "final"],
+  status: "complete",
   mapView: { center: [-100, 38], zoom: 2.45, bearing: 0, pitch: 28 },
   venues,
   featuredRoute: venues.map((venue) => venue.id),

@@ -379,6 +379,20 @@ test("2006 through 2026 journeys and tournament switching reset stale state", as
     "https://www.fifa.com/en/match-centre/match/17/285023/289291/400021542?date=2026-07-18"
   );
 
+  await page.goto("/world-cups/2026/matches/wc-2026-104-esp-arg");
+  await expect(replayTray).toBeVisible({ timeout: 20_000 });
+  await expect(replayTray.getByRole("heading", { name: "Spain vs Argentina", exact: true })).toBeVisible();
+  const worldCupFinalFrame = replayTray.locator("iframe[title='Spain vs Argentina highlights']");
+  await expect(worldCupFinalFrame).toHaveAttribute("src", /youtube\.com\/embed\/IB--1yzW9KM/);
+  await expect(replayTray.getByRole("link", { name: "Open SuperSport highlights", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=IB--1yzW9KM"
+  );
+  await expect(replayTray.getByRole("link", { name: "FIFA match report", exact: true })).toHaveAttribute(
+    "href",
+    "https://www.fifa.com/en/match-centre/match/17/285023/289292/400021543?date=2026-07-19"
+  );
+
   expect(mapIssues).toEqual([]);
 });
 
